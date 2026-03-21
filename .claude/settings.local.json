@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(hdiutil attach:*)",
+      "Bash(npm install:*)",
+      "Bash(ngrok version:*)",
+      "Bash(brew install:*)",
+      "Bash(ngrok config:*)",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(curl -s -X POST http://localhost:3000/webhook/sms -H \"Content-Type: application/json\" -d '{\"\"message\"\":\"\"test\"\"}')",
+      "Bash(curl -s http://localhost:4040/api/tunnels)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d[''''tunnels''''][0][''''public_url'''']\\)\")",
+      "Bash(curl -s -X GET \"https://services.leadconnectorhq.com/conversations/search?contactId=HNJHXsbWG4fPosPiEIHz&locationId=8Yo50WQExfw0AaAPK6Kw\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb2NhdGlvbl9pZCI6IjhZbzUwV1FFeGZ3MEFhQVBLNkt3IiwidmVyc2lvbiI6MSwiaWF0IjoxNzM4NTEzMzI1Mzc3LCJzdWIiOiJWMWk3N2U5b2tWSnBVZzV2aE1TeCJ9.tO_2xf6erHv79uuFxp_mNJVI3npmUjNu-76aOoxJWGs\" -H \"Version: 2021-07-28\" -H \"Content-Type: application/json\")",
+      "Bash(node -e \":*)",
+      "WebFetch(domain:redrockbuyshouses.com)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

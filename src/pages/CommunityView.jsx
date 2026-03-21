@@ -1,0 +1,540 @@
+import React, { useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import {
+  Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
+  Plus, Trash2, Clock, Tag, MoreHorizontal, ArrowLeft, MapPin
+} from 'lucide-react'
+import {
+  format, startOfMonth, endOfMonth, eachDayOfInterval,
+  addMonths, subMonths, isSameDay, getDay, isToday, parseISO
+} from 'date-fns'
+import { useApp } from '../App'
+import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
+
+// ─── Shared Helpers ────────────────────────────────────────────────────────────
+
+function Initials({ name, color, size = 'md' }) {
+  const sizes = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base', xl: 'w-14 h-14 text-lg' }
+  const parts = (name || '').split(' ')
+  const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : (name?.[0] || '?')
+  return (
+    <div className={`${sizes[size]} rounded-full flex items-center justify-center font-bold flex-shrink-0 uppercase`} style={{ backgroundColor: color + '30', color }}>
+      {initials}
+    </div>
+  )
+}
+
+function timeAgo(dateStr) {
+  const now = new Date()
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr
+  const diff = Math.floor((now - date) / 1000)
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
+  return format(date, 'MMM d, yyyy')
+}
+
+// ─── Feed Tab ──────────────────────────────────────────────────────────────────
+
+function PostCard({ post, members, onLike }) {
+  const member = members.find(m => m.id === post.memberId)
+  const liked = post.likedBy?.includes('me')
+  if (!member) return null
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div className="flex items-start gap-4">
+        <Initials name={member.name} color={member.color} size="lg" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <div>
+              <span className="font-semibold text-gray-900">{member.name}</span>
+              <span className="text-sm text-gray-400 ml-2">{member.title}</span>
+            </div>
+            <span className="text-xs text-gray-400">{timeAgo(post.createdAt)}</span>
+          </div>
+          <div className="inline-flex items-center gap-1 mb-3">
+            <span className="text-xs font-medium px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full">Introduction</span>
+          </div>
+          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
+            <button
+              onClick={() => onLike(post.id)}
+              className={`flex items-center gap-1.5 text-sm transition-colors ${liked ? 'text-rose-500' : 'text-gray-400 hover:text-rose-400'}`}
+            >
+              <Heart size={15} fill={liked ? 'currentColor' : 'none'} />
+              <span>{post.likes}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FeedTab({ communityId, community }) {
+  const { members, posts, likePost } = useApp()
+  const [showPost, setShowPost] = useState(false)
+
+  const communityMembers = members.filter(m => m.communityId === communityId)
+  const communityPosts = posts.filter(p => p.communityId === communityId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Post CTA */}
+      <div
+        onClick={() => setShowPost(true)}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6 cursor-pointer hover:shadow-md transition-all flex items-center gap-3"
+      >
+        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+          <MessageSquare size={16} className="text-indigo-500" />
+        </div>
+        <p className="text-gray-400 text-sm flex-1">Introduce yourself to the community...</p>
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowPost(true) }}
+          className="px-4 py-2 rounded-xl text-sm font-medium text-white flex-shrink-0 transition-colors hover:opacity-90"
+          style={{ backgroundColor: community.color }}
+        >
+          Post Intro
+        </button>
+      </div>
+
+      {/* Posts */}
+      {communityPosts.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+          <div className="text-4xl mb-4">👋</div>
+          <h3 className="font-semibold text-gray-700 mb-2">Be the first to introduce yourself!</h3>
+          <p className="text-sm text-gray-400">Share who you are, what you do, and why you joined this community.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {communityPosts.map(post => (
+            <PostCard key={post.id} post={post} members={communityMembers} onLike={likePost} />
+          ))}
+        </div>
+      )}
+
+      {showPost && <PostIntroModal communityId={communityId} community={community} onClose={() => setShowPost(false)} />}
+    </div>
+  )
+}
+
+// ─── Calendar Tab ──────────────────────────────────────────────────────────────
+
+const TYPE_CONFIG = {
+  call:      { label: 'Live Call',  color: '#6366f1', bg: '#6366f115' },
+  workshop:  { label: 'Workshop',   color: '#f59e0b', bg: '#f59e0b15' },
+  challenge: { label: 'Challenge',  color: '#10b981', bg: '#10b98115' },
+  other:     { label: 'Event',      color: '#6b7280', bg: '#6b728015' },
+}
+
+function CalendarTab({ communityId, community }) {
+  const { events, addEvent, deleteEvent } = useApp()
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 2, 1))
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [showAddEvent, setShowAddEvent] = useState(false)
+
+  const communityEvents = events.filter(e => e.communityId === communityId)
+
+  const monthStart = startOfMonth(currentMonth)
+  const monthEnd   = endOfMonth(currentMonth)
+  const days       = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  const startPad   = getDay(monthStart)
+
+  const getEventsForDay = (date) => {
+    const dateStr = format(date, 'yyyy-MM-dd')
+    return communityEvents.filter(e => e.date === dateStr)
+  }
+
+  const selectedDayEvents = selectedDay ? getEventsForDay(selectedDay) : []
+
+  const upcomingEvents = communityEvents
+    .filter(e => e.date >= format(new Date(), 'yyyy-MM-dd'))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  return (
+    <div>
+      <div className="flex gap-6">
+        {/* Calendar */}
+        <div className="flex-1">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            {/* Month Nav */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900">{format(currentMonth, 'MMMM yyyy')}</h3>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                  <ChevronLeft size={18} />
+                </button>
+                <button onClick={() => setCurrentMonth(new Date(2026, 2, 1))} className="px-3 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                  Today
+                </button>
+                <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Day headers */}
+            <div className="grid grid-cols-7 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                <div key={d} className="text-center text-xs font-semibold text-gray-400 py-2">{d}</div>
+              ))}
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {Array(startPad).fill(null).map((_, i) => <div key={`pad-${i}`} />)}
+              {days.map(day => {
+                const dayEvents = getEventsForDay(day)
+                const today = isToday(day)
+                const selected = selectedDay && isSameDay(day, selectedDay)
+                return (
+                  <div
+                    key={day.toString()}
+                    onClick={() => setSelectedDay(isSameDay(day, selectedDay) ? null : day)}
+                    className={`min-h-[72px] rounded-xl p-1.5 cursor-pointer transition-all border ${
+                      selected ? 'border-indigo-300 bg-indigo-50' : today ? 'border-indigo-100 bg-indigo-50/50' : 'border-transparent hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium mb-1 mx-auto ${
+                      today ? 'bg-indigo-600 text-white' : 'text-gray-600'
+                    }`}>
+                      {format(day, 'd')}
+                    </div>
+                    <div className="space-y-0.5">
+                      {dayEvents.slice(0, 2).map(event => {
+                        const cfg = TYPE_CONFIG[event.type] || TYPE_CONFIG.other
+                        return (
+                          <div key={event.id} className="text-xs rounded px-1 py-0.5 truncate font-medium" style={{ backgroundColor: cfg.bg, color: cfg.color }}>
+                            {event.title}
+                          </div>
+                        )
+                      })}
+                      {dayEvents.length > 2 && (
+                        <div className="text-xs text-gray-400 px-1">+{dayEvents.length - 2} more</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Selected day events */}
+          {selectedDay && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-4">
+              <h4 className="font-semibold text-gray-800 mb-4">{format(selectedDay, 'EEEE, MMMM d')}</h4>
+              {selectedDayEvents.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-400 mb-3">No events on this day</p>
+                  <button onClick={() => setShowAddEvent(true)} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                    + Add Event
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {selectedDayEvents.map(event => {
+                    const cfg = TYPE_CONFIG[event.type] || TYPE_CONFIG.other
+                    return (
+                      <div key={event.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: cfg.bg }}>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-xs font-medium px-1.5 py-0.5 rounded-md" style={{ backgroundColor: cfg.color + '20', color: cfg.color }}>{cfg.label}</span>
+                          </div>
+                          <p className="font-semibold text-gray-800 text-sm">{event.title}</p>
+                          {event.description && <p className="text-xs text-gray-500 mt-0.5">{event.description}</p>}
+                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Clock size={11} />{event.time}</p>
+                        </div>
+                        <button onClick={() => deleteEvent(event.id)} className="text-gray-300 hover:text-red-400 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar: upcoming + add */}
+        <div className="w-72 flex-shrink-0 space-y-4">
+          <button
+            onClick={() => setShowAddEvent(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: community.color }}
+          >
+            <Plus size={16} />
+            Add Event
+          </button>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-semibold text-gray-800 mb-4">Upcoming Events</h4>
+            {upcomingEvents.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No upcoming events</p>
+            ) : (
+              <div className="space-y-3">
+                {upcomingEvents.map(event => {
+                  const cfg = TYPE_CONFIG[event.type] || TYPE_CONFIG.other
+                  const date = new Date(event.date + 'T00:00:00')
+                  return (
+                    <div key={event.id} className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl flex flex-col items-center justify-center flex-shrink-0" style={{ backgroundColor: cfg.bg }}>
+                        <span className="text-xs font-bold leading-none" style={{ color: cfg.color }}>{format(date, 'd')}</span>
+                        <span className="text-xs leading-none" style={{ color: cfg.color }}>{format(date, 'MMM')}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{event.title}</p>
+                        <p className="text-xs text-gray-400">{event.time}</p>
+                        <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}</span>
+                      </div>
+                      <button onClick={() => deleteEvent(event.id)} className="text-gray-200 hover:text-red-400 transition-colors flex-shrink-0 mt-1">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Legend */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h4 className="font-semibold text-gray-800 mb-3">Event Types</h4>
+            <div className="space-y-2">
+              {Object.entries(TYPE_CONFIG).map(([key, cfg]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cfg.color }} />
+                  <span className="text-sm text-gray-600">{cfg.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showAddEvent && (
+        <AddEventModal
+          communityId={communityId}
+          community={community}
+          defaultDate={selectedDay ? format(selectedDay, 'yyyy-MM-dd') : ''}
+          onClose={() => setShowAddEvent(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── Members Tab ───────────────────────────────────────────────────────────────
+
+function MemberCard({ member, joinedAt }) {
+  const parts = (member.name || '').split(' ')
+  const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : (member.name?.[0] || '?')
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-all">
+      <div className="flex items-start gap-4 mb-3">
+        <div
+          className="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold flex-shrink-0 uppercase"
+          style={{ backgroundColor: member.color + '25', color: member.color }}
+        >
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-gray-900 leading-tight">{member.name}</p>
+          <p className="text-sm text-gray-400">{member.title}</p>
+          <p className="text-xs text-gray-300 mt-0.5">Joined {new Date(joinedAt + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
+        </div>
+      </div>
+      {member.bio && <p className="text-sm text-gray-500 leading-relaxed">{member.bio}</p>}
+    </div>
+  )
+}
+
+function MembersTab({ communityId, community }) {
+  const { members } = useApp()
+  const [showAdd, setShowAdd] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const communityMembers = members
+    .filter(m => m.communityId === communityId)
+    .filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.title.toLowerCase().includes(search.toLowerCase()))
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search members..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 bg-white w-64"
+          />
+        </div>
+        <button
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
+          style={{ backgroundColor: community.color }}
+        >
+          <Plus size={15} />
+          Add Member
+        </button>
+      </div>
+
+      {communityMembers.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+          <div className="text-4xl mb-4">👥</div>
+          <h3 className="font-semibold text-gray-700 mb-2">No members yet</h3>
+          <p className="text-sm text-gray-400 mb-5">Add your first member to get the community started.</p>
+          <button
+            onClick={() => setShowAdd(true)}
+            className="px-5 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: community.color }}
+          >
+            Add Member
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {communityMembers.map(member => (
+            <MemberCard key={member.id} member={member} joinedAt={member.joinedAt} />
+          ))}
+        </div>
+      )}
+
+      {showAdd && <AddMemberModal communityId={communityId} community={community} onClose={() => setShowAdd(false)} />}
+    </div>
+  )
+}
+
+// ─── Community View ─────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: 'feed',     label: 'Community Feed',  icon: MessageSquare },
+  { id: 'calendar', label: 'Calendar',         icon: Calendar },
+  { id: 'members',  label: 'Members',          icon: Users },
+]
+
+export default function CommunityView() {
+  const { id, tab } = useParams()
+  const navigate = useNavigate()
+  const { communities, members, events, posts, deleteCommunity } = useApp()
+  const [activeTab, setActiveTab] = useState(tab || 'feed')
+
+  const community = communities.find(c => c.id === id)
+
+  if (!community) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <div className="text-5xl mb-4">🔍</div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Community not found</h2>
+        <button onClick={() => navigate('/')} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium">
+          Back to Dashboard
+        </button>
+      </div>
+    )
+  }
+
+  const memberCount = members.filter(m => m.communityId === id).length
+  const eventCount  = events.filter(e => e.communityId === id).length
+  const postCount   = posts.filter(p => p.communityId === id).length
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId)
+    navigate(`/community/${id}/${tabId}`, { replace: true })
+  }
+
+  const handleDelete = () => {
+    if (window.confirm(`Delete "${community.name}"? This cannot be undone.`)) {
+      deleteCommunity(id)
+      navigate('/')
+    }
+  }
+
+  return (
+    <div className="min-h-full">
+      {/* Banner */}
+      <div className="relative h-40" style={{ background: `linear-gradient(135deg, ${community.color}ee, ${community.color}88)` }}>
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: `radial-gradient(circle at 25% 50%, white 1.5px, transparent 1.5px), radial-gradient(circle at 75% 30%, white 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }} />
+        <div className="absolute top-4 left-4">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm transition-colors bg-black/10 hover:bg-black/20 px-3 py-1.5 rounded-lg">
+            <ArrowLeft size={14} />
+            Back
+          </button>
+        </div>
+        <div className="absolute top-4 right-4">
+          <button onClick={handleDelete} className="p-2 rounded-lg bg-black/10 hover:bg-red-500/80 text-white/70 hover:text-white transition-colors">
+            <Trash2 size={15} />
+          </button>
+        </div>
+        <div className="absolute bottom-0 right-8 text-7xl opacity-20 select-none leading-none pb-2">{community.emoji}</div>
+      </div>
+
+      {/* Community info */}
+      <div className="bg-white border-b border-gray-100 px-8 pb-0">
+        <div className="flex items-end gap-5 -mt-8 pb-5">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md border-4 border-white flex-shrink-0"
+            style={{ backgroundColor: community.color + '20' }}
+          >
+            {community.emoji}
+          </div>
+          <div className="flex-1 min-w-0 pb-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-xl font-bold text-gray-900">{community.name}</h1>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: community.color + '15', color: community.color }}>
+                {community.category}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 line-clamp-1">{community.description}</p>
+          </div>
+          <div className="flex items-center gap-6 text-center pb-1 flex-shrink-0">
+            <div>
+              <p className="text-xl font-bold text-gray-900">{memberCount}</p>
+              <p className="text-xs text-gray-400">Members</p>
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900">{eventCount}</p>
+              <p className="text-xs text-gray-400">Events</p>
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900">{postCount}</p>
+              <p className="text-xs text-gray-400">Posts</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1">
+          {TABS.map(t => {
+            const Icon = t.icon
+            const active = activeTab === t.id
+            return (
+              <button
+                key={t.id}
+                onClick={() => handleTabChange(t.id)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  active ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
+                }`}
+              >
+                <Icon size={15} />
+                {t.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div className="px-8 py-8">
+        {activeTab === 'feed'     && <FeedTab     communityId={id} community={community} />}
+        {activeTab === 'calendar' && <CalendarTab communityId={id} community={community} />}
+        {activeTab === 'members'  && <MembersTab  communityId={id} community={community} />}
+      </div>
+    </div>
+  )
+}
