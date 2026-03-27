@@ -2,14 +2,19 @@ import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
-  Plus, Trash2, Clock, Tag, MoreHorizontal, ArrowLeft, MapPin
+  Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
+  DollarSign, Lock, Eye, EyeOff
 } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
-  addMonths, subMonths, isSameDay, getDay, isToday, parseISO
+  addMonths, subMonths, isSameDay, getDay, isToday
 } from 'date-fns'
 import { useApp } from '../App'
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
+import ContentTab from '../components/ContentTab'
+import PaymentsTab from '../components/PaymentsTab'
+import { MpactMIcon, MpactWordmark } from '../components/Sidebar'
+import CreafiLogo from '../components/CreafiLogo'
 
 // ─── Shared Helpers ────────────────────────────────────────────────────────────
 
@@ -37,47 +42,155 @@ function timeAgo(dateStr) {
 
 // ─── Feed Tab ──────────────────────────────────────────────────────────────────
 
-function PostCard({ post, members, onLike }) {
+const REACTIONS = [
+  { key: 'love',      emoji: '❤️',  label: 'Love'      },
+  { key: 'celebrate', emoji: '🎉',  label: 'Celebrate' },
+  { key: 'clap',      emoji: '👏',  label: 'Great Job' },
+  { key: 'fire',      emoji: '🔥',  label: 'Amazing'   },
+  { key: 'star',      emoji: '⭐',  label: 'Star'      },
+]
+
+function MemberAvatar({ member }) {
+  if (member?.avatarUrl) {
+    return <img src={member.avatarUrl} className="w-10 h-10 rounded-full object-cover flex-shrink-0" alt={member.name} />
+  }
+  return <Initials name={member?.name} color={member?.color} size="lg" />
+}
+
+function PostCard({ post, members, allMembers, onReact, onComment }) {
   const member = members.find(m => m.id === post.memberId)
-  const liked = post.likedBy?.includes('me')
+  const [showComments, setShowComments] = useState(false)
+  const [commentText, setCommentText] = useState('')
   if (!member) return null
+
+  const reactions = post.reactions || {}
+  const totalReactions = Object.values(reactions).reduce((s, arr) => s + (arr?.length || 0), 0)
+  const reactionSummary = REACTIONS.filter(r => (reactions[r.key]?.length || 0) > 0)
+
+  const handleComment = () => {
+    if (!commentText.trim()) return
+    // Post as first member or 'me' placeholder
+    const meId = members[0]?.id || 'me'
+    onComment(post.id, meId, commentText.trim())
+    setCommentText('')
+  }
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-start gap-4">
-        <Initials name={member.name} color={member.color} size="lg" />
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Post header */}
+      <div className="flex items-start gap-3 p-5 pb-3">
+        <MemberAvatar member={member} />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center justify-between">
             <div>
-              <span className="font-semibold text-gray-900">{member.name}</span>
-              <span className="text-sm text-gray-400 ml-2">{member.title}</span>
+              <span className="font-semibold text-gray-900 text-sm">{member.name}</span>
+              {member.title && <span className="text-xs text-gray-400 ml-2">{member.title}</span>}
             </div>
             <span className="text-xs text-gray-400">{timeAgo(post.createdAt)}</span>
           </div>
-          <div className="inline-flex items-center gap-1 mb-3">
-            <span className="text-xs font-medium px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full">Introduction</span>
-          </div>
-          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
-          <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
-            <button
-              onClick={() => onLike(post.id)}
-              className={`flex items-center gap-1.5 text-sm transition-colors ${liked ? 'text-rose-500' : 'text-gray-400 hover:text-rose-400'}`}
-            >
-              <Heart size={15} fill={liked ? 'currentColor' : 'none'} />
-              <span>{post.likes}</span>
-            </button>
-          </div>
+          <span className="text-xs font-medium px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full">Introduction</span>
         </div>
       </div>
+
+      {/* Post content */}
+      <div className="px-5 pb-3">
+        <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+        {post.imageUrl && (
+          <img src={post.imageUrl} alt="post" className="mt-3 rounded-xl w-full object-cover max-h-80" />
+        )}
+      </div>
+
+      {/* Reaction summary */}
+      {totalReactions > 0 && (
+        <div className="px-5 pb-2 flex items-center gap-1.5">
+          {reactionSummary.map(r => (
+            <span key={r.key} className="text-sm">{r.emoji}</span>
+          ))}
+          <span className="text-xs text-gray-400">{totalReactions}</span>
+        </div>
+      )}
+
+      {/* Reaction bar */}
+      <div className="px-5 py-2 border-t border-gray-50 flex items-center gap-1 flex-wrap">
+        {REACTIONS.map(r => {
+          const active = reactions[r.key]?.includes('me')
+          return (
+            <button
+              key={r.key}
+              onClick={() => onReact(post.id, r.key)}
+              title={r.label}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                active
+                  ? 'bg-indigo-50 text-indigo-700 scale-110'
+                  : 'text-gray-500 hover:bg-gray-50 hover:scale-105'
+              }`}
+            >
+              <span className="text-base leading-none">{r.emoji}</span>
+              {(reactions[r.key]?.length || 0) > 0 && (
+                <span className={active ? 'text-indigo-600' : 'text-gray-400'}>
+                  {reactions[r.key].length}
+                </span>
+              )}
+            </button>
+          )
+        })}
+        <button
+          onClick={() => setShowComments(!showComments)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:bg-gray-50 ml-auto"
+        >
+          <MessageSquare size={13} />
+          {(post.comments?.length || 0) > 0
+            ? `${post.comments.length} comment${post.comments.length > 1 ? 's' : ''}`
+            : 'Comment'}
+        </button>
+      </div>
+
+      {/* Comments */}
+      {(showComments || (post.comments?.length || 0) > 0) && (
+        <div className="px-5 pb-4 border-t border-gray-50">
+          {/* Existing comments */}
+          {(post.comments || []).map(comment => {
+            const commenter = allMembers.find(m => m.id === comment.memberId) || members[0]
+            return (
+              <div key={comment.id} className="flex items-start gap-2.5 mt-3">
+                <MemberAvatar member={commenter} />
+                <div className="flex-1 bg-gray-50 rounded-2xl px-3 py-2">
+                  <span className="text-xs font-semibold text-gray-800">{commenter?.name || 'Member'}</span>
+                  <p className="text-sm text-gray-700 mt-0.5">{comment.content}</p>
+                </div>
+              </div>
+            )
+          })}
+          {/* Add comment */}
+          <div className="flex items-center gap-2.5 mt-3">
+            <MemberAvatar member={members[0]} />
+            <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-2xl px-3 py-2">
+              <input
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleComment())}
+                placeholder="Write a comment..."
+                className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none"
+              />
+              {commentText.trim() && (
+                <button onClick={handleComment} className="text-indigo-600 text-xs font-bold hover:text-indigo-700">
+                  Post
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function FeedTab({ communityId, community }) {
-  const { members, posts, likePost } = useApp()
+  const { members, posts, reactToPost, addComment } = useApp()
   const [showPost, setShowPost] = useState(false)
 
   const communityMembers = members.filter(m => m.communityId === communityId)
-  const communityPosts = posts.filter(p => p.communityId === communityId)
+  const communityPosts   = posts.filter(p => p.communityId === communityId)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
   return (
@@ -87,20 +200,19 @@ function FeedTab({ communityId, community }) {
         onClick={() => setShowPost(true)}
         className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6 cursor-pointer hover:shadow-md transition-all flex items-center gap-3"
       >
-        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-          <MessageSquare size={16} className="text-indigo-500" />
+        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+          <MessageSquare size={16} className="text-gray-400" />
         </div>
-        <p className="text-gray-400 text-sm flex-1">Introduce yourself to the community...</p>
+        <p className="text-gray-400 text-sm flex-1">Share something with the community...</p>
         <button
-          onClick={(e) => { e.stopPropagation(); setShowPost(true) }}
+          onClick={e => { e.stopPropagation(); setShowPost(true) }}
           className="px-4 py-2 rounded-xl text-sm font-medium text-white flex-shrink-0 transition-colors hover:opacity-90"
-          style={{ backgroundColor: community.color }}
+          style={{ backgroundColor: community.color || '#18181b' }}
         >
-          Post Intro
+          Post
         </button>
       </div>
 
-      {/* Posts */}
       {communityPosts.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
           <div className="text-4xl mb-4">👋</div>
@@ -110,7 +222,14 @@ function FeedTab({ communityId, community }) {
       ) : (
         <div className="space-y-4">
           {communityPosts.map(post => (
-            <PostCard key={post.id} post={post} members={communityMembers} onLike={likePost} />
+            <PostCard
+              key={post.id}
+              post={post}
+              members={communityMembers}
+              allMembers={members}
+              onReact={reactToPost}
+              onComment={addComment}
+            />
           ))}
         </div>
       )}
@@ -408,19 +527,252 @@ function MembersTab({ communityId, community }) {
   )
 }
 
+// ─── Lock Screen ───────────────────────────────────────────────────────────────
+
+function LockScreen({ community, plans, onClose }) {
+  const communityPlans = plans.filter(p => p.communityId === community.id && p.isActive)
+  const [loading, setLoading] = useState(null)
+  const [error, setError] = useState(null)
+
+  const handleJoin = async (plan) => {
+    setLoading(plan.id)
+    setError(null)
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planName: plan.name, price: plan.price, interval: plan.interval, communityId: community.id, communityName: community.name }),
+      })
+      const data = await res.json()
+      if (data.url) { window.location.href = data.url }
+      else { setError(data.error || 'Something went wrong.') }
+    } catch { setError('Could not connect to payment server.') }
+    finally { setLoading(null) }
+  }
+
+  const intervalLabel = (i) => i === 'month' ? '/mo' : i === 'year' ? '/yr' : ' one-time'
+
+  return (
+    <div className="fixed inset-0 z-30 flex flex-col overflow-auto" style={{ background: `linear-gradient(160deg, ${community.color}ee 0%, ${community.color}55 50%, #111827 100%)` }}>
+      {/* Close (admin only) */}
+      {onClose && (
+        <button onClick={onClose} className="absolute top-4 right-4 flex items-center gap-1.5 text-white/70 hover:text-white text-sm bg-black/20 hover:bg-black/40 px-3 py-1.5 rounded-lg transition-colors">
+          <EyeOff size={13} /> Exit Preview
+        </button>
+      )}
+
+      {/* Hero */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-16 pb-8 text-center">
+        {/* Logo: custom (Mpact tier) or Mpact M (base) */}
+        {community.lockedScreenLogo ? (
+          <img src={community.lockedScreenLogo} alt="logo" className="w-24 h-24 rounded-2xl object-cover mb-6 shadow-2xl" />
+        ) : (
+          <div className="mb-6">
+            <MpactMIcon size={72} />
+          </div>
+        )}
+
+        <div className="w-14 h-14 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center mb-4">
+          <Lock size={24} className="text-white" />
+        </div>
+
+        <h1 className="text-3xl font-black text-white mb-2">{community.name}</h1>
+        <p className="text-white/70 max-w-md text-sm leading-relaxed mb-2">{community.description}</p>
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white/60 bg-black/20 px-3 py-1 rounded-full">
+          <Lock size={10} /> Members Only
+        </span>
+      </div>
+
+      {/* Plans */}
+      <div className="bg-white rounded-t-3xl px-8 py-8">
+        <h2 className="text-xl font-black text-gray-900 text-center mb-6">Join {community.name}</h2>
+        {communityPlans.length === 0 ? (
+          <p className="text-center text-gray-400 py-4">No plans available yet.</p>
+        ) : (
+          <div className={`grid gap-4 max-w-2xl mx-auto ${communityPlans.length === 1 ? 'grid-cols-1 max-w-sm' : 'grid-cols-2'}`}>
+            {communityPlans.map((plan, idx) => {
+              const isPopular   = communityPlans.length > 1 && idx === 0
+              const isLoading   = loading === plan.id
+              return (
+                <div key={plan.id} className={`relative rounded-2xl border-2 p-5 ${isPopular ? 'border-violet-400 shadow-lg shadow-violet-100' : 'border-gray-100'}`}>
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="bg-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>
+                    </div>
+                  )}
+                  <h3 className="font-bold text-gray-900">{plan.name}</h3>
+                  <p className="text-xs text-gray-400 mb-3">{plan.description}</p>
+                  <div className="mb-4">
+                    <span className="text-3xl font-black text-gray-900">${plan.price}</span>
+                    <span className="text-gray-400 text-sm">{intervalLabel(plan.interval)}</span>
+                  </div>
+                  <ul className="space-y-1.5 mb-5">
+                    {plan.features?.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                        <Check size={12} className="text-green-500 mt-0.5 flex-shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => handleJoin(plan)}
+                    disabled={!!loading}
+                    className="w-full py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    style={{ background: isPopular ? 'linear-gradient(90deg, #8B2FE0, #2575E8)' : community.color }}
+                  >
+                    {isLoading ? <><Loader2 size={14} className="animate-spin" /> Processing...</> : <><CreditCard size={14} /> Join Now</>}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {error && <p className="text-sm text-red-500 text-center mt-4">{error}</p>}
+
+        {/* Powered by Mpact */}
+        <div className="flex items-center justify-center gap-2 mt-8 opacity-50">
+          <span className="text-xs text-gray-400">Powered by</span>
+          <MpactWordmark fontSize={13} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Pricing Tab ───────────────────────────────────────────────────────────────
+
+function PricingTab({ communityId, community }) {
+  const { plans } = useApp()
+  const [loading, setLoading] = useState(null)
+  const [error, setError] = useState(null)
+
+  const communityPlans = plans.filter(p => p.communityId === communityId && p.isActive)
+
+  const handleSubscribe = async (plan) => {
+    setLoading(plan.id)
+    setError(null)
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planName: plan.name,
+          price: plan.price,
+          interval: plan.interval,
+          communityId,
+          communityName: community.name,
+        }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setError(data.error || 'Something went wrong. Please try again.')
+      }
+    } catch (err) {
+      setError('Could not connect to payment server.')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const intervalLabel = (interval) => {
+    if (interval === 'month') return '/month'
+    if (interval === 'year') return '/year'
+    return ' one-time'
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <div className="text-center mb-10">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Join {community.name}</h2>
+        <p className="text-gray-500">Choose a plan and get instant access to the community</p>
+      </div>
+
+      {communityPlans.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+          <div className="text-4xl mb-4">💳</div>
+          <p className="text-gray-400">No plans available yet.</p>
+        </div>
+      ) : (
+        <div className={`grid gap-6 ${communityPlans.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' : communityPlans.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {communityPlans.map((plan, idx) => {
+            const isPopular = communityPlans.length > 1 && idx === communityPlans.length - 2
+            const isLoading = loading === plan.id
+            return (
+              <div
+                key={plan.id}
+                className={`bg-white rounded-2xl border-2 shadow-sm p-6 flex flex-col relative ${isPopular ? 'border-indigo-400 shadow-indigo-100' : 'border-gray-100'}`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Most Popular</span>
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">{plan.name}</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">{plan.description}</p>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">${plan.price}</span>
+                  <span className="text-gray-400 text-sm">{intervalLabel(plan.interval)}</span>
+                </div>
+
+                <ul className="space-y-2 mb-8 flex-1">
+                  {plan.features?.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                      <Check size={15} className="text-green-500 mt-0.5 flex-shrink-0" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                {error && loading === null && (
+                  <p className="text-xs text-red-500 mb-3 text-center">{error}</p>
+                )}
+
+                <button
+                  onClick={() => handleSubscribe(plan)}
+                  disabled={!!loading}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: isPopular ? '#6366f1' : community.color }}
+                >
+                  {isLoading ? (
+                    <><Loader2 size={15} className="animate-spin" /> Processing...</>
+                  ) : (
+                    <><CreditCard size={15} /> Get Started</>
+                  )}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {error && (
+        <p className="text-sm text-red-500 text-center mt-6">{error}</p>
+      )}
+    </div>
+  )
+}
+
 // ─── Community View ─────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'feed',     label: 'Community Feed',  icon: MessageSquare },
-  { id: 'calendar', label: 'Calendar',         icon: Calendar },
-  { id: 'members',  label: 'Members',          icon: Users },
+  { id: 'feed',     label: 'Community Feed', icon: MessageSquare },
+  { id: 'calendar', label: 'Live Training',  icon: Calendar },
+  { id: 'members',  label: 'Members',        icon: Users },
+  { id: 'content',  label: 'Content',        icon: BookOpen },
+  { id: 'payments', label: 'Payments',       icon: DollarSign },
 ]
 
 export default function CommunityView() {
   const { id, tab } = useParams()
   const navigate = useNavigate()
-  const { communities, members, events, posts, deleteCommunity } = useApp()
+  const { communities, members, events, posts, plans, deleteCommunity } = useApp()
   const [activeTab, setActiveTab] = useState(tab || 'feed')
+  const [previewLock, setPreviewLock] = useState(false)
 
   const community = communities.find(c => c.id === id)
 
@@ -466,33 +818,50 @@ export default function CommunityView() {
             Back
           </button>
         </div>
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          {community.isLocked && (
+            <button
+              onClick={() => setPreviewLock(true)}
+              title="Preview member lock screen"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/20 hover:bg-black/40 text-white/80 hover:text-white text-xs font-medium transition-colors"
+            >
+              <Eye size={13} /> Preview Lock Page
+            </button>
+          )}
           <button onClick={handleDelete} className="p-2 rounded-lg bg-black/10 hover:bg-red-500/80 text-white/70 hover:text-white transition-colors">
             <Trash2 size={15} />
           </button>
         </div>
-        <div className="absolute bottom-0 right-8 text-7xl opacity-20 select-none leading-none pb-2">{community.emoji}</div>
+        <div className="absolute bottom-0 right-8 opacity-20 select-none pb-2">
+          {community.id === 'creafi' ? <CreafiLogo size={80} /> : <span className="text-7xl leading-none">{community.emoji}</span>}
+        </div>
       </div>
 
       {/* Community info */}
       <div className="bg-white border-b border-gray-100 px-8 pb-0">
-        <div className="flex items-end gap-5 -mt-8 pb-5">
+        {/* Icon overlaps banner; text row stays fully on white */}
+        <div className="flex items-start gap-4">
+          {/* Icon — negative margin pulls it up into the banner */}
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md border-4 border-white flex-shrink-0"
+            className="-mt-9 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white flex-shrink-0"
             style={{ backgroundColor: community.color + '20' }}
           >
-            {community.emoji}
+            {community.id === 'creafi'
+              ? <CreafiLogo size={50} />
+              : <span className="text-3xl">{community.emoji}</span>}
           </div>
-          <div className="flex-1 min-w-0 pb-1">
-            <div className="flex items-center gap-2 mb-1">
+          {/* Text — pt-3 ensures it starts well inside the white section */}
+          <div className="flex-1 min-w-0 pt-3 pb-4">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h1 className="text-xl font-bold text-gray-900">{community.name}</h1>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: community.color + '15', color: community.color }}>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: community.color + '20', color: community.color }}>
                 {community.category}
               </span>
             </div>
             <p className="text-sm text-gray-500 line-clamp-1">{community.description}</p>
           </div>
-          <div className="flex items-center gap-6 text-center pb-1 flex-shrink-0">
+          {/* Stats */}
+          <div className="flex items-center gap-6 text-center pt-4 flex-shrink-0">
             <div>
               <p className="text-xl font-bold text-gray-900">{memberCount}</p>
               <p className="text-xs text-gray-400">Members</p>
@@ -534,7 +903,14 @@ export default function CommunityView() {
         {activeTab === 'feed'     && <FeedTab     communityId={id} community={community} />}
         {activeTab === 'calendar' && <CalendarTab communityId={id} community={community} />}
         {activeTab === 'members'  && <MembersTab  communityId={id} community={community} />}
+        {activeTab === 'content'  && <ContentTab  communityId={id} community={community} />}
+        {activeTab === 'payments' && <PaymentsTab communityId={id} community={community} />}
       </div>
+
+      {/* Lock Screen Preview */}
+      {previewLock && (
+        <LockScreen community={community} plans={plans} onClose={() => setPreviewLock(false)} />
+      )}
     </div>
   )
 }

@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Calendar, MessageSquare, TrendingUp, ArrowRight, Plus, Sparkles } from 'lucide-react'
+import { Users, Calendar, MessageSquare, ArrowRight, Plus, Sparkles, Lock } from 'lucide-react'
 import { useApp } from '../App'
 import { CreateCommunityModal } from '../components/Modals'
+import CreafiLogo from '../components/CreafiLogo'
 
 function StatCard({ icon: Icon, label, value, color }) {
   return (
@@ -31,17 +32,28 @@ function CommunityCard({ community, memberCount, eventCount, postCount }) {
           backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
           backgroundSize: '40px 40px'
         }} />
-        <div className="absolute bottom-0 right-0 p-4 text-4xl opacity-30 select-none">{community.emoji}</div>
+        <div className="absolute bottom-0 right-0 p-4 opacity-25 select-none">
+          {community.id === 'creafi' ? <CreafiLogo size={52} /> : <span className="text-4xl">{community.emoji}</span>}
+        </div>
+        {/* Lock badge */}
+        {community.isLocked && (
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+            <Lock size={11} className="text-amber-400" />
+            <span className="text-xs font-semibold text-amber-300">Members Only</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-5">
         <div className="flex items-start gap-3 mb-3">
           <div
-            className="-mt-10 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-md border-2 border-white flex-shrink-0"
+            className="-mt-10 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-white flex-shrink-0"
             style={{ backgroundColor: community.color + '22', borderColor: 'white' }}
           >
-            {community.emoji}
+            {community.id === 'creafi'
+              ? <CreafiLogo size={44} />
+              : <span className="text-2xl">{community.emoji}</span>}
           </div>
           <div className="pt-1 min-w-0">
             <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-1" style={{ backgroundColor: community.color + '15', color: community.color }}>
@@ -103,7 +115,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Manage all your communities in one place</p>
+            <p className="text-gray-500 text-sm mt-0.5">Manage your Mpact communities</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}

@@ -1,7 +1,47 @@
-import React, { useState, useEffect } from 'react'
-import { X, Check } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { X, Check, Camera, Image } from 'lucide-react'
 import { useApp } from '../App'
 import { useNavigate } from 'react-router-dom'
+
+// ─── Image helpers ──────────────────────────────────────────────────────────────
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = e => resolve(e.target.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+function AvatarUpload({ value, onChange, size = 80 }) {
+  const inputRef = useRef()
+  const handleFile = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const dataUrl = await readFileAsDataURL(file)
+    onChange(dataUrl)
+  }
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <button
+        type="button"
+        onClick={() => inputRef.current.click()}
+        className="relative rounded-full overflow-hidden border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-colors flex items-center justify-center bg-gray-100"
+        style={{ width: size, height: size }}
+      >
+        {value
+          ? <img src={value} alt="avatar" className="w-full h-full object-cover" />
+          : <Camera size={22} className="text-gray-400" />
+        }
+        <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
+          {value && <Camera size={16} className="text-white opacity-0 hover:opacity-100" />}
+        </div>
+      </button>
+      <p className="text-xs text-gray-400">Click to upload photo</p>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+    </div>
+  )
+}
 
 // ─── Shared ────────────────────────────────────────────────────────────────────
 
@@ -24,8 +64,8 @@ function Overlay({ children, onClose }) {
 
 function ModalCard({ title, subtitle, children, onClose }) {
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+    <div className="bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
         <div>
           <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
@@ -34,7 +74,7 @@ function ModalCard({ title, subtitle, children, onClose }) {
           <X size={18} />
         </button>
       </div>
-      <div className="px-6 py-5">
+      <div className="px-6 py-5 overflow-y-auto">
         {children}
       </div>
     </div>
@@ -214,23 +254,32 @@ export function AddEventModal({ communityId, community, defaultDate, onClose }) 
 
 export function PostIntroModal({ communityId, community, onClose }) {
   const { members, addMember, addPost } = useApp()
-  const [step, setStep] = useState(1)
-  const [profile, setProfile] = useState({ name: '', title: '', bio: '' })
+  const [profile, setProfile] = useState({ name: '', email: '', title: '', bio: '' })
+  const [avatarUrl, setAvatarUrl] = useState(null)
   const [content, setContent] = useState('')
+  const [postImageUrl, setPostImageUrl] = useState(null)
   const [selectedMemberId, setSelectedMemberId] = useState(null)
+  const postImageRef = useRef()
 
   const communityMembers = members.filter(m => m.communityId === communityId)
   const setP = (k, v) => setProfile(prev => ({ ...prev, [k]: v }))
+
+  const handlePostImageFile = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const dataUrl = await readFileAsDataURL(file)
+    setPostImageUrl(dataUrl)
+  }
 
   const handlePost = () => {
     if (!content.trim()) return
     let memberId = selectedMemberId
     if (!memberId && profile.name.trim()) {
-      const m = addMember(communityId, profile)
+      const m = addMember(communityId, { ...profile, avatarUrl })
       memberId = m.id
     }
     if (!memberId) return
-    addPost(communityId, memberId, content)
+    addPost(communityId, memberId, content, postImageUrl)
     onClose()
   }
 
@@ -260,8 +309,12 @@ export function PostIntroModal({ communityId, community, onClose }) {
           {!selectedMemberId && (
             <div className="space-y-3 p-4 bg-gray-50 rounded-xl">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Your Profile</p>
+              <AvatarUpload value={avatarUrl} onChange={setAvatarUrl} size={72} />
               <Field label="Your Name *">
                 <input type="text" placeholder="e.g. Alex Johnson" value={profile.name} onChange={e => setP('name', e.target.value)} className={inputClass} />
+              </Field>
+              <Field label="Email">
+                <input type="email" placeholder="e.g. alex@example.com" value={profile.email} onChange={e => setP('email', e.target.value)} className={inputClass} />
               </Field>
               <Field label="Your Title / Role">
                 <input type="text" placeholder="e.g. Marketing Manager, Yoga Teacher..." value={profile.title} onChange={e => setP('title', e.target.value)} className={inputClass} />
@@ -274,7 +327,7 @@ export function PostIntroModal({ communityId, community, onClose }) {
 
           <Field label="Your Introduction *">
             <textarea
-              rows={5}
+              rows={4}
               placeholder="Tell the community who you are, where you're from, what you do, and why you joined. Be yourself! 👋"
               value={content}
               onChange={e => setContent(e.target.value)}
@@ -282,6 +335,30 @@ export function PostIntroModal({ communityId, community, onClose }) {
             />
             <p className="text-xs text-gray-400 mt-1">{content.length} characters</p>
           </Field>
+
+          {/* Post photo */}
+          <div>
+            <button
+              type="button"
+              onClick={() => postImageRef.current.click()}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-indigo-600 transition-colors px-3 py-2 rounded-lg hover:bg-indigo-50"
+            >
+              <Image size={16} /> Add photo to post
+            </button>
+            <input ref={postImageRef} type="file" accept="image/*" className="hidden" onChange={handlePostImageFile} />
+            {postImageUrl && (
+              <div className="relative mt-2 rounded-xl overflow-hidden">
+                <img src={postImageUrl} alt="post preview" className="w-full max-h-48 object-cover rounded-xl" />
+                <button
+                  type="button"
+                  onClick={() => setPostImageUrl(null)}
+                  className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
@@ -305,13 +382,14 @@ export function PostIntroModal({ communityId, community, onClose }) {
 
 export function AddMemberModal({ communityId, community, onClose }) {
   const { addMember } = useApp()
-  const [form, setForm] = useState({ name: '', title: '', bio: '' })
+  const [form, setForm] = useState({ name: '', email: '', title: '', bio: '' })
+  const [avatarUrl, setAvatarUrl] = useState(null)
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!form.name.trim()) return
-    addMember(communityId, form)
+    addMember(communityId, { ...form, avatarUrl })
     onClose()
   }
 
@@ -319,8 +397,12 @@ export function AddMemberModal({ communityId, community, onClose }) {
     <Overlay onClose={onClose}>
       <ModalCard title="Add Member" subtitle={`Add to ${community.name}`} onClose={onClose}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <AvatarUpload value={avatarUrl} onChange={setAvatarUrl} size={80} />
           <Field label="Full Name *">
             <input type="text" placeholder="e.g. Sarah Johnson" value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} required />
+          </Field>
+          <Field label="Email">
+            <input type="email" placeholder="e.g. sarah@example.com" value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} />
           </Field>
           <Field label="Title / Role">
             <input type="text" placeholder="e.g. Marketing Manager, Coach..." value={form.title} onChange={e => set('title', e.target.value)} className={inputClass} />
