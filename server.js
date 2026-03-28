@@ -2,6 +2,7 @@ import express from 'express'
 import Stripe from 'stripe'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { readFileSync } from 'fs'
 
 const app = express()
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -88,9 +89,28 @@ app.post('/api/send-email-blast', async (req, res) => {
   }
 })
 
-// Serve React app for all other routes (SPA fallback)
+// Detect community subdomain (e.g. creafi.mpact.net → slug = "creafi")
+function extractSubdomain(host) {
+  const hostname = (host || '').split(':')[0]
+  const parts = hostname.split('.')
+  // Need at least 3 parts (sub.domain.tld) and not "www"
+  if (parts.length >= 3 && parts[0] !== 'www') return parts[0]
+  return null
+}
+
+// Serve React app — inject community slug for subdomain requests
 app.get('*', (req, res) => {
-  res.sendFile(join(__dirname, 'dist', 'index.html'))
+  const indexPath = join(__dirname, 'dist', 'index.html')
+  const slug = extractSubdomain(req.headers.host)
+  if (slug) {
+    try {
+      let html = readFileSync(indexPath, 'utf8')
+      html = html.replace('<head>', `<head><script>window.__MPACT_COMMUNITY__="${slug}"</script>`)
+      res.setHeader('Content-Type', 'text/html')
+      return res.send(html)
+    } catch {}
+  }
+  res.sendFile(indexPath)
 })
 
 const PORT = process.env.PORT || 8080

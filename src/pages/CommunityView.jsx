@@ -3,13 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
-  DollarSign, Lock, Eye, EyeOff
+  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil
 } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
 } from 'date-fns'
-import { useApp } from '../App'
+import { useApp, getCommunityUrl, getBaseDomain } from '../App'
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
 import ContentTab from '../components/ContentTab'
 import PaymentsTab from '../components/PaymentsTab'
@@ -770,9 +770,12 @@ const TABS = [
 export default function CommunityView() {
   const { id, tab } = useParams()
   const navigate = useNavigate()
-  const { communities, members, events, posts, plans, deleteCommunity } = useApp()
+  const { communities, members, events, posts, plans, deleteCommunity, educatorPlan, updateCommunitySlug } = useApp()
   const [activeTab, setActiveTab] = useState(tab || 'feed')
   const [previewLock, setPreviewLock] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [editingSlug, setEditingSlug] = useState(false)
+  const [slugDraft, setSlugDraft] = useState('')
 
   const community = communities.find(c => c.id === id)
 
@@ -802,6 +805,21 @@ export default function CommunityView() {
       deleteCommunity(id)
       navigate('/')
     }
+  }
+
+  const isPro = educatorPlan?.tier === 'mpact'
+  const communityUrl = getCommunityUrl(community, isPro)
+
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(communityUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  const handleSaveSlug = () => {
+    if (slugDraft.trim()) updateCommunitySlug(id, slugDraft.trim())
+    setEditingSlug(false)
   }
 
   return (
@@ -896,6 +914,64 @@ export default function CommunityView() {
             )
           })}
         </div>
+      </div>
+
+      {/* Community URL Banner */}
+      <div className="mx-8 mt-4 mb-2 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-3 flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 text-gray-400">
+          <Link size={15} />
+          <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Your Community Link</span>
+        </div>
+
+        {isPro ? (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {editingSlug ? (
+              <div className="flex items-center gap-2 flex-1">
+                <span className="text-sm text-gray-400 whitespace-nowrap">
+                  {getBaseDomain ? '' : ''}https://
+                </span>
+                <input
+                  autoFocus
+                  value={slugDraft}
+                  onChange={e => setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSaveSlug(); if (e.key === 'Escape') setEditingSlug(false) }}
+                  className="border border-indigo-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-40"
+                  placeholder={community.slug}
+                />
+                <span className="text-sm text-gray-500">.{communityUrl.split('/')[2].split('.').slice(1).join('.')}</span>
+                <button onClick={handleSaveSlug} className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
+                <button onClick={() => setEditingSlug(false)} className="px-3 py-1 border border-gray-200 text-gray-500 text-xs rounded-lg font-medium hover:bg-gray-50">Cancel</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-sm font-mono text-indigo-600 truncate">{communityUrl}</span>
+                <button
+                  onClick={() => { setSlugDraft(community.slug || ''); setEditingSlug(true) }}
+                  className="p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors flex-shrink-0"
+                  title="Edit subdomain"
+                >
+                  <Pencil size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-sm font-mono text-gray-700 truncate">{communityUrl}</span>
+            <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full border border-amber-200 flex-shrink-0 whitespace-nowrap">
+              ✦ Upgrade to Pro for custom subdomain
+            </span>
+          </div>
+        )}
+
+        <button
+          onClick={handleCopyUrl}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0 ${
+            copied ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'
+          }`}
+        >
+          {copied ? <><CheckCheck size={13} /> Copied!</> : <><Copy size={13} /> Copy Link</>}
+        </button>
       </div>
 
       {/* Tab Content */}

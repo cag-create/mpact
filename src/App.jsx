@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import CommunityView from './pages/CommunityView'
 import AdminDashboard from './pages/AdminDashboard'
+import JoinPage from './pages/JoinPage'
 
 // ─── Clear stale localStorage from previous schema ────────────────────────────
-const SCHEMA_VERSION = 'v6'
+const SCHEMA_VERSION = 'v7'
 if (typeof window !== 'undefined' && localStorage.getItem('hub_schema') !== SCHEMA_VERSION) {
   ;['hub_communities','hub_members','hub_events','hub_posts',
     'hub_plans','hub_modules','hub_lessons','hub_enrollments',
@@ -14,11 +15,29 @@ if (typeof window !== 'undefined' && localStorage.getItem('hub_schema') !== SCHE
   localStorage.setItem('hub_schema', SCHEMA_VERSION)
 }
 
+// ─── Slug helpers ─────────────────────────────────────────────────────────────
+export function generateSlug(name) {
+  return name.toLowerCase().replace(/'/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
+}
+export function getBaseDomain() {
+  if (typeof window === 'undefined') return 'mpact.net'
+  const h = window.location.hostname
+  if (h === 'localhost' || h === '127.0.0.1') return window.location.host
+  const parts = h.split('.')
+  return parts.length >= 2 ? parts.slice(-2).join('.') : h
+}
+export function getCommunityUrl(community, isPro) {
+  const base = getBaseDomain()
+  if (isPro && community.slug) return `https://${community.slug}.${base}`
+  return `https://${base}/join/${community.id}`
+}
+
 // ─── Initial Data — clean slate, only Crea'fi ────────────────────────────────
 
 const INITIAL_COMMUNITIES = [
   {
     id: 'creafi',
+    slug: 'creafi',
     name: "Crea'fi",
     description: "Master creative finance, build wealth, and join a community of forward-thinking money builders. This is where your financial transformation begins.",
     color: '#18181b',
@@ -26,7 +45,7 @@ const INITIAL_COMMUNITIES = [
     memberCount: 0,
     category: 'Finance & Wealth',
     isLocked: false,
-    lockedScreenLogo: null,   // null = show Mpact M; base64 string = custom logo (Mpact tier)
+    lockedScreenLogo: null,
     createdAt: '2026-03-26',
   },
 ]
@@ -118,10 +137,15 @@ function AppProvider({ children }) {
 
   // Communities
   const createCommunity = (data) => {
-    const c = { id: `c${Date.now()}`, ...data, memberCount: 0, isLocked: true, lockedScreenLogo: null, createdAt: new Date().toISOString().split('T')[0] }
+    const slug = generateSlug(data.name)
+    const c = { id: `c${Date.now()}`, slug, ...data, memberCount: 0, isLocked: true, lockedScreenLogo: null, createdAt: new Date().toISOString().split('T')[0] }
     setCommunities(prev => [...prev, c]); return c
   }
   const updateCommunity = (id, data) => setCommunities(prev => prev.map(c => c.id === id ? { ...c, ...data } : c))
+  const updateCommunitySlug = (id, newSlug) => {
+    const clean = generateSlug(newSlug)
+    setCommunities(prev => prev.map(c => c.id === id ? { ...c, slug: clean } : c))
+  }
   const upgradeEducatorPlan = (tier) => setEducatorPlan({ tier })
   const deleteCommunity = (id) => {
     setCommunities(prev => prev.filter(c => c.id !== id))
@@ -232,7 +256,7 @@ function AppProvider({ children }) {
       communities, members, events, posts, plans, modules, lessons, enrollments,
       educators, brevoSettings,
       educatorPlan, upgradeEducatorPlan,
-      createCommunity, updateCommunity, deleteCommunity, addMember,
+      createCommunity, updateCommunity, updateCommunitySlug, deleteCommunity, addMember,
       addEvent, deleteEvent, addPost, reactToPost, addComment,
       addPlan, updatePlan, deletePlan, togglePlan,
       addModule, updateModule, deleteModule, reorderModule,
@@ -244,22 +268,47 @@ function AppProvider({ children }) {
   )
 }
 
+// Detects subdomain (e.g. creafi.mpact.net) and auto-routes to that community
+function SubdomainHandler({ communities }) {
+  const navigate = useNavigate()
+  useEffect(() => {
+    // Injected by server.js for subdomain requests
+    const slug = window.__MPACT_COMMUNITY__
+    if (slug) {
+      const c = communities.find(c => c.slug === slug || c.id === slug)
+      if (c) navigate(`/community/${c.id}`, { replace: true })
+    }
+  }, []) // eslint-disable-line
+  return null
+}
+
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
-        <div className="flex h-screen bg-gray-50 overflow-hidden">
-          <Sidebar />
-          <div className="flex-1 overflow-auto">
-            <Routes>
-              <Route path="/"                   element={<Dashboard />} />
-              <Route path="/admin"              element={<AdminDashboard />} />
-              <Route path="/community/:id"      element={<CommunityView />} />
-              <Route path="/community/:id/:tab" element={<CommunityView />} />
-            </Routes>
-          </div>
-        </div>
+        <InnerApp />
       </BrowserRouter>
     </AppProvider>
+  )
+}
+
+function InnerApp() {
+  const { communities } = useContext(AppContext)
+  return (
+    <>
+      <SubdomainHandler communities={communities} />
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 overflow-auto">
+          <Routes>
+            <Route path="/"                   element={<Dashboard />} />
+            <Route path="/admin"              element={<AdminDashboard />} />
+            <Route path="/join/:slugOrId"     element={<JoinPage />} />
+            <Route path="/community/:id"      element={<CommunityView />} />
+            <Route path="/community/:id/:tab" element={<CommunityView />} />
+          </Routes>
+        </div>
+      </div>
+    </>
   )
 }
