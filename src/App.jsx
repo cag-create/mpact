@@ -28,7 +28,6 @@ export function getBaseDomain() {
 }
 export function getCommunityUrl(community, isPro) {
   const base = getBaseDomain()
-  if (isPro && community.customDomain) return `https://${community.customDomain}`
   if (isPro && community.slug) return `https://${community.slug}.${base}`
   return `https://${base}/join/${community.id}`
 }

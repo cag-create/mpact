@@ -918,7 +918,6 @@ export default function CommunityView() {
 
       {/* Community URL Banner */}
       <div className="mx-8 mt-4 mb-2 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-4 space-y-3">
-        {/* Row 1: label + copy */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Link size={15} className="text-gray-400" />
@@ -935,82 +934,46 @@ export default function CommunityView() {
           </button>
         </div>
 
-        {/* Row 2: URL display */}
+        {/* URL display */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-mono text-indigo-600 break-all">{communityUrl}</span>
           {!isPro && (
             <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full border border-amber-200 whitespace-nowrap">
-              ✦ Upgrade to Pro for custom domain
+              ✦ Upgrade to Pro for a branded subdomain
             </span>
           )}
         </div>
 
-        {/* Pro: Custom domain + subdomain controls */}
+        {/* Pro: editable subdomain slug */}
         {isPro && (
-          <div className="border-t border-gray-100 pt-3 space-y-2">
-            {/* Custom domain (e.g. creaficourse.com) */}
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1.5">🌐 Your own domain <span className="text-gray-400 font-normal">(e.g. creaficourse.com)</span></p>
-              {editingSlug === 'domain' ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    autoFocus
-                    value={slugDraft}
-                    onChange={e => setSlugDraft(e.target.value.toLowerCase().trim())}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') { updateCommunity(id, { customDomain: slugDraft.replace(/^https?:\/\//,'') }); setEditingSlug(false) }
-                      if (e.key === 'Escape') setEditingSlug(false)
-                    }}
-                    className="border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 flex-1 max-w-xs"
-                    placeholder="creaficourse.com"
-                  />
-                  <button onClick={() => { updateCommunity(id, { customDomain: slugDraft.replace(/^https?:\/\//,'') }); setEditingSlug(false) }} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
-                  <button onClick={() => setEditingSlug(false)} className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">Cancel</button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 font-mono">{community.customDomain || <span className="text-gray-400 italic">Not set</span>}</span>
-                  <button onClick={() => { setSlugDraft(community.customDomain || ''); setEditingSlug('domain') }} className="p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors" title="Set custom domain">
-                    <Pencil size={13} />
-                  </button>
-                  {community.customDomain && (
-                    <button onClick={() => updateCommunity(id, { customDomain: '' })} className="text-xs text-red-400 hover:text-red-600 transition-colors">Remove</button>
-                  )}
-                </div>
-              )}
-              {community.customDomain && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Point your domain's CNAME to your Railway URL, then add it in Railway → Settings → Networking → Custom Domain.
-                </p>
-              )}
-            </div>
-
-            {/* Subdomain slug */}
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1.5">🔗 Mpact subdomain</p>
-              {editingSlug === 'slug' ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    autoFocus
-                    value={slugDraft}
-                    onChange={e => setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))}
-                    onKeyDown={e => { if (e.key === 'Enter') handleSaveSlug(); if (e.key === 'Escape') setEditingSlug(false) }}
-                    className="border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-36"
-                    placeholder={community.slug}
-                  />
-                  <span className="text-sm text-gray-400">.{getBaseDomain()}</span>
-                  <button onClick={handleSaveSlug} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
-                  <button onClick={() => setEditingSlug(false)} className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">Cancel</button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono text-gray-700">{community.slug || community.id}.{getBaseDomain()}</span>
-                  <button onClick={() => { setSlugDraft(community.slug || ''); setEditingSlug('slug') }} className="p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors">
-                    <Pencil size={13} />
-                  </button>
-                </div>
-              )}
-            </div>
+          <div className="border-t border-gray-100 pt-3">
+            <p className="text-xs text-gray-400 mb-2">Customize your subdomain — one DNS record covers all Pro subscribers automatically.</p>
+            {editingSlug ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <input
+                  autoFocus
+                  value={slugDraft}
+                  onChange={e => setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSaveSlug(); if (e.key === 'Escape') setEditingSlug(false) }}
+                  className="border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-36"
+                  placeholder={community.slug}
+                />
+                <span className="text-sm text-gray-400">.{getBaseDomain()}</span>
+                <button onClick={handleSaveSlug} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
+                <button onClick={() => setEditingSlug(false)} className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">Cancel</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-mono text-gray-700">{community.slug || community.id}.{getBaseDomain()}</span>
+                <button
+                  onClick={() => { setSlugDraft(community.slug || ''); setEditingSlug(true) }}
+                  className="p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors"
+                  title="Edit subdomain"
+                >
+                  <Pencil size={13} />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
