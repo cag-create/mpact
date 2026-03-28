@@ -89,23 +89,38 @@ app.post('/api/send-email-blast', async (req, res) => {
   }
 })
 
-// Detect community subdomain (e.g. creafi.mpact.net → slug = "creafi")
-function extractSubdomain(host) {
+// Extracts the community identifier from the Host header:
+// - Subdomain: "creafi.mpact.net" → "creafi"
+// - Custom domain: "creaficourse.com" → "creaficourse.com" (full hostname)
+// Returns null for the primary domain itself
+const PRIMARY_DOMAINS = ['mpact.net', 'ourmpact.com', 'localhost']
+
+function getCommunityIdentifier(host) {
   const hostname = (host || '').split(':')[0]
   const parts = hostname.split('.')
-  // Need at least 3 parts (sub.domain.tld) and not "www"
-  if (parts.length >= 3 && parts[0] !== 'www') return parts[0]
+
+  // Primary domain or www — no injection needed
+  if (PRIMARY_DOMAINS.includes(hostname)) return null
+  if (parts[0] === 'www') return null
+
+  // Subdomain of a primary domain → return just the subdomain slug
+  const isPrimarySubdomain = PRIMARY_DOMAINS.some(d => hostname.endsWith('.' + d))
+  if (isPrimarySubdomain) return parts[0]
+
+  // Fully custom domain (e.g. creaficourse.com) — return full hostname
+  if (parts.length >= 2 && hostname !== 'localhost') return hostname
+
   return null
 }
 
-// Serve React app — inject community slug for subdomain requests
+// Serve React app — inject community identifier for subdomain/custom domain requests
 app.get('*', (req, res) => {
   const indexPath = join(__dirname, 'dist', 'index.html')
-  const slug = extractSubdomain(req.headers.host)
-  if (slug) {
+  const communityId = getCommunityIdentifier(req.headers.host)
+  if (communityId) {
     try {
       let html = readFileSync(indexPath, 'utf8')
-      html = html.replace('<head>', `<head><script>window.__MPACT_COMMUNITY__="${slug}"</script>`)
+      html = html.replace('<head>', `<head><script>window.__MPACT_COMMUNITY__="${communityId}"</script>`)
       res.setHeader('Content-Type', 'text/html')
       return res.send(html)
     } catch {}

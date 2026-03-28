@@ -28,6 +28,7 @@ export function getBaseDomain() {
 }
 export function getCommunityUrl(community, isPro) {
   const base = getBaseDomain()
+  if (isPro && community.customDomain) return `https://${community.customDomain}`
   if (isPro && community.slug) return `https://${community.slug}.${base}`
   return `https://${base}/join/${community.id}`
 }
@@ -268,14 +269,24 @@ function AppProvider({ children }) {
   )
 }
 
-// Detects subdomain (e.g. creafi.mpact.net) and auto-routes to that community
+// Detects subdomain (e.g. creafi.mpact.net) OR custom domain (creaficourse.com)
+// and auto-routes to that community
 function SubdomainHandler({ communities }) {
   const navigate = useNavigate()
   useEffect(() => {
-    // Injected by server.js for subdomain requests
-    const slug = window.__MPACT_COMMUNITY__
-    if (slug) {
-      const c = communities.find(c => c.slug === slug || c.id === slug)
+    // 1. Server injected a slug/hostname via window.__MPACT_COMMUNITY__
+    const injected = window.__MPACT_COMMUNITY__
+    if (injected) {
+      const c = communities.find(
+        c => c.slug === injected || c.id === injected || c.customDomain === injected
+      )
+      if (c) { navigate(`/community/${c.id}`, { replace: true }); return }
+    }
+    // 2. Client-side custom domain check (e.g. creaficourse.com)
+    const hostname = window.location.hostname
+    const base = getBaseDomain()
+    if (hostname !== 'localhost' && hostname !== base && !hostname.endsWith('.' + base)) {
+      const c = communities.find(c => c.customDomain === hostname)
       if (c) navigate(`/community/${c.id}`, { replace: true })
     }
   }, []) // eslint-disable-line
