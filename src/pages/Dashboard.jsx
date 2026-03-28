@@ -48,11 +48,11 @@ function CommunityCard({ community, memberCount, eventCount, postCount }) {
       <div className="p-5">
         <div className="flex items-start gap-3 mb-3">
           <div
-            className="-mt-10 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-white flex-shrink-0"
+            className="-mt-10 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-white flex-shrink-0 overflow-hidden"
             style={{ backgroundColor: community.color + '22', borderColor: 'white' }}
           >
             {community.id === 'creafi'
-              ? <CreafiLogo size={44} />
+              ? <CreafiLogo size={34} />
               : <span className="text-2xl">{community.emoji}</span>}
           </div>
           <div className="pt-1 min-w-0">

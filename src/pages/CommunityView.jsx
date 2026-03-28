@@ -843,11 +843,11 @@ export default function CommunityView() {
         <div className="flex items-start gap-4">
           {/* Icon — negative margin pulls it up into the banner */}
           <div
-            className="-mt-9 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white flex-shrink-0"
+            className="-mt-9 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white flex-shrink-0 overflow-hidden"
             style={{ backgroundColor: community.color + '20' }}
           >
             {community.id === 'creafi'
-              ? <CreafiLogo size={50} />
+              ? <CreafiLogo size={38} />
               : <span className="text-3xl">{community.emoji}</span>}
           </div>
           {/* Text — pt-3 ensures it starts well inside the white section */}
