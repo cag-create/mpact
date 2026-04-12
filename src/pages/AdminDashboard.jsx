@@ -360,6 +360,70 @@ function AddEducatorModal({ onClose, onAdd, communities }) {
 
 // ─── Admin Dashboard ──────────────────────────────────────────────────────────
 
+function SequenceRow({ seq, onUpdate, onDelete }) {
+  const [expanded, setExpanded] = useState(false)
+  const [form, setForm] = useState(seq)
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  const handleSave = () => { onUpdate(seq.id, form); setExpanded(false) }
+
+  return (
+    <div className="border-b border-gray-50 last:border-0">
+      <div className="flex items-center gap-3 px-6 py-3.5">
+        <button onClick={() => onUpdate(seq.id, { isActive: !seq.isActive })}
+          className={`w-9 h-5 rounded-full transition-colors flex-shrink-0 ${seq.isActive ? 'bg-green-500' : 'bg-gray-200'}`}>
+          <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-0.5 ${seq.isActive ? 'translate-x-4' : 'translate-x-0'}`} />
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-800">{seq.name}</p>
+          <p className="text-xs text-gray-400">
+            {seq.trigger === 'join' ? `Send ${seq.delayDays === 0 ? 'immediately' : `after ${seq.delayDays} days`} after joining` : seq.trigger}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setExpanded(!expanded)} className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">
+            {expanded ? 'Close' : 'Edit'}
+          </button>
+          <button onClick={() => onDelete(seq.id)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={13} /></button>
+        </div>
+      </div>
+      {expanded && (
+        <div className="px-6 pb-4 space-y-3 bg-gray-50 border-t border-gray-100">
+          <div className="grid grid-cols-3 gap-3 pt-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Sequence Name</label>
+              <input value={form.name} onChange={e => set('name', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-violet-400" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Trigger</label>
+              <select value={form.trigger} onChange={e => set('trigger', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-violet-400">
+                <option value="join">On Join</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Delay (days)</label>
+              <input type="number" min="0" value={form.delayDays} onChange={e => set('delayDays', parseInt(e.target.value)||0)} className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-violet-400" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Subject</label>
+            <input value={form.subject} onChange={e => set('subject', e.target.value)} placeholder="Email subject (use {{name}}, {{community}})" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-violet-400" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Body <span className="text-gray-400 font-normal">(supports {"{{name}}"}, {"{{community}}"})</span></label>
+            <textarea rows={5} value={form.body} onChange={e => set('body', e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-violet-400 resize-none" />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setExpanded(false)} className="px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100">Cancel</button>
+            <button onClick={handleSave} className="px-3 py-1.5 text-xs font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700">Save Changes</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const {
@@ -367,6 +431,7 @@ export default function AdminDashboard() {
     educatorPlan, upgradeEducatorPlan, updateCommunity,
     educators, addEducator, updateEducator, deleteEducator,
     brevoSettings, saveBrevoSettings,
+    sequences, addSequence, updateSequence, deleteSequence,
   } = useApp()
 
   const logoRef            = useRef()
@@ -749,6 +814,26 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Email Sequences */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h2 className="font-bold text-gray-900">Email Sequences</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Automated drip emails sent via Brevo</p>
+            </div>
+            <button onClick={() => addSequence({ name: 'New Sequence', trigger: 'join', delayDays: 0, subject: '', body: '', isActive: false })}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-lg transition-colors">
+              <Plus size={13} /> Add Sequence
+            </button>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {sequences.map(seq => (
+              <SequenceRow key={seq.id} seq={seq} onUpdate={updateSequence} onDelete={deleteSequence} />
+            ))}
+            {sequences.length === 0 && <p className="px-6 py-4 text-sm text-gray-400">No sequences yet</p>}
           </div>
         </div>
 

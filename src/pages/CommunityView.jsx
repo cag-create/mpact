@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
-  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil
+  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield
 } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
@@ -470,35 +470,31 @@ function MemberCard({ member, joinedAt }) {
   )
 }
 
+const ROLE_COLORS = { owner: '#8b5cf6', admin: '#ef4444', moderator: '#f59e0b', member: '#6b7280' }
+
 function MembersTab({ communityId, community }) {
-  const { members } = useApp()
+  const { members, currentUser, updateMemberRole } = useApp()
   const [showAdd, setShowAdd] = useState(false)
-  const [search, setSearch] = useState('')
+  const [search, setSearch]   = useState('')
+
+  const isPlatformAdmin = currentUser?.role === 'platform_admin'
 
   const communityMembers = members
     .filter(m => m.communityId === communityId)
-    .filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()) || m.title.toLowerCase().includes(search.toLowerCase()))
+    .filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()) || (m.title||'').toLowerCase().includes(search.toLowerCase()))
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search members..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 bg-white w-64"
-          />
-        </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
-          style={{ backgroundColor: community.color }}
-        >
-          <Plus size={15} />
-          Add Member
-        </button>
+        <input type="text" placeholder="Search members…" value={search} onChange={e => setSearch(e.target.value)}
+          className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white w-64" />
+        {isPlatformAdmin && (
+          <button onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
+            style={{ backgroundColor: community.color }}>
+            <Plus size={15} /> Add Member
+          </button>
+        )}
       </div>
 
       {communityMembers.length === 0 ? (
@@ -506,23 +502,131 @@ function MembersTab({ communityId, community }) {
           <div className="text-4xl mb-4">👥</div>
           <h3 className="font-semibold text-gray-700 mb-2">No members yet</h3>
           <p className="text-sm text-gray-400 mb-5">Add your first member to get the community started.</p>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: community.color }}
-          >
-            Add Member
-          </button>
+          {isPlatformAdmin && (
+            <button onClick={() => setShowAdd(true)}
+              className="px-5 py-2.5 rounded-xl text-sm font-medium text-white hover:opacity-90"
+              style={{ backgroundColor: community.color }}>
+              Add Member
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {communityMembers.map(member => (
-            <MemberCard key={member.id} member={member} joinedAt={member.joinedAt} />
+            <div key={member.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <MemberCard member={member} joinedAt={member.joinedAt} />
+              {/* Role + points row */}
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Shield size={11} style={{ color: ROLE_COLORS[member.role] || '#6b7280' }} />
+                  {isPlatformAdmin ? (
+                    <select value={member.role || 'member'} onChange={e => updateMemberRole(member.id, e.target.value)}
+                      className="text-xs border-0 bg-transparent font-medium focus:outline-none cursor-pointer"
+                      style={{ color: ROLE_COLORS[member.role] || '#6b7280' }}>
+                      <option value="owner">Owner</option>
+                      <option value="admin">Admin</option>
+                      <option value="moderator">Moderator</option>
+                      <option value="member">Member</option>
+                    </select>
+                  ) : (
+                    <span className="text-xs font-medium capitalize" style={{ color: ROLE_COLORS[member.role] || '#6b7280' }}>
+                      {member.role || 'member'}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-bold text-indigo-600">{member.points || 0} pts</span>
+              </div>
+              {(member.badges||[]).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {member.badges.slice(0,3).map(b => (
+                    <span key={b} className="text-[10px] px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded-full border border-amber-100">{b}</span>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
 
       {showAdd && <AddMemberModal communityId={communityId} community={community} onClose={() => setShowAdd(false)} />}
+    </div>
+  )
+}
+
+// ─── Leaderboard Tab ───────────────────────────────────────────────────────────
+
+function LeaderboardTab({ communityId, community }) {
+  const { members, posts, useNavigate: nav } = useApp()
+  const navigate = useNavigate()
+  const communityMembers = [...members.filter(m => m.communityId === communityId)]
+    .sort((a,b) => (b.points||0) - (a.points||0))
+
+  const medals = ['🥇','🥈','🥉']
+  const podiumColors = ['#F59E0B','#9CA3AF','#CD7C2F']
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-xl font-bold text-gray-900">Community Leaderboard</h2>
+        <p className="text-sm text-gray-500 mt-1">Earn points by posting, commenting, and getting reactions</p>
+      </div>
+
+      {/* Point guide */}
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {[['📝 Post','10 pts'],['💬 Comment','5 pts'],['❤️ Reaction received','2 pts']].map(([a,b]) => (
+          <div key={a} className="bg-white rounded-xl p-3 text-center shadow-sm border border-gray-100">
+            <p className="text-sm font-semibold text-gray-700">{a}</p>
+            <p className="text-xs text-indigo-600 font-bold mt-0.5">{b}</p>
+          </div>
+        ))}
+      </div>
+
+      {communityMembers.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Trophy size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No members yet — be the first to earn points!</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {communityMembers.map((member, i) => {
+            const myPosts = posts.filter(p => p.memberId === member.id).length
+            return (
+              <div key={member.id}
+                className={`flex items-center gap-4 bg-white rounded-2xl px-5 py-4 shadow-sm border transition-all ${
+                  i === 0 ? 'border-amber-200 bg-amber-50/30' : i === 1 ? 'border-gray-200' : i === 2 ? 'border-orange-100' : 'border-gray-100'
+                }`}>
+                <span className="text-2xl w-8 text-center">{medals[i] || `${i+1}`}</span>
+                {member.avatarUrl
+                  ? <img src={member.avatarUrl} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                  : <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                      style={{ backgroundColor: member.color || '#6366f1' }}>
+                      {member.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+                    </div>
+                }
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-gray-900">{member.name}</p>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
+                      style={{ backgroundColor: ROLE_COLORS[member.role]+'20', color: ROLE_COLORS[member.role] }}>
+                      {member.role || 'member'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <span className="text-xs text-gray-400">{myPosts} posts</span>
+                    {(member.badges||[]).slice(0,2).map(b => (
+                      <span key={b} className="text-[10px] px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded-full">{b}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-black text-indigo-600">{member.points || 0}</p>
+                  <p className="text-[10px] text-gray-400">points</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -760,11 +864,12 @@ function PricingTab({ communityId, community }) {
 // ─── Community View ─────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'feed',     label: 'Community Feed', icon: MessageSquare },
-  { id: 'calendar', label: 'Live Training',  icon: Calendar },
-  { id: 'members',  label: 'Members',        icon: Users },
-  { id: 'content',  label: 'Content',        icon: BookOpen },
-  { id: 'payments', label: 'Payments',       icon: DollarSign },
+  { id: 'feed',        label: 'Community Feed', icon: MessageSquare },
+  { id: 'calendar',   label: 'Live Training',  icon: Calendar },
+  { id: 'members',    label: 'Members',        icon: Users },
+  { id: 'leaderboard',label: 'Leaderboard',    icon: Trophy },
+  { id: 'content',    label: 'Content',        icon: BookOpen },
+  { id: 'payments',   label: 'Payments',       icon: DollarSign },
 ]
 
 export default function CommunityView() {
@@ -980,11 +1085,12 @@ export default function CommunityView() {
 
       {/* Tab Content */}
       <div className="px-8 py-8">
-        {activeTab === 'feed'     && <FeedTab     communityId={id} community={community} />}
-        {activeTab === 'calendar' && <CalendarTab communityId={id} community={community} />}
-        {activeTab === 'members'  && <MembersTab  communityId={id} community={community} />}
-        {activeTab === 'content'  && <ContentTab  communityId={id} community={community} />}
-        {activeTab === 'payments' && <PaymentsTab communityId={id} community={community} />}
+        {activeTab === 'feed'        && <FeedTab        communityId={id} community={community} />}
+        {activeTab === 'calendar'   && <CalendarTab    communityId={id} community={community} />}
+        {activeTab === 'members'    && <MembersTab     communityId={id} community={community} />}
+        {activeTab === 'leaderboard'&& <LeaderboardTab communityId={id} community={community} />}
+        {activeTab === 'content'    && <ContentTab     communityId={id} community={community} />}
+        {activeTab === 'payments'   && <PaymentsTab    communityId={id} community={community} />}
       </div>
 
       {/* Lock Screen Preview */}

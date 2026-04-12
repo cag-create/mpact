@@ -8,6 +8,51 @@ const app = express()
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+// Stripe webhook needs raw body — must come BEFORE express.json()
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature']
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+  let event
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret)
+  } catch (err) {
+    console.error('Webhook signature error:', err.message)
+    return res.status(400).send(`Webhook Error: ${err.message}`)
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object
+        const communityId = session.metadata?.communityId
+        const email = session.customer_details?.email
+        console.log(`✅ Payment complete — community: ${communityId}, email: ${email}`)
+        break
+      }
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object
+        const email = sub.metadata?.email
+        console.log(`❌ Subscription cancelled — ${email}`)
+        break
+      }
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object
+        const email = invoice.customer_email
+        console.log(`⚠️ Payment failed — ${email}`)
+        break
+      }
+      default:
+        console.log(`Unhandled event type: ${event.type}`)
+    }
+  } catch (err) {
+    console.error('Webhook handler error:', err.message)
+    return res.status(500).json({ error: 'Webhook handler failed' })
+  }
+
+  res.json({ received: true })
+})
+
 app.use(express.json())
 
 // Serve the built React app
