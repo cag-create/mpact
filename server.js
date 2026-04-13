@@ -8,6 +8,11 @@ const app = express()
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+// Healthcheck — Railway pings this to confirm the server is alive
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', ts: Date.now() })
+})
+
 // Stripe webhook needs raw body — must come BEFORE express.json()
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature']

@@ -4,6 +4,10 @@ buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm start"
-healthcheckPath = "/"
+healthcheckPath = "/health"
+healthcheckTimeout = 60
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+restartPolicyMaxRetries = 10
+
+[variables]
+NIXPACKS_NODE_VERSION = "22"
