@@ -193,7 +193,7 @@ export function AddEventModal({ communityId, community, defaultDate, onClose }) 
   const { addEvent } = useApp()
   const today = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({
-    title: '', description: '', date: defaultDate || today, time: '10:00 AM', type: 'workshop'
+    title: '', description: '', date: defaultDate || today, time: '10:00 AM', type: 'workshop', liveUrl: ''
   })
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
@@ -237,6 +237,10 @@ export function AddEventModal({ communityId, community, defaultDate, onClose }) 
               <input type="text" placeholder="e.g. 2:00 PM" value={form.time} onChange={e => set('time', e.target.value)} className={inputClass} />
             </Field>
           </div>
+
+          <Field label="Live Session Link (Zoom, Google Meet, etc.)">
+            <input type="url" placeholder="https://zoom.us/j/..." value={form.liveUrl} onChange={e => set('liveUrl', e.target.value)} className={inputClass} />
+          </Field>
 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>

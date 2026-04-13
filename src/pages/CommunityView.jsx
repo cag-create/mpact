@@ -364,6 +364,12 @@ function CalendarTab({ communityId, community }) {
                           <p className="font-semibold text-gray-800 text-sm">{event.title}</p>
                           {event.description && <p className="text-xs text-gray-500 mt-0.5">{event.description}</p>}
                           <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Clock size={11} />{event.time}</p>
+                          {event.liveUrl && (
+                            <a href={event.liveUrl} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                              🎥 Join Live Session
+                            </a>
+                          )}
                         </div>
                         <button onClick={() => deleteEvent(event.id)} className="text-gray-300 hover:text-red-400 transition-colors">
                           <Trash2 size={14} />
@@ -407,6 +413,12 @@ function CalendarTab({ communityId, community }) {
                         <p className="text-sm font-medium text-gray-800 truncate">{event.title}</p>
                         <p className="text-xs text-gray-400">{event.time}</p>
                         <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}</span>
+                        {event.liveUrl && (
+                          <a href={event.liveUrl} target="_blank" rel="noopener noreferrer"
+                            className="block mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                            🎥 Join Live →
+                          </a>
+                        )}
                       </div>
                       <button onClick={() => deleteEvent(event.id)} className="text-gray-200 hover:text-red-400 transition-colors flex-shrink-0 mt-1">
                         <Trash2 size={13} />

@@ -60,12 +60,12 @@ const INITIAL_EDUCATORS = [
 ]
 
 const INITIAL_PLANS = [
-  { id: 'pl_creafi_monthly', communityId: 'creafi', name: 'Monthly', price: 47, interval: 'month',
-    description: 'Full community access, billed monthly',
-    features: ['Full community access','Weekly live sessions','Course library','Member messaging'], isActive: true },
-  { id: 'pl_creafi_annual', communityId: 'creafi', name: 'Annual', price: 397, interval: 'year',
-    description: 'Best value — save $167/yr',
-    features: ['Everything in Monthly','Annual strategy call','Priority support','Exclusive workshops'], isActive: true },
+  { id: 'pl_creafi_lite', communityId: 'creafi', name: 'Lite', price: 27, interval: 'month',
+    description: 'Get started with community access',
+    features: ['Community feed access','Course library','Member messaging','Monthly group call'], isActive: true },
+  { id: 'pl_creafi_mpact', communityId: 'creafi', name: 'Mpact', price: 59, interval: 'month',
+    description: 'Full access — live sessions, all courses, priority support',
+    features: ['Everything in Lite','Weekly live sessions','1-on-1 onboarding call','Priority support','Exclusive workshops','Leaderboard rewards'], isActive: true },
 ]
 
 const INITIAL_SEQUENCES = [
