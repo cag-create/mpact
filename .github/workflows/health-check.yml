@@ -1,0 +1,52 @@
+name: Daily Health Check
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # 8am ET (12pm UTC)
+  workflow_dispatch:         # allow manual trigger from GitHub
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health endpoint
+        run: |
+          STATUS=$(curl -sf --max-time 10 -o /dev/null -w "%{http_code}" https://mpact-production.up.railway.app/health)
+          TIME=$(curl -sf --max-time 10 -o /dev/null -w "%{time_total}" https://mpact-production.up.railway.app/health)
+          echo "Health: HTTP $STATUS in ${TIME}s"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Health endpoint returned $STATUS"
+            exit 1
+          fi
+
+      - name: Root page
+        run: |
+          STATUS=$(curl -sf --max-time 15 -o /dev/null -w "%{http_code}" https://mpact-production.up.railway.app/)
+          echo "Root: HTTP $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Root page returned $STATUS"
+            exit 1
+          fi
+
+      - name: Stripe API reachable
+        run: |
+          STATUS=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" -X POST https://mpact-production.up.railway.app/api/create-checkout-session)
+          echo "Stripe API: HTTP $STATUS"
+          if [ "$STATUS" = "000" ]; then
+            echo "::error::Stripe API unreachable (connection refused)"
+            exit 1
+          fi
+
+      - name: Email API reachable
+        run: |
+          STATUS=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" -X POST https://mpact-production.up.railway.app/api/send-email-blast)
+          echo "Email API: HTTP $STATUS"
+          if [ "$STATUS" = "000" ]; then
+            echo "::error::Email API unreachable"
+            exit 1
+          fi
+
+      - name: Report success
+        run: |
+          echo "✅ MPACT HEALTH CHECK PASSED — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "Site: https://mpact-production.up.railway.app"
