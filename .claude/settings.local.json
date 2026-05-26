@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"/Users/chadglover/community folder\" && if [ -n \"$(git status --porcelain)\" ]; then git add -A && git commit -m \"chore: auto-save $(date +%Y-%m-%dT%H:%M:%S)\" && git push origin main; fi",
+            "command": "REPO=$(git rev-parse --show-toplevel 2>/dev/null) && [ -n \"$REPO\" ] && cd \"$REPO\" && if [ -n \"$(git status --porcelain)\" ]; then git add -A && git commit -m \"chore: auto-save $(date +%Y-%m-%dT%H:%M:%S)\" && git push origin main; fi || true",
             "timeout": 30
           }
         ]
