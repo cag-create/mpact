@@ -249,6 +249,7 @@ async function communityBrand(identifier) {
 
 // Marketing site: the front page of ourmpact.com (apex + www). The app lives at /dashboard, /login, ….
 const MARKETING_HOSTS = ['ourmpact.com', 'www.ourmpact.com', 'localhost']
+app.use('/marketing', express.static(join(__dirname, 'marketing'), { index: false }))
 app.get('/', (req, res, next) => {
   const hostname = (req.headers.host || '').split(':')[0]
   if (!MARKETING_HOSTS.includes(hostname)) return next()

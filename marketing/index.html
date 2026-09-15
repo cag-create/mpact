@@ -87,6 +87,26 @@ button.btn{cursor:pointer;width:100%;margin-top:20px;font-size:16px}
 footer{border-top:1px solid var(--line);padding:32px 0 44px;color:var(--mute);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 footer a{color:var(--mute);text-decoration:none;margin-left:18px}
 @media (max-width:860px){.hero,.proof,.plans,.grid{grid-template-columns:1fr}nav ul{display:none}.hero{padding:32px 0 48px}section{padding:52px 0}.mock .body{grid-template-columns:1fr}.mock .side{display:none}}
+
+/* photos */
+.heroimg{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6);aspect-ratio:4/3}
+.heroimg img{width:100%;height:100%;object-fit:cover;display:block}
+.heroimg .float{position:absolute;left:18px;bottom:18px;background:#fff;color:#0f172a;border-radius:14px;padding:14px 16px;max-width:300px;box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.heroimg .float b{display:block;font-size:14px;margin-bottom:3px}
+.heroimg .float span{font-size:12px;color:#64748b}
+.heroimg .prog{height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:10px}
+.heroimg .prog i{display:block;height:100%;width:62%;background:var(--grad)}
+.band-wrap{padding:0 0 72px}
+.band{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.band figure{margin:0;background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.band img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.band figcaption{padding:16px 18px;font-size:14px;color:var(--mute)}
+.band figcaption b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.wl{position:relative;overflow:hidden;border-radius:24px;padding:72px 32px;margin:0 0 72px}
+.wlbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.22;filter:saturate(.8)}
+.wl::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,7,18,.2),rgba(3,7,18,.92))}
+.wlin{position:relative}
+@media (max-width:860px){.band{grid-template-columns:1fr}.wl{padding:44px 18px}}
 </style>
 </head>
 <body>
@@ -108,19 +128,12 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
         <small>Built by Chad Glover. Crea'fi was the first community on it.</small>
       </div>
     </div>
-    <div class="mock" aria-hidden="true">
-      <div class="bar"><i></i><i></i><i></i></div>
-      <div class="body">
-        <div class="side">
-          <div class="logo"><b><img src="/creafi-logo.png" alt=""></b> Crea'fi</div>
-          <div class="on">Community Feed</div><div>Live Training</div><div>Courses</div><div>Replays</div><div>Members</div><div>Leaderboard</div><div>Payments</div>
-        </div>
-        <div class="main">
-          <div class="tabs"><span>Courses</span><span>Replays</span><span>Live Training</span></div>
-          <div class="card"><b>Creative Finance: Structure the Deal</b>4 modules · 18 lessons<div class="prog"><i></i></div></div>
-          <div class="card"><b>Deal Lab replay · Sept 12</b>Seller-financed duplex · Multifamily</div>
-          <div class="card"><b>Thursday · Sales Practice, 7 PM ET</b>Role-play a seller call. One skill per session.</div>
-        </div>
+    <div class="heroimg">
+      <img src="/marketing/img/hero.jpg" alt="A creator teaching a room of members in a brick loft workshop">
+      <div class="float">
+        <b>Creative Finance: Structure the Deal</b>
+        <span>4 modules · 18 lessons · 62% complete</span>
+        <div class="prog"><i></i></div>
       </div>
     </div>
   </header>
@@ -142,6 +155,14 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
     </div>
   </section>
 
+
+  <section class="band-wrap">
+    <div class="band">
+      <figure><img src="/marketing/img/live.jpg" alt="A laptop showing a live video call with members"><figcaption><b>Live training</b>Calls, workshops, and Q&amp;A on a calendar members can find.</figcaption></figure>
+      <figure><img src="/marketing/img/courses.jpg" alt="Four people working through a course together around a laptop"><figcaption><b>Courses that get finished</b>Modules, lessons, and progress that picks up where they left off.</figcaption></figure>
+      <figure><img src="/marketing/img/create.jpg" alt="A camera, microphone, and monitor set up to record a lesson"><figcaption><b>Your content, your way</b>Record once. Post it as a lesson or file it as a replay.</figcaption></figure>
+    </div>
+  </section>
   <section>
     <div class="proof">
       <img src="/creafi-logo.png" alt="Crea'fi">
@@ -182,7 +203,9 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
     </div>
   </section>
 
-  <section id="waitlist">
+  <section id="waitlist" class="wl">
+    <img class="wlbg" src="/marketing/img/team.jpg" alt="">
+    <div class="wlin">
     <p class="eyebrow">Early access</p>
     <h2>Tell us about your community.</h2>
     <p class="sub">Mpact is opening to new creators soon. Leave your details and you'll hear from Chad directly when your spot is ready.</p>
@@ -194,6 +217,7 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
       <button class="btn primary" type="submit" id="go">Request early access</button>
       <div class="msg" id="msg" role="status"></div>
     </form>
+    </div>
   </section>
 
   <footer>
