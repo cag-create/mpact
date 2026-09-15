@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
+import { api, getSession, setSession, clearSession } from './lib/api'
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
@@ -10,7 +11,7 @@ import MessagesPage from './pages/MessagesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 
 // ─── Schema v8 — clears stale localStorage ────────────────────────────────────
-const SCHEMA_VERSION = 'v8'
+const SCHEMA_VERSION = 'v9-server'
 if (typeof window !== 'undefined' && localStorage.getItem('hub_schema') !== SCHEMA_VERSION) {
   ;['hub_communities','hub_members','hub_events','hub_posts',
     'hub_plans','hub_modules','hub_lessons','hub_enrollments',
@@ -49,10 +50,7 @@ const INITIAL_COMMUNITIES = [
   },
 ]
 
-const INITIAL_USERS = [
-  { id: 'u_admin', email: 'admin@mpact.com', password: 'mpact123', name: 'Chad Glover',
-    role: 'platform_admin', communityId: null, memberId: null, createdAt: '2026-03-26', lastLoginAt: null },
-]
+const INITIAL_USERS = [] // accounts live on the server now (hub_users)
 
 const INITIAL_EDUCATORS = [
   { id: 'edu_chad', name: 'Chad Glover', email: 'chad@creafi.com', communityId: 'creafi',
@@ -112,75 +110,94 @@ function AppProvider({ children }) {
   const [educators,      setEducators]      = useState(() => load('hub_educators',      INITIAL_EDUCATORS))
   const [brevoSettings,  setBrevoSettings]  = useState(() => load('hub_brevo',          INITIAL_BREVO))
   const [educatorPlan,   setEducatorPlan]   = useState(() => load('hub_educator_plan',  { tier: 'mpact' }))
-  const [users,          setUsers]          = useState(() => load('hub_users',          INITIAL_USERS))
+  const [users]                               = useState(INITIAL_USERS)
   const [messages,       setMessages]       = useState(() => load('hub_messages',       INITIAL_MESSAGES))
   const [notifications,  setNotifications]  = useState(() => load('hub_notifications',  INITIAL_NOTIFICATIONS))
   const [sequences,      setSequences]      = useState(() => load('hub_sequences',      INITIAL_SEQUENCES))
-  const [currentUser,    setCurrentUser]    = useState(() => {
-    const session = load('hub_session', null)
-    if (!session) return null
-    const allUsers = load('hub_users', INITIAL_USERS)
-    return allUsers.find(u => u.id === session.userId) || null
-  })
+  const [currentUser,    setCurrentUser]    = useState(() => getSession()?.user || null)
+  const [hydrated,       setHydrated]       = useState(false)
+  const lastServer = useRef({})   // key -> JSON of last value seen from/sent to the server
+  const timers     = useRef({})
 
-  useEffect(() => save('hub_communities',   communities),   [communities])
-  useEffect(() => save('hub_members',       members),       [members])
-  useEffect(() => save('hub_events',        events),        [events])
-  useEffect(() => save('hub_posts',         posts),         [posts])
-  useEffect(() => save('hub_plans',         plans),         [plans])
-  useEffect(() => save('hub_modules',       modules),       [modules])
-  useEffect(() => save('hub_lessons',       lessons),       [lessons])
-  useEffect(() => save('hub_enrollments',   enrollments),   [enrollments])
-  useEffect(() => save('hub_educators',     educators),     [educators])
+  const setters = { communities: setCommunities, members: setMembers, events: setEvents, posts: setPosts, plans: setPlans,
+    modules: setModules, lessons: setLessons, enrollments: setEnrollments, educators: setEducators, educatorPlan: setEducatorPlan,
+    messages: setMessages, notifications: setNotifications, sequences: setSequences }
+
+  // ── Server hydration: everything shared lives on the server (Railway MySQL); localStorage is only a cache ──
+  const pull = async () => {
+    if (!getSession()?.token) return
+    try {
+      const data = await api.getState()
+      for (const [k, v] of Object.entries(data)) {
+        if (v == null || !setters[k]) continue
+        lastServer.current[k] = JSON.stringify(v)
+        setters[k](v)
+      }
+    } catch (e) { if (e.status === 401) { clearSession(); setCurrentUser(null) } }
+  }
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      if (getSession()?.token) {
+        try { const { user } = await api.me(); if (alive) { setCurrentUser(user); setSession({ ...getSession(), user }) } }
+        catch (e) { if (e.status === 401) { clearSession(); if (alive) setCurrentUser(null) } }
+        await pull()
+      }
+      if (alive) setHydrated(true)
+    })()
+    const onFocus = () => pull()
+    window.addEventListener('focus', onFocus)
+    const iv = setInterval(pull, 60000)
+    return () => { alive = false; window.removeEventListener('focus', onFocus); clearInterval(iv) }
+  }, [currentUser?.id]) // eslint-disable-line
+
+  const sync = (key, data) => {
+    save(`hub_${key === 'educatorPlan' ? 'educator_plan' : key}`, data)
+    if (!hydrated || !getSession()?.token) return
+    const json = JSON.stringify(data)
+    if (lastServer.current[key] === json) return
+    clearTimeout(timers.current[key])
+    timers.current[key] = setTimeout(async () => {
+      try { await api.putState(key, data); lastServer.current[key] = json }
+      catch (e) { if (e.status !== 403) console.warn('sync failed', key, e.message) }
+    }, 400)
+  }
+
+  useEffect(() => sync('communities', communities), [communities])
+  useEffect(() => sync('members', members), [members])
+  useEffect(() => sync('events', events), [events])
+  useEffect(() => sync('posts', posts), [posts])
+  useEffect(() => sync('plans', plans), [plans])
+  useEffect(() => sync('modules', modules), [modules])
+  useEffect(() => sync('lessons', lessons), [lessons])
+  useEffect(() => sync('enrollments', enrollments), [enrollments])
+  useEffect(() => sync('educators', educators), [educators])
   useEffect(() => save('hub_brevo',         brevoSettings), [brevoSettings])
-  useEffect(() => save('hub_educator_plan', educatorPlan),  [educatorPlan])
-  useEffect(() => save('hub_users',         users),         [users])
-  useEffect(() => save('hub_messages',      messages),      [messages])
-  useEffect(() => save('hub_notifications', notifications), [notifications])
-  useEffect(() => save('hub_sequences',     sequences),     [sequences])
+  useEffect(() => sync('educatorPlan', educatorPlan), [educatorPlan])
+  useEffect(() => sync('messages', messages), [messages])
+  useEffect(() => sync('notifications', notifications), [notifications])
+  useEffect(() => sync('sequences', sequences), [sequences])
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
-  const login = (email, password) => {
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password)
-    if (!user) return null
-    const updated = { ...user, lastLoginAt: new Date().toISOString() }
-    setUsers(prev => prev.map(u => u.id === user.id ? updated : u))
-    setCurrentUser(updated)
-    save('hub_session', { userId: user.id })
-    return updated
+  // ── Auth (server-backed) ──────────────────────────────────────────────────
+  const login = async (email, password) => {
+    try {
+      const { token, user } = await api.login(email, password)
+      setSession({ token, user }); setCurrentUser(user)
+      return user
+    } catch (e) { return null }
   }
-  const logout = () => {
-    localStorage.removeItem('hub_session')
-    setCurrentUser(null)
+  const logout = () => { clearSession(); setCurrentUser(null); lastServer.current = {} }
+  const register = async (communityId, data) => {
+    try {
+      const { token, user, member } = await api.register({ communityId, name: data.name, email: data.email, password: data.password, title: data.title, bio: data.bio, avatarUrl: data.avatarUrl })
+      setMembers(prev => prev.some(m => m.id === member.id) ? prev : [...prev, member])
+      setCommunities(prev => prev.map(c => c.id === communityId ? { ...c, memberCount: c.memberCount + 1 } : c))
+      setSession({ token, user }); setCurrentUser(user)
+      return user
+    } catch (e) { return { error: e.message } }
   }
-  const register = (communityId, data) => {
-    if (users.find(u => u.email.toLowerCase() === data.email.toLowerCase())) return { error: 'Email already in use' }
-    const color = AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)]
-    const member = {
-      id: `m${Date.now()}`, communityId, name: data.name, email: data.email,
-      title: data.title || '', bio: data.bio || '', avatarUrl: data.avatarUrl || null,
-      role: 'member', points: 0, badges: [], color,
-      joinedAt: new Date().toISOString().split('T')[0],
-    }
-    setMembers(prev => [...prev, member])
-    setCommunities(prev => prev.map(c => c.id === communityId ? { ...c, memberCount: c.memberCount + 1 } : c))
-    const user = {
-      id: `u${Date.now()}`, email: data.email, password: data.password,
-      name: data.name, role: 'member', communityId, memberId: member.id,
-      createdAt: new Date().toISOString().split('T')[0], lastLoginAt: new Date().toISOString(),
-    }
-    setUsers(prev => [...prev, user])
-    setCurrentUser(user)
-    save('hub_session', { userId: user.id })
-    // Award first-join badge
-    setTimeout(() => _awardBadge(member.id, 'New Member'), 100)
-    return user
-  }
-  const changePassword = (userId, oldPassword, newPassword) => {
-    const user = users.find(u => u.id === userId)
-    if (!user || user.password !== oldPassword) return false
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, password: newPassword } : u))
-    return true
+  const changePassword = async (_userId, oldPassword, newPassword) => {
+    try { await api.changePassword(oldPassword, newPassword); return true } catch { return false }
   }
 
   // ── Notifications ─────────────────────────────────────────────────────────

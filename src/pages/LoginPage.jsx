@@ -18,18 +18,16 @@ export default function LoginPage() {
   const setL = (k, v) => setLoginForm(p => ({ ...p, [k]: v }))
   const setR = (k, v) => setRegForm(p => ({ ...p, [k]: v }))
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
-    setTimeout(() => {
-      const user = login(loginForm.email.trim(), loginForm.password)
-      if (!user) setError('Incorrect email or password')
-      setLoading(false)
-    }, 400)
+    const user = await login(loginForm.email.trim(), loginForm.password)
+    if (!user) setError('Incorrect email or password')
+    setLoading(false)
   }
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault()
     setError('')
     if (!regForm.name.trim())     return setError('Name is required')
@@ -37,11 +35,9 @@ export default function LoginPage() {
     if (regForm.password.length < 6) return setError('Password must be at least 6 characters')
     if (!regForm.communityId)     return setError('Please select a community')
     setLoading(true)
-    setTimeout(() => {
-      const result = register(regForm.communityId, regForm)
-      if (result?.error) setError(result.error)
-      setLoading(false)
-    }, 400)
+    const result = await register(regForm.communityId, regForm)
+    if (result?.error) setError(result.error)
+    setLoading(false)
   }
 
   return (
@@ -95,9 +91,6 @@ export default function LoginPage() {
                 className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors disabled:opacity-60">
                 {loading ? 'Signing in…' : 'Sign In'}
               </button>
-              <p className="text-center text-xs text-gray-400">
-                Platform admin: <span className="font-mono">admin@mpact.com</span> / <span className="font-mono">mpact123</span>
-              </p>
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-3">
