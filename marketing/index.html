@@ -128,7 +128,7 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
       <div class="cta">
         <a class="btn primary" href="#waitlist">Get early access</a>
         <a class="btn ghost" href="https://creafi.ourmpact.com">See Crea'fi running on Mpact</a>
-        <small>Built by Chad Glover. Crea'fi was the first community on it.</small>
+        <small>Crea'fi was the first community on Mpact. Yours could be next.</small>
       </div>
     </div>
     <div class="heroimg">
@@ -172,7 +172,7 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
       <div>
         <p class="eyebrow">The first community on Mpact</p>
         <h2>Crea'fi runs here.</h2>
-        <p class="sub" style="margin-bottom:16px">Chad Glover's creative finance community lives on Mpact: daily live calls, a course library, replays by topic and property type, and members who get to it together.</p>
+        <p class="sub" style="margin-bottom:16px">A creative finance community that lives on Mpact: daily live calls, a course library, replays by topic and property type, and members who get to it together.</p>
         <ul>
           <li>Branded login at creafi.ourmpact.com</li>
           <li>Paid membership with automatic onboarding</li>
@@ -211,7 +211,7 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
     <div class="wlin">
     <p class="eyebrow">Early access</p>
     <h2>Tell us about your community.</h2>
-    <p class="sub">Mpact is opening to new creators soon. Leave your details and you'll hear from Chad directly when your spot is ready.</p>
+    <p class="sub">Mpact is opening to new creators soon. Leave your details and you'll hear from us when your spot is ready.</p>
     <form id="wl" novalidate>
       <label for="name">Your name</label><input id="name" name="name" autocomplete="name" required>
       <label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required>
@@ -224,7 +224,7 @@ footer a{color:var(--mute);text-decoration:none;margin-left:18px}
   </section>
 
   <footer>
-    <div>© <span id="y"></span> Mpact · A Chad Glover company</div>
+    <div>© <span id="y"></span> Mpact</div>
     <div><a href="https://creafi.ourmpact.com">Crea'fi</a><a href="/login">Log in</a><a href="mailto:support@creafigenius.com">Contact</a></div>
   </footer>
 </div>
@@ -238,7 +238,7 @@ f.addEventListener('submit',function(e){
   go.disabled=true; go.textContent='Sending…';
   fetch('/api/waitlist',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)})
     .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
-    .then(function(x){ if(x.ok){ f.reset(); msg.style.color='#86efac'; msg.textContent="You're on the list. Chad will reach out when your spot is ready."; go.textContent='Requested'; } else { throw new Error(x.j.error||'Something went wrong'); } })
+    .then(function(x){ if(x.ok){ f.reset(); msg.style.color='#86efac'; msg.textContent="You're on the list. We'll reach out when your spot is ready."; go.textContent='Requested'; } else { throw new Error(x.j.error||'Something went wrong'); } })
     .catch(function(err){ msg.style.color='#fca5a5'; msg.textContent=err.message; go.disabled=false; go.textContent='Request early access'; });
 });
 </script>
