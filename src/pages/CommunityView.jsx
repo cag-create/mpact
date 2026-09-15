@@ -1071,8 +1071,6 @@ export default function CommunityView() {
           </div>
         </div>
       </div>
-        )}
-      </div>
 
       {/* Tab Content */}
       <div className="px-8 py-8">
