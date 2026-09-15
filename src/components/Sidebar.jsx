@@ -183,6 +183,26 @@ export default function Sidebar() {
           </div>
         </div>
 
+        {/* Host on Mpact — hosting plans for creators */}
+        {!collapsed && (
+          <div className="px-3 pb-3">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Host on Mpact</p>
+              <p className="text-xs text-gray-400 leading-snug mb-2.5">Run your own community here. Two plans for hosting a community on Mpact:</p>
+              <div className="space-y-1.5">
+                <div className="flex items-baseline justify-between rounded-lg bg-black/30 px-2.5 py-2">
+                  <div className="min-w-0"><p className="text-xs font-semibold text-gray-200">Foundation</p><p className="text-[10px] text-gray-500">Host your site</p></div>
+                  <p className="text-xs font-bold text-white whitespace-nowrap">$5<span className="text-gray-500 font-medium">/mo</span></p>
+                </div>
+                <div className="flex items-baseline justify-between rounded-lg bg-black/30 px-2.5 py-2">
+                  <div className="min-w-0"><p className="text-xs font-semibold text-gray-200">Active</p><p className="text-[10px] text-gray-500">Full community + payments</p></div>
+                  <p className="text-xs font-bold text-white whitespace-nowrap">$49.99<span className="text-gray-500 font-medium">/mo</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* User + Logout */}
         <div className="px-3 pb-3 pt-3 border-t border-white/5 space-y-1">
           {!collapsed && currentUser && (

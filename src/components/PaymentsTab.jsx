@@ -272,23 +272,6 @@ export default function PaymentsTab({ communityId, community }) {
 
   return (
     <div className="space-y-6">
-      {/* Stripe banner */}
-      {!stripeConnected && (
-        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Zap size={20} className="text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white text-sm">Connect Stripe to Accept Payments</p>
-            <p className="text-xs text-indigo-200 mt-0.5">Stripe processes your payments securely. Connect once, get paid instantly.</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white text-indigo-700 rounded-xl text-sm font-bold hover:bg-indigo-50 transition-colors flex-shrink-0 whitespace-nowrap">
-            <ExternalLink size={13} />
-            Connect Stripe
-          </button>
-        </div>
-      )}
-
       {/* Revenue stats */}
       <div className="grid grid-cols-4 gap-4">
         {[
