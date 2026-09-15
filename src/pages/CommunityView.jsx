@@ -3,15 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
-  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield
-} from 'lucide-react'
+  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
 } from 'date-fns'
 import { useApp } from '../App'
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
-import ContentTab from '../components/ContentTab'
+import CoursesTab from '../components/CoursesTab'
+import ReplaysTab from '../components/ReplaysTab'
 import PaymentsTab from '../components/PaymentsTab'
 import { MpactMIcon, MpactWordmark } from '../components/Sidebar'
 import CreafiLogo from '../components/CreafiLogo'
@@ -880,7 +880,8 @@ const TABS = [
   { id: 'calendar',   label: 'Live Training',  icon: Calendar },
   { id: 'members',    label: 'Members',        icon: Users },
   { id: 'leaderboard',label: 'Leaderboard',    icon: Trophy },
-  { id: 'content',    label: 'Content',        icon: BookOpen },
+  { id: 'content',    label: 'Courses',        icon: BookOpen },
+  { id: 'replays',    label: 'Replays',        icon: Video },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
 ]
 
@@ -1011,7 +1012,7 @@ export default function CommunityView() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto">
           {TABS.map(t => {
             const Icon = t.icon
             const active = activeTab === t.id
@@ -1019,7 +1020,7 @@ export default function CommunityView() {
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   active ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
                 }`}
               >
@@ -1080,7 +1081,8 @@ export default function CommunityView() {
         {activeTab === 'calendar'   && <CalendarTab    communityId={id} community={community} />}
         {activeTab === 'members'    && <MembersTab     communityId={id} community={community} />}
         {activeTab === 'leaderboard'&& <LeaderboardTab communityId={id} community={community} />}
-        {activeTab === 'content'    && <ContentTab     communityId={id} community={community} />}
+        {activeTab === 'content'    && <CoursesTab     communityId={id} community={community} />}
+        {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
         {activeTab === 'payments'   && <PaymentsTab    communityId={id} community={community} />}
       </div>
 

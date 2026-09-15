@@ -1,22 +1,11 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import {
   BookOpen, Play, FileText, File, Link as LinkIcon, Plus, Trash2,
   ChevronDown, ChevronRight, Eye, EyeOff, ArrowUp, ArrowDown,
   Edit3, Check, X, Video, Lock, Unlock, Youtube
 } from 'lucide-react'
 import { useApp } from '../App'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getYouTubeId(url) {
-  const m = url?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
-  return m ? m[1] : null
-}
-
-function getYouTubeThumbnail(url) {
-  const id = getYouTubeId(url)
-  return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null
-}
+import { getYouTubeId, getYouTubeThumbnail, VideoEmbed } from '../lib/video.jsx'
 
 const TYPE_META = {
   video: { icon: Play,      label: 'Video',    color: '#ef4444', bg: '#fef2f2' },
@@ -37,15 +26,7 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
     isFreePreview: lesson?.isFreePreview || false,
     isPublished:   lesson?.isPublished   || false,
   })
-  const fileRef = useRef()
 
-  const thumb = form.type === 'video' ? getYouTubeThumbnail(form.content) : null
-  const ytId  = form.type === 'video' ? getYouTubeId(form.content) : null
-
-  const handleFile = (e) => {
-    const f = e.target.files?.[0]
-    if (f) setForm(p => ({ ...p, content: f.name }))
-  }
 
   const canSave = form.title.trim()
 
@@ -95,31 +76,14 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
           {/* Content input */}
           {form.type === 'video' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Video URL (YouTube or direct link)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Video link (YouTube, Vimeo, Loom, Google Drive, or a direct .mp4)</label>
               <input
                 value={form.content}
                 onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
                 placeholder="https://youtube.com/watch?v=..."
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
               />
-              {thumb && (
-                <div className="mt-2 relative rounded-xl overflow-hidden bg-black aspect-video">
-                  <img src={thumb} alt="thumbnail" className="w-full h-full object-cover opacity-80" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <a
-                      href={`https://www.youtube.com/watch?v=${ytId}`}
-                      target="_blank" rel="noreferrer"
-                      className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Play size={20} className="text-white ml-1" fill="white" />
-                    </a>
-                  </div>
-                </div>
-              )}
-              {form.content && !thumb && (
-                <p className="text-xs text-gray-400 mt-1.5">Direct video URL saved. Preview available on member side.</p>
-              )}
+              {form.content && <div className="mt-2"><VideoEmbed url={form.content} title={form.title || 'Preview'} /></div>}
             </div>
           )}
 
@@ -138,26 +102,14 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
 
           {form.type === 'pdf' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">PDF File</label>
-              {form.content ? (
-                <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                  <File size={18} className="text-amber-500 flex-shrink-0" />
-                  <span className="text-sm text-amber-800 flex-1 truncate">{form.content}</span>
-                  <button onClick={() => setForm(p => ({ ...p, content: '' }))} className="text-amber-400 hover:text-amber-600">
-                    <X size={14} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="w-full border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors"
-                >
-                  <File size={24} className="mx-auto text-gray-300 mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">Click to upload PDF</p>
-                  <p className="text-xs text-gray-400 mt-1">PDF files up to 100MB</p>
-                </button>
-              )}
-              <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={handleFile} />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">PDF link (Google Drive, Dropbox, or any public URL)</label>
+              <input
+                value={form.content}
+                onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
+                placeholder="https://drive.google.com/file/d/..."
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <p className="text-xs text-gray-400 mt-1.5">Set the file to "Anyone with the link can view" so members can open it.</p>
             </div>
           )}
 
@@ -343,7 +295,7 @@ function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, o
     .sort((a, b) => a.order - b.order)
 
   const handleAddLesson = (form) => {
-    addLesson(module.id, communityId, form)
+    addLesson(module.id, communityId, { ...form, courseId: module.courseId || null })
     setAddingLesson(false)
   }
 
@@ -440,22 +392,23 @@ function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, o
 
 // ─── Content Tab ──────────────────────────────────────────────────────────────
 
-export default function ContentTab({ communityId, community }) {
+export default function ContentTab({ communityId, community, course, onBack }) {
   const { modules, lessons, addModule, updateModule, deleteModule, reorderModule } = useApp()
+  const courseId = course?.id || null
   const [showAddModule, setShowAddModule] = useState(false)
   const [editingModule, setEditingModule] = useState(null)
 
   const communityModules = modules
-    .filter(m => m.communityId === communityId)
+    .filter(m => m.communityId === communityId && (m.courseId || null) === courseId)
     .sort((a, b) => a.order - b.order)
 
-  const communityLessons = lessons.filter(l => l.communityId === communityId)
+  const communityLessons = lessons.filter(l => l.communityId === communityId && (l.courseId || null) === courseId)
 
   const totalPublished = communityLessons.filter(l => l.isPublished).length
   const totalDraft     = communityLessons.length - totalPublished
 
   const handleAddModule = (form) => {
-    addModule(communityId, form)
+    addModule(communityId, { ...form, courseId })
     setShowAddModule(false)
   }
 
@@ -476,7 +429,10 @@ export default function ContentTab({ communityId, community }) {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Course Content</h2>
+          {onBack && (
+            <button onClick={onBack} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-1">← All courses</button>
+          )}
+          <h2 className="text-lg font-bold text-gray-900">{course ? course.title : 'Course Content'}</h2>
           <p className="text-sm text-gray-500 mt-0.5">
             {communityModules.length} modules · {communityLessons.length} lessons
             {totalDraft > 0 && <span className="text-amber-500"> · {totalDraft} draft</span>}

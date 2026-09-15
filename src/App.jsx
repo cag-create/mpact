@@ -111,6 +111,9 @@ function AppProvider({ children }) {
   const [messages,       setMessages]       = useState(() => load('hub_messages',       INITIAL_MESSAGES))
   const [notifications,  setNotifications]  = useState(() => load('hub_notifications',  INITIAL_NOTIFICATIONS))
   const [sequences,      setSequences]      = useState(() => load('hub_sequences',      INITIAL_SEQUENCES))
+  const [courses,        setCourses]        = useState(() => load('hub_courses',        []))
+  const [replays,        setReplays]        = useState(() => load('hub_replays',        []))
+  const [progress,       setProgress]       = useState(() => load('hub_progress',       []))
   const [currentUser,    setCurrentUser]    = useState(() => getSession()?.user || null)
   const [hydrated,       setHydrated]       = useState(false)
   const lastServer = useRef({})   // key -> JSON of last value seen from/sent to the server
@@ -118,7 +121,7 @@ function AppProvider({ children }) {
 
   const setters = { communities: setCommunities, members: setMembers, events: setEvents, posts: setPosts, plans: setPlans,
     modules: setModules, lessons: setLessons, enrollments: setEnrollments, educators: setEducators, educatorPlan: setEducatorPlan,
-    messages: setMessages, notifications: setNotifications, sequences: setSequences }
+    messages: setMessages, notifications: setNotifications, sequences: setSequences, courses: setCourses, replays: setReplays, progress: setProgress }
 
   // ── Server hydration: everything shared lives on the server (Railway MySQL); localStorage is only a cache ──
   const pull = async () => {
@@ -174,6 +177,9 @@ function AppProvider({ children }) {
   useEffect(() => sync('messages', messages), [messages])
   useEffect(() => sync('notifications', notifications), [notifications])
   useEffect(() => sync('sequences', sequences), [sequences])
+  useEffect(() => sync('courses', courses), [courses])
+  useEffect(() => sync('replays', replays), [replays])
+  useEffect(() => sync('progress', progress), [progress])
 
   // ── Auth (server-backed) ──────────────────────────────────────────────────
   const login = async (email, password) => {
@@ -335,16 +341,18 @@ function AppProvider({ children }) {
 
   // ── Modules ───────────────────────────────────────────────────────────────
   const addModule = (communityId, data) => {
-    const maxOrder = Math.max(0, ...modules.filter(m => m.communityId === communityId).map(m => m.order))
-    const m = { id: `mod${Date.now()}`, communityId, ...data, order: maxOrder + 1, isPublished: false }
+    const maxOrder = Math.max(0, ...modules.filter(m => m.communityId === communityId && (m.courseId || null) === (data.courseId || null)).map(m => m.order))
+    const m = { id: `mod${Date.now()}`, communityId, ...data, order: maxOrder + 1, isPublished: data.isPublished ?? true }
     setModules(prev => [...prev, m]); return m
   }
   const updateModule  = (id, data) => setModules(prev => prev.map(m => m.id === id ? { ...m, ...data } : m))
   const deleteModule  = (id) => { setModules(prev => prev.filter(m => m.id !== id)); setLessons(prev => prev.filter(l => l.moduleId !== id)) }
   const reorderModule = (communityId, id, dir) => {
     setModules(prev => {
-      const cMods = [...prev.filter(m => m.communityId === communityId)].sort((a,b) => a.order - b.order)
-      const rest  = prev.filter(m => m.communityId !== communityId)
+      const courseId = prev.find(m => m.id === id)?.courseId || null
+      const inScope = m => m.communityId === communityId && (m.courseId || null) === courseId
+      const cMods = [...prev.filter(inScope)].sort((a,b) => a.order - b.order)
+      const rest  = prev.filter(m => !inScope(m))
       const idx   = cMods.findIndex(m => m.id === id)
       if (dir === 'up'   && idx > 0)               [cMods[idx-1], cMods[idx]]   = [cMods[idx], cMods[idx-1]]
       if (dir === 'down' && idx < cMods.length - 1) [cMods[idx],   cMods[idx+1]] = [cMods[idx+1], cMods[idx]]
@@ -355,11 +363,51 @@ function AppProvider({ children }) {
   // ── Lessons ───────────────────────────────────────────────────────────────
   const addLesson    = (moduleId, communityId, data) => {
     const maxOrder = Math.max(0, ...lessons.filter(l => l.moduleId === moduleId).map(l => l.order))
-    const l = { id: `les${Date.now()}`, moduleId, communityId, ...data, order: maxOrder + 1, isPublished: false }
+    const l = { id: `les${Date.now()}`, moduleId, communityId, ...data, order: maxOrder + 1, isPublished: data.isPublished ?? false }
     setLessons(prev => [...prev, l]); return l
   }
   const updateLesson = (id, data) => setLessons(prev => prev.map(l => l.id === id ? { ...l, ...data } : l))
   const deleteLesson = (id) => setLessons(prev => prev.filter(l => l.id !== id))
+
+  // ── Courses ───────────────────────────────────────────────────────────────
+  const addCourse = (communityId, data) => {
+    const maxOrder = Math.max(0, ...courses.filter(c => c.communityId === communityId).map(c => c.order || 0))
+    const c = { id: `crs${Date.now()}`, communityId, title: data.title, description: data.description || '', coverUrl: data.coverUrl || '', order: maxOrder + 1, isPublished: !!data.isPublished, createdAt: new Date().toISOString() }
+    setCourses(prev => [...prev, c]); return c
+  }
+  const updateCourse = (id, data) => setCourses(prev => prev.map(c => c.id === id ? { ...c, ...data } : c))
+  const deleteCourse = (id) => {
+    setCourses(prev => prev.filter(c => c.id !== id))
+    setModules(prev => prev.filter(m => m.courseId !== id))
+    setLessons(prev => prev.filter(l => l.courseId !== id))
+  }
+  const reorderCourse = (communityId, id, dir) => {
+    setCourses(prev => {
+      const mine = [...prev.filter(c => c.communityId === communityId)].sort((a,b) => (a.order||0) - (b.order||0))
+      const rest = prev.filter(c => c.communityId !== communityId)
+      const idx = mine.findIndex(c => c.id === id)
+      if (dir === 'up' && idx > 0) [mine[idx-1], mine[idx]] = [mine[idx], mine[idx-1]]
+      if (dir === 'down' && idx < mine.length - 1) [mine[idx], mine[idx+1]] = [mine[idx+1], mine[idx]]
+      return [...rest, ...mine.map((c,i) => ({ ...c, order: i+1 }))]
+    })
+  }
+
+  // ── Replays (recordings of live sessions) ─────────────────────────────────
+  const addReplay = (communityId, data) => {
+    const r = { id: `rp${Date.now()}`, communityId, ...data, createdAt: new Date().toISOString() }
+    setReplays(prev => [r, ...prev]); return r
+  }
+  const updateReplay = (id, data) => setReplays(prev => prev.map(r => r.id === id ? { ...r, ...data } : r))
+  const deleteReplay = (id) => setReplays(prev => prev.filter(r => r.id !== id))
+
+  // ── Lesson progress ───────────────────────────────────────────────────────
+  const setLessonComplete = (memberId, lesson, done = true) => {
+    const id = `${memberId}:${lesson.id}`
+    setProgress(prev => {
+      const rest = prev.filter(p => p.id !== id)
+      return done ? [...rest, { id, memberId, lessonId: lesson.id, courseId: lesson.courseId || null, communityId: lesson.communityId, completedAt: new Date().toISOString() }] : rest
+    })
+  }
 
   // ── Enrollments ───────────────────────────────────────────────────────────
   const addEnrollment = (communityId, memberId, planId, amount) => {
@@ -386,6 +434,9 @@ function AppProvider({ children }) {
       // State
       communities, members, events, posts, plans, modules, lessons, enrollments,
       educators, brevoSettings, educatorPlan, users, messages, notifications, sequences, currentUser,
+      courses, replays, progress,
+      // Courses / replays / progress
+      addCourse, updateCourse, deleteCourse, reorderCourse, addReplay, updateReplay, deleteReplay, setLessonComplete,
       // Auth
       login, logout, register, changePassword,
       // Notifications
