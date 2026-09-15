@@ -191,11 +191,11 @@ export default function Sidebar() {
               <p className="text-xs text-gray-400 leading-snug mb-2.5">Run your own community here. Two plans for hosting a community on Mpact:</p>
               <div className="space-y-1.5">
                 <div className="flex items-baseline justify-between rounded-lg bg-black/30 px-2.5 py-2">
-                  <div className="min-w-0"><p className="text-xs font-semibold text-gray-200">Foundation</p><p className="text-[10px] text-gray-500">Host your site</p></div>
-                  <p className="text-xs font-bold text-white whitespace-nowrap">$5<span className="text-gray-500 font-medium">/mo</span></p>
+                  <div className="min-w-0"><p className="text-xs font-semibold text-gray-200">Foundation</p><p className="text-[10px] text-gray-500">yourname.ourmpact.com address</p></div>
+                  <p className="text-xs font-bold text-white whitespace-nowrap">$5.99<span className="text-gray-500 font-medium">/mo</span></p>
                 </div>
                 <div className="flex items-baseline justify-between rounded-lg bg-black/30 px-2.5 py-2">
-                  <div className="min-w-0"><p className="text-xs font-semibold text-gray-200">Active</p><p className="text-[10px] text-gray-500">Full community + payments</p></div>
+                  <div className="min-w-0"><p className="text-xs font-semibold text-gray-200">Active</p><p className="text-[10px] text-gray-500">Your own custom domain + highlighted community</p></div>
                   <p className="text-xs font-bold text-white whitespace-nowrap">$49.99<span className="text-gray-500 font-medium">/mo</span></p>
                 </div>
               </div>
