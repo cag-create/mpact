@@ -312,16 +312,10 @@ export default function PaymentsTab({ communityId, community }) {
         })}
       </div>
 
-      {/* Plans — Mpact's own hosting tiers for creators, not Crea'fi member pricing */}
+      {/* Plans */}
       <div>
-        <div className="bg-gray-900 text-white rounded-2xl p-5 mb-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Coming soon</p>
-          <p className="font-bold text-base">Host your own course or community on Mpact</p>
-          <p className="text-sm text-gray-300 mt-1 max-w-2xl">The plans below are what creators will pay to run their community here: your own feed, live training calendar, course content, members, and payments, all in one place. Not open yet. Want in when it is? Message Chad inside the app.</p>
-          <p className="text-xs text-gray-400 mt-3">Crea'fi membership itself is sold at <a href="https://creafigenius.com" target="_blank" rel="noreferrer" className="underline text-gray-200">creafigenius.com</a>, not through these plans.</p>
-        </div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">Mpact hosting plans</h3>
+          <h3 className="font-bold text-gray-900">Membership</h3>
           <button
             onClick={() => setShowAddPlan(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors hover:opacity-90"
