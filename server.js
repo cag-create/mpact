@@ -209,7 +209,7 @@ app.post('/api/send-email-blast', async (req, res) => {
 app.all('/api/*', (_req, res) => res.status(404).json({ error: 'Not found' }))
 
 // ─── Static app + subdomain injection ─────────────────────────────────────────
-app.use(express.static(join(__dirname, 'dist')))
+app.use(express.static(join(__dirname, 'dist'), { index: false }))  // '/' falls through to the injecting handler below
 const PRIMARY_DOMAINS = ['mpact.net', 'ourmpact.com', 'localhost', 'mpact-production.up.railway.app']
 function getCommunityIdentifier(host) {
   const hostname = (host || '').split(':')[0], parts = hostname.split('.')
