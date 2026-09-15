@@ -1031,7 +1031,8 @@ export default function CommunityView() {
         </div>
       </div>
 
-      {/* Links: where members join and where they sign in */}
+      {/* Links: where members join and where they sign in (feed tab only) */}
+      {activeTab === 'feed' && (
       <div className="mx-8 mt-4 mb-2 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-4">
         <div className="flex items-center gap-2 mb-3">
           <Link size={15} className="text-gray-400" />
@@ -1071,6 +1072,7 @@ export default function CommunityView() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Tab Content */}
       <div className="px-8 py-8">
