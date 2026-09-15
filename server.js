@@ -142,6 +142,7 @@ app.post('/api/members/provision', needDb, async (req, res) => {
   const password = crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 12)
   const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
   if (rows.length) {
+    if (rows[0].role === 'platform_admin') return res.status(409).json({ error: 'That email belongs to the platform admin; sign in normally.' })
     await pool.query('UPDATE hub_users SET password_hash=? WHERE id=?', [await bcrypt.hash(password, 10), rows[0].id])
     return res.json({ existing: true, email, password, loginUrl: `${PUBLIC_URL}/login` })
   }
