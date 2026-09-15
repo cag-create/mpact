@@ -512,6 +512,10 @@ export default function App() {
 
 function InnerApp() {
   const { communities, currentUser } = useContext(AppContext)
+  // On a community's own address (name.ourmpact.com or a custom domain) the home route is that community.
+  const injected = typeof window !== 'undefined' ? window.__MPACT_COMMUNITY__ : null
+  const injectedCommunity = injected ? communities.find(c => c.slug === injected || c.id === injected || c.customDomain === injected) : null
+  const home = injectedCommunity ? `/community/${injectedCommunity.id}` : '/'
   if (!currentUser) {
     return (
       <Routes>
@@ -527,7 +531,7 @@ function InnerApp() {
         <Sidebar />
         <div className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/"                   element={<Dashboard />} />
+            <Route path="/"                   element={injectedCommunity ? <Navigate to={home} replace /> : <Dashboard />} />
             <Route path="/admin"              element={<AdminDashboard />} />
             <Route path="/analytics"          element={<AnalyticsPage />} />
             <Route path="/messages"           element={<MessagesPage />} />
@@ -535,7 +539,7 @@ function InnerApp() {
             <Route path="/join/:slugOrId"     element={<JoinPage />} />
             <Route path="/community/:id"      element={<CommunityView />} />
             <Route path="/community/:id/:tab" element={<CommunityView />} />
-            <Route path="*"                   element={<Navigate to="/" replace />} />
+            <Route path="*"                   element={<Navigate to={home} replace />} />
           </Routes>
         </div>
       </div>
