@@ -151,8 +151,8 @@ export default function Sidebar() {
         {/* Nav */}
         <nav className="px-3 py-3 space-y-1 border-b border-white/5">
           {isPlatformAdmin && (
-            <button onClick={() => navigate('/')} title={collapsed ? 'Dashboard' : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${location.pathname === '/' ? 'bg-white/10 text-white' : 'text-gray-500 hover:bg-white/5 hover:text-gray-300'}`}>
+            <button onClick={() => navigate('/dashboard')} title={collapsed ? 'Dashboard' : undefined}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${location.pathname === '/dashboard' ? 'bg-white/10 text-white' : 'text-gray-500 hover:bg-white/5 hover:text-gray-300'}`}>
               <LayoutDashboard size={16} className="flex-shrink-0" />
               {!collapsed && <span>Dashboard</span>}
             </button>

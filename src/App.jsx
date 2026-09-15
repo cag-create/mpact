@@ -515,7 +515,7 @@ function InnerApp() {
   // On a community's own address (name.ourmpact.com or a custom domain) the home route is that community.
   const injected = typeof window !== 'undefined' ? window.__MPACT_COMMUNITY__ : null
   const injectedCommunity = injected ? communities.find(c => c.slug === injected || c.id === injected || c.customDomain === injected) : null
-  const home = injectedCommunity ? `/community/${injectedCommunity.id}` : '/'
+  const home = injectedCommunity ? `/community/${injectedCommunity.id}` : '/dashboard'
   if (!currentUser) {
     return (
       <Routes>
@@ -531,7 +531,8 @@ function InnerApp() {
         <Sidebar />
         <div className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/"                   element={injectedCommunity ? <Navigate to={home} replace /> : <Dashboard />} />
+            <Route path="/"                   element={<Navigate to={home} replace />} />
+            <Route path="/dashboard"          element={<Dashboard />} />
             <Route path="/admin"              element={<AdminDashboard />} />
             <Route path="/analytics"          element={<AnalyticsPage />} />
             <Route path="/messages"           element={<MessagesPage />} />

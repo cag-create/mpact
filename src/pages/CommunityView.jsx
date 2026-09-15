@@ -902,7 +902,7 @@ export default function CommunityView() {
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <div className="text-5xl mb-4">🔍</div>
         <h2 className="text-xl font-bold text-gray-800 mb-2">Community not found</h2>
-        <button onClick={() => navigate('/')} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium">
+        <button onClick={() => navigate('/dashboard')} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium">
           Back to Dashboard
         </button>
       </div>
@@ -921,7 +921,7 @@ export default function CommunityView() {
   const handleDelete = () => {
     if (window.confirm(`Delete "${community.name}"? This cannot be undone.`)) {
       deleteCommunity(id)
-      navigate('/')
+      navigate('/dashboard')
     }
   }
 
@@ -947,7 +947,7 @@ export default function CommunityView() {
           backgroundSize: '50px 50px'
         }} />
         <div className="absolute top-4 left-4">
-          <button onClick={() => navigate('/')} className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm transition-colors bg-black/10 hover:bg-black/20 px-3 py-1.5 rounded-lg">
+          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm transition-colors bg-black/10 hover:bg-black/20 px-3 py-1.5 rounded-lg">
             <ArrowLeft size={14} />
             Back
           </button>

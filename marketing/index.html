@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mpact — Your community, your courses, your domain</title>
+<meta name="description" content="Mpact is the home for creators who run a community: feed, live training calendar, courses, replays, members, leaderboard, and payments, on your own branded address.">
+<meta property="og:title" content="Mpact — Your community, your courses, your domain">
+<meta property="og:description" content="Run your community on Mpact: feed, live training, courses, replays, members, payments. Your name on the door.">
+<meta name="theme-color" content="#030712">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030712;--bg2:#0b1020;--ink:#f8fafc;--mute:#94a3b8;--line:rgba(255,255,255,.09);--grad:linear-gradient(90deg,#8B2FE0 0%,#C03535 48%,#2575E8 100%);--max:1120px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:24px;text-decoration:none;letter-spacing:-.02em}
+.m{width:36px;height:36px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-weight:900;color:#fff;font-size:20px}
+.gradtext{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+nav ul{list-style:none;display:flex;gap:26px;margin:0;padding:0;font-weight:700;font-size:15px}
+nav ul a{text-decoration:none;color:var(--mute)}
+nav ul a:hover{color:var(--ink)}
+.btn{display:inline-block;padding:13px 22px;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none;border:1px solid transparent;transition:transform .12s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--grad);color:#fff}
+.btn.ghost{border-color:rgba(255,255,255,.18);color:var(--ink)}
+.btn.light{background:#fff;color:#0b1020}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:64px 0 72px}
+h1{font-size:clamp(40px,6vw,68px);line-height:1.02;letter-spacing:-.03em;font-weight:900;margin:0 0 20px}
+.lede{font-size:20px;color:#cbd5e1;max-width:34rem;margin:0 0 30px}
+.pill{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#c4b5fd;border:1px solid rgba(139,47,224,.5);padding:6px 12px;border-radius:999px;margin-bottom:22px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.cta small{width:100%;color:var(--mute);font-size:14px}
+/* app mock */
+.mock{background:var(--bg2);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mock .bar{display:flex;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.mock .bar i{width:10px;height:10px;border-radius:50%;background:#1f2937;display:block}
+.mock .body{display:grid;grid-template-columns:150px 1fr;min-height:330px}
+.mock .side{border-right:1px solid var(--line);padding:14px 12px;font-size:12px;color:var(--mute)}
+.mock .side .logo{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:800;margin-bottom:16px}
+.mock .side .logo b{width:22px;height:22px;border-radius:6px;background:#000;display:grid;place-items:center;overflow:hidden}
+.mock .side .logo img{width:20px;height:20px;object-fit:contain}
+.mock .side div{padding:6px 8px;border-radius:8px}
+.mock .side .on{background:rgba(255,255,255,.08);color:var(--ink)}
+.mock .main{padding:16px;background:#f8fafc;color:#0f172a}
+.mock .tabs{display:flex;gap:14px;font-size:11px;font-weight:800;color:#64748b;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:12px}
+.mock .tabs span:first-child{color:#4f46e5;border-bottom:2px solid #4f46e5;padding-bottom:8px;margin-bottom:-9px}
+.mock .card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;font-size:12px}
+.mock .card b{display:block;font-size:13px;margin-bottom:4px}
+.mock .prog{height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:8px}
+.mock .prog i{display:block;height:100%;width:62%;background:var(--grad)}
+section{padding:72px 0}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+h2{font-size:clamp(30px,4vw,44px);line-height:1.08;letter-spacing:-.02em;font-weight:900;margin:0 0 14px}
+.sub{color:#cbd5e1;max-width:40rem;margin:0 0 36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.f{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:22px}
+.f .ic{width:38px;height:38px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-weight:900;color:#fff;margin-bottom:14px;font-size:16px}
+.f h3{margin:0 0 6px;font-size:18px;font-weight:800}
+.f p{margin:0;color:var(--mute);font-size:15px}
+.f .soon{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fbbf24;margin-left:8px}
+.proof{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:40px}
+.proof img{width:100%;max-width:340px;border-radius:16px;margin:0 auto;display:block}
+.proof ul{color:#cbd5e1;padding-left:18px;margin:0 0 22px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:860px}
+.plan{background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:30px;position:relative}
+.plan.hot{border-color:transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,var(--grad) border-box}
+.plan .tag{position:absolute;top:-12px;left:30px;background:var(--grad);color:#fff;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:999px}
+.plan h3{margin:0 0 4px;font-size:22px;font-weight:900}
+.price{font-size:44px;font-weight:900;letter-spacing:-.03em;margin:8px 0 2px}
+.price span{font-size:16px;color:var(--mute);font-weight:700}
+.plan .for{color:var(--mute);margin:0 0 18px;font-size:15px}
+.plan ul{list-style:none;padding:0;margin:0 0 24px}
+.plan li{padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.plan li::before{content:"✓";color:#a78bfa;font-weight:900;margin-right:10px}
+form{background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:30px;max-width:620px}
+label{display:block;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+input,textarea{width:100%;background:#0f172a;border:1px solid rgba(255,255,255,.12);color:var(--ink);font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;outline:none}
+input:focus,textarea:focus{border-color:#8B2FE0}
+button.btn{cursor:pointer;width:100%;margin-top:20px;font-size:16px}
+.msg{margin-top:12px;font-size:15px;min-height:1.4em}
+footer{border-top:1px solid var(--line);padding:32px 0 44px;color:var(--mute);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--mute);text-decoration:none;margin-left:18px}
+@media (max-width:860px){.hero,.proof,.plans,.grid{grid-template-columns:1fr}nav ul{display:none}.hero{padding:32px 0 48px}section{padding:52px 0}.mock .body{grid-template-columns:1fr}.mock .side{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="/"><span class="m">M</span><span class="gradtext">Mpact</span></a>
+    <ul><li><a href="#features">Features</a></li><li><a href="#pricing">Pricing</a></li><li><a href="https://creafi.ourmpact.com">See it live</a></li><li><a href="/login">Log in</a></li></ul>
+    <a class="btn ghost" href="#waitlist">Get early access</a>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <span class="pill">Community platform · Opening soon</span>
+      <h1>Your community.<br>Your courses.<br><span class="gradtext">Your name on the door.</span></h1>
+      <p class="lede">Mpact is where creators run a community that actually does the work: a feed, a live training calendar, courses with progress, replays, members, a leaderboard, and payments. All on your own address, with your own logo on the login page.</p>
+      <div class="cta">
+        <a class="btn primary" href="#waitlist">Get early access</a>
+        <a class="btn ghost" href="https://creafi.ourmpact.com">See Crea'fi running on Mpact</a>
+        <small>Built by Chad Glover. Crea'fi was the first community on it.</small>
+      </div>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <div class="body">
+        <div class="side">
+          <div class="logo"><b><img src="/creafi-logo.png" alt=""></b> Crea'fi</div>
+          <div class="on">Community Feed</div><div>Live Training</div><div>Courses</div><div>Replays</div><div>Members</div><div>Leaderboard</div><div>Payments</div>
+        </div>
+        <div class="main">
+          <div class="tabs"><span>Courses</span><span>Replays</span><span>Live Training</span></div>
+          <div class="card"><b>Creative Finance: Structure the Deal</b>4 modules · 18 lessons<div class="prog"><i></i></div></div>
+          <div class="card"><b>Deal Lab replay · Sept 12</b>Seller-financed duplex · Multifamily</div>
+          <div class="card"><b>Thursday · Sales Practice, 7 PM ET</b>Role-play a seller call. One skill per session.</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <p class="eyebrow">What's inside</p>
+    <h2>Everything a paid community needs. Nothing you have to duct-tape together.</h2>
+    <p class="sub">One place for the conversation, the training, the content, and the money.</p>
+    <div class="grid">
+      <div class="f"><div class="ic">≡</div><h3>Community feed</h3><p>Posts, photos, reactions, comments, and notifications. Members introduce themselves and stay in the room.</p></div>
+      <div class="f"><div class="ic">▦</div><h3>Live training calendar</h3><p>Live calls, workshops, and challenges on a calendar members can actually find, with the Zoom link right there.</p></div>
+      <div class="f"><div class="ic">▶</div><h3>Courses with progress</h3><p>Courses, modules, lessons. Video, text, PDFs, links. Members mark lessons complete and pick up where they left off.</p></div>
+      <div class="f"><div class="ic">◉</div><h3>Replays library</h3><p>Every recording filed by session type, topic, and property type, so the answer is one filter away instead of a two-hour scrub.</p></div>
+      <div class="f"><div class="ic">☺</div><h3>Members and leaderboard</h3><p>Profiles, direct messages, points, and badges. Recognition for the people who show up and do the work.</p></div>
+      <div class="f"><div class="ic">$</div><h3>Payments</h3><p>Sell membership through Stripe. New members get their login by email the moment they're in.</p></div>
+      <div class="f"><div class="ic">◆</div><h3>Your brand, your address</h3><p>Your logo on the login page and the sidebar. Your community at yourname.ourmpact.com, or on your own domain.</p></div>
+      <div class="f"><div class="ic">⇄</div><h3>One login, every community <span class="soon">Coming</span></h3><p>Members who belong to more than one community on Mpact sign in once and move between them.</p></div>
+      <div class="f"><div class="ic">✎</div><h3>Built with creators, not for a demo</h3><p>Mpact runs a real paid community today. Features ship because a community asked for them.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="proof">
+      <img src="/creafi-logo.png" alt="Crea'fi">
+      <div>
+        <p class="eyebrow">The first community on Mpact</p>
+        <h2>Crea'fi runs here.</h2>
+        <p class="sub" style="margin-bottom:16px">Chad Glover's creative finance community lives on Mpact: daily live calls, a course library, replays by topic and property type, and members who get to it together.</p>
+        <ul>
+          <li>Branded login at creafi.ourmpact.com</li>
+          <li>Paid membership with automatic onboarding</li>
+          <li>Courses, replays, and a live calendar in one place</li>
+        </ul>
+        <a class="btn light" href="https://creafi.ourmpact.com">Open Crea'fi on Mpact</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <p class="eyebrow">Pricing</p>
+    <h2>Two plans. Pick the door you want your name on.</h2>
+    <p class="sub">Both include every feature above. The difference is the address.</p>
+    <div class="plans">
+      <div class="plan">
+        <h3>Foundation</h3>
+        <p class="price">$5.99<span> / month</span></p>
+        <p class="for">For creators getting their community off the ground.</p>
+        <ul><li>yourname.ourmpact.com address</li><li>All features: feed, calendar, courses, replays, members, payments</li><li>Your logo on the login page</li><li>Unlimited members</li></ul>
+        <a class="btn ghost" href="#waitlist">Get early access</a>
+      </div>
+      <div class="plan hot">
+        <span class="tag">Most creators</span>
+        <h3>Active</h3>
+        <p class="price">$49.99<span> / month</span></p>
+        <p class="for">For communities that want to own the whole experience.</p>
+        <ul><li>Your own custom domain</li><li>Highlighted community placement</li><li>Everything in Foundation</li><li>Priority support</li></ul>
+        <a class="btn primary" href="#waitlist">Get early access</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="waitlist">
+    <p class="eyebrow">Early access</p>
+    <h2>Tell us about your community.</h2>
+    <p class="sub">Mpact is opening to new creators soon. Leave your details and you'll hear from Chad directly when your spot is ready.</p>
+    <form id="wl" novalidate>
+      <label for="name">Your name</label><input id="name" name="name" autocomplete="name" required>
+      <label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required>
+      <label for="community">Community or course name</label><input id="community" name="community" placeholder="What would members see on the door?">
+      <label for="about">What do you teach, and who is it for?</label><textarea id="about" name="about" rows="3"></textarea>
+      <button class="btn primary" type="submit" id="go">Request early access</button>
+      <div class="msg" id="msg" role="status"></div>
+    </form>
+  </section>
+
+  <footer>
+    <div>© <span id="y"></span> Mpact · A Chad Glover company</div>
+    <div><a href="https://creafi.ourmpact.com">Crea'fi</a><a href="/login">Log in</a><a href="mailto:support@creafigenius.com">Contact</a></div>
+  </footer>
+</div>
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+var f=document.getElementById('wl'),go=document.getElementById('go'),msg=document.getElementById('msg');
+f.addEventListener('submit',function(e){
+  e.preventDefault(); msg.textContent='';
+  if(!f.checkValidity()){f.reportValidity();return}
+  var d={}; new FormData(f).forEach(function(v,k){d[k]=String(v).trim()});
+  go.disabled=true; go.textContent='Sending…';
+  fetch('/api/waitlist',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)})
+    .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+    .then(function(x){ if(x.ok){ f.reset(); msg.style.color='#86efac'; msg.textContent="You're on the list. Chad will reach out when your spot is ready."; go.textContent='Requested'; } else { throw new Error(x.j.error||'Something went wrong'); } })
+    .catch(function(err){ msg.style.color='#fca5a5'; msg.textContent=err.message; go.disabled=false; go.textContent='Request early access'; });
+});
+</script>
+</body>
+</html>

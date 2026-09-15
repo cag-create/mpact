@@ -208,6 +208,23 @@ app.post('/api/send-email-blast', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
+// ─── Early-access waitlist (marketing site) ───────────────────────────────────
+app.post('/api/waitlist', needDb, async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase()
+  const name = String(req.body?.name || '').trim().slice(0, 120)
+  if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Please add your name and a valid email.' })
+  const entry = { id: `wl${Date.now()}`, name, email, community: String(req.body?.community || '').trim().slice(0, 160), about: String(req.body?.about || '').trim().slice(0, 1000), createdAt: new Date().toISOString(), ip: req.headers['x-forwarded-for'] || req.ip }
+  const list = (await getState('waitlist')) || []
+  if (list.length >= 5000) return res.status(429).json({ error: 'The list is full for now.' })
+  const rest = list.filter(x => x.email !== email)
+  await setState('waitlist', [...rest, entry])
+  res.json({ ok: true })
+})
+app.get('/api/waitlist', needDb, auth, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' })
+  res.json({ waitlist: ((await getState('waitlist')) || []).slice().reverse() })
+})
+
 app.all('/api/*', (_req, res) => res.status(404).json({ error: 'Not found' }))
 
 // ─── Static app + subdomain injection ─────────────────────────────────────────
@@ -229,6 +246,14 @@ async function communityBrand(identifier) {
   const c = brandCache.list.find(c => c.id === identifier || c.slug === identifier || c.customDomain === identifier)
   return c ? { id: c.id, name: c.name, logoUrl: c.logoUrl || null, color: c.color || null, joinUrl: c.joinUrl || null, description: c.description || '' } : null
 }
+
+// Marketing site: the front page of ourmpact.com (apex + www). The app lives at /dashboard, /login, ….
+const MARKETING_HOSTS = ['ourmpact.com', 'www.ourmpact.com', 'localhost']
+app.get('/', (req, res, next) => {
+  const hostname = (req.headers.host || '').split(':')[0]
+  if (!MARKETING_HOSTS.includes(hostname)) return next()
+  res.sendFile(join(__dirname, 'marketing', 'index.html'))
+})
 
 app.get('*', async (req, res) => {
   const indexPath = join(__dirname, 'dist', 'index.html')

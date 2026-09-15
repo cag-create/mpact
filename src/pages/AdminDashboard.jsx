@@ -9,6 +9,7 @@ import {
 import { useApp } from '../App'
 import { MpactWordmark, MpactMIcon } from '../components/Sidebar'
 import CreafiLogo from '../components/CreafiLogo'
+import { api } from '../lib/api'
 
 function fmtMoney(n) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(n)
@@ -424,6 +425,33 @@ function SequenceRow({ seq, onUpdate, onDelete }) {
   )
 }
 
+// Early-access requests from the ourmpact.com marketing page (GET /api/waitlist, admin only).
+function WaitlistCard() {
+  const [rows, setRows] = React.useState(null)
+  React.useEffect(() => { fetch('/api/waitlist', { headers: { Authorization: `Bearer ${JSON.parse(localStorage.getItem('hub_session') || '{}').token || ''}` } }).then(r => r.ok ? r.json() : { waitlist: [] }).then(d => setRows(d.waitlist || [])).catch(() => setRows([])) }, [])
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div><h3 className="font-bold text-gray-900">Early-access waitlist</h3><p className="text-xs text-gray-400">Creators who asked to host on Mpact, from ourmpact.com</p></div>
+        <span className="text-sm font-bold text-gray-700">{rows ? rows.length : '…'}</span>
+      </div>
+      {rows && rows.length === 0 && <p className="text-sm text-gray-400 px-5 py-6 text-center">No requests yet.</p>}
+      {rows && rows.length > 0 && (
+        <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+          {rows.map(r => (
+            <div key={r.id} className="px-5 py-3 text-sm">
+              <div className="flex items-center justify-between gap-3"><span className="font-semibold text-gray-900">{r.name}</span><span className="text-xs text-gray-400">{(r.createdAt || '').slice(0, 10)}</span></div>
+              <a href={`mailto:${r.email}`} className="text-indigo-600 text-xs">{r.email}</a>
+              {r.community && <p className="text-gray-700 mt-1"><span className="text-gray-400">Community:</span> {r.community}</p>}
+              {r.about && <p className="text-gray-500 mt-0.5 whitespace-pre-wrap">{r.about}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const {
@@ -508,6 +536,8 @@ export default function AdminDashboard() {
       </div>
 
       <div className="px-8 py-8 space-y-8">
+
+        <WaitlistCard />
 
         {/* Stat cards */}
         <div className="grid grid-cols-4 gap-4">
