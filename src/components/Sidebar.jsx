@@ -1,10 +1,51 @@
 import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Plus, ChevronRight, Shield, Lock, MessageCircle, BarChart2, LogOut, User } from 'lucide-react'
+import { LayoutDashboard, Plus, ChevronRight, Shield, Lock, MessageCircle, BarChart2, LogOut, User, KeyRound, X } from 'lucide-react'
 import { useApp } from '../App'
 import { CreateCommunityModal } from './Modals'
-import CreafiLogo from './CreafiLogo'
+import CreafiLogo, { CommunityLogo } from './CreafiLogo'
 import NotificationBell from './NotificationBell'
+
+function ChangePasswordModal({ onClose, changePassword, userId }) {
+  const [oldPw, setOldPw] = useState(''), [newPw, setNewPw] = useState(''), [again, setAgain] = useState('')
+  const [msg, setMsg] = useState(''), [ok, setOk] = useState(false), [busy, setBusy] = useState(false)
+  const submit = async (e) => {
+    e.preventDefault(); setMsg('')
+    if (newPw.length < 6) return setMsg('New password must be at least 6 characters')
+    if (newPw !== again) return setMsg('New passwords do not match')
+    setBusy(true)
+    const good = await changePassword(userId, oldPw, newPw)
+    setBusy(false)
+    if (good) { setOk(true); setTimeout(onClose, 1200) } else setMsg('Current password is incorrect')
+  }
+  const cls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <form onSubmit={submit} className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Change password</h3>
+          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
+        </div>
+        <div className="px-6 py-4 space-y-3">
+          {ok ? <p className="text-sm text-green-600 font-medium">Password updated.</p> : (
+            <>
+              <input type="password" autoFocus placeholder="Current password" value={oldPw} onChange={e => setOldPw(e.target.value)} className={cls} />
+              <input type="password" placeholder="New password" value={newPw} onChange={e => setNewPw(e.target.value)} className={cls} />
+              <input type="password" placeholder="New password again" value={again} onChange={e => setAgain(e.target.value)} className={cls} />
+              {msg && <p className="text-xs text-red-600">{msg}</p>}
+            </>
+          )}
+        </div>
+        {!ok && (
+          <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</button>
+            <button type="submit" disabled={busy} className="px-5 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50">{busy ? 'Saving…' : 'Update password'}</button>
+          </div>
+        )}
+      </form>
+    </div>
+  )
+}
 
 // ─── Mpact brand gradient ─────────────────────────────────────────────────────
 const GRADIENT = 'linear-gradient(90deg, #8B2FE0 0%, #C03535 48%, #2575E8 100%)'
@@ -60,7 +101,12 @@ export function MpactWordmark({ fontSize = 22 }) {
 export default function Sidebar() {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const { communities, currentUser, logout, messages, members } = useApp()
+  const { communities, currentUser, logout, messages, members, changePassword } = useApp()
+  const [showPw, setShowPw] = useState(false)
+  // Brand the sidebar with the community when we're on its own address, or for a member of exactly that community
+  const injected = typeof window !== 'undefined' ? window.__MPACT_BRAND__ : null
+  const brandCommunity = (injected && (communities.find(c => c.id === injected.id) || injected))
+    || (currentUser?.role === 'member' && communities.find(c => c.id === currentUser.communityId)) || null
   const [showCreate, setShowCreate] = useState(false)
   const [collapsed, setCollapsed]   = useState(false)
 
@@ -78,13 +124,15 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
           {!collapsed ? (
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-              <MpactMIcon size={36} />
-              <MpactWordmark fontSize={22} />
+            <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate(brandCommunity ? `/community/${brandCommunity.id}` : '/')}>
+              {brandCommunity ? <CommunityLogo community={brandCommunity} size={40} className="rounded-xl" emojiClass="text-2xl" /> : <MpactMIcon size={36} />}
+              {brandCommunity
+                ? <div className="min-w-0"><p className="text-white font-extrabold text-lg leading-tight truncate">{brandCommunity.name}</p><p className="text-[10px] text-gray-500 leading-tight">Powered by Mpact</p></div>
+                : <MpactWordmark fontSize={22} />}
             </div>
           ) : (
-            <div className="cursor-pointer mx-auto" onClick={() => navigate('/')}>
-              <MpactMIcon size={36} />
+            <div className="cursor-pointer mx-auto" onClick={() => navigate(brandCommunity ? `/community/${brandCommunity.id}` : '/')}>
+              {brandCommunity ? <CommunityLogo community={brandCommunity} size={36} className="rounded-xl" emojiClass="text-xl" /> : <MpactMIcon size={36} />}
             </div>
           )}
           {!collapsed && (
@@ -158,9 +206,7 @@ export default function Sidebar() {
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-base relative"
                   style={{ backgroundColor: community.color + '25', border: `1.5px solid ${community.color}45` }}
                 >
-                  {community.id === 'creafi'
-                    ? <CreafiLogo size={22} />
-                    : community.emoji}
+                  <CommunityLogo community={community} size={22} emojiClass="text-base" />
                   {community.isLocked && (
                     <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-900 border border-gray-800 rounded-full flex items-center justify-center">
                       <Lock size={7} className="text-violet-400" />
@@ -223,6 +269,11 @@ export default function Sidebar() {
               {!collapsed && <span>New Community</span>}
             </button>
           )}
+          <button onClick={() => setShowPw(true)} title={collapsed ? 'Change password' : undefined}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-white/5 hover:text-gray-300 transition-all text-sm font-medium">
+            <KeyRound size={16} className="flex-shrink-0" />
+            {!collapsed && <span>Change password</span>}
+          </button>
           <button onClick={logout} title={collapsed ? 'Sign Out' : undefined}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-white/5 hover:text-gray-300 transition-all text-sm font-medium">
             <LogOut size={16} className="flex-shrink-0" />
@@ -232,6 +283,7 @@ export default function Sidebar() {
       </aside>
 
       {showCreate && <CreateCommunityModal onClose={() => setShowCreate(false)} />}
+      {showPw && <ChangePasswordModal onClose={() => setShowPw(false)} changePassword={changePassword} userId={currentUser?.id} />}
     </>
   )
 }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Users, Calendar, MessageSquare, ArrowRight, Plus, Sparkles, Lock } from 'lucide-react'
 import { useApp } from '../App'
 import { CreateCommunityModal } from '../components/Modals'
-import CreafiLogo from '../components/CreafiLogo'
+import { CommunityLogo } from '../components/CreafiLogo'
 
 function StatCard({ icon: Icon, label, value, color }) {
   return (
@@ -33,7 +33,7 @@ function CommunityCard({ community, memberCount, eventCount, postCount }) {
           backgroundSize: '40px 40px'
         }} />
         <div className="absolute bottom-0 right-0 p-4 opacity-25 select-none">
-          {community.id === 'creafi' ? <CreafiLogo size={52} /> : <span className="text-4xl">{community.emoji}</span>}
+          <CommunityLogo community={community} size={52} emojiClass="text-4xl" />
         </div>
         {/* Lock badge */}
         {community.isLocked && (
@@ -51,9 +51,7 @@ function CommunityCard({ community, memberCount, eventCount, postCount }) {
             className="-mt-10 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-white flex-shrink-0 overflow-hidden"
             style={{ backgroundColor: community.color + '22', borderColor: 'white' }}
           >
-            {community.id === 'creafi'
-              ? <CreafiLogo size={34} />
-              : <span className="text-2xl">{community.emoji}</span>}
+            <CommunityLogo community={community} size={34} emojiClass="text-2xl" />
           </div>
           <div className="pt-1 min-w-0">
             <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-1" style={{ backgroundColor: community.color + '15', color: community.color }}>

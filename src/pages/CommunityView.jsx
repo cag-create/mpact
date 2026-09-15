@@ -14,7 +14,7 @@ import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
 import PaymentsTab from '../components/PaymentsTab'
 import { MpactMIcon, MpactWordmark } from '../components/Sidebar'
-import CreafiLogo from '../components/CreafiLogo'
+import { CommunityLogo } from '../components/CreafiLogo'
 
 // ─── Shared Helpers ────────────────────────────────────────────────────────────
 
@@ -966,8 +966,8 @@ export default function CommunityView() {
             <Trash2 size={15} />
           </button>
         </div>
-        <div className="absolute bottom-0 right-8 opacity-20 select-none pb-2">
-          {community.id === 'creafi' ? <CreafiLogo size={80} /> : <span className="text-7xl leading-none">{community.emoji}</span>}
+        <div className="absolute bottom-3 right-8 opacity-90 select-none">
+          <CommunityLogo community={community} size={96} className="rounded-2xl shadow-lg" emojiClass="text-7xl" />
         </div>
       </div>
 
@@ -980,9 +980,7 @@ export default function CommunityView() {
             className="-mt-9 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white flex-shrink-0 overflow-hidden"
             style={{ backgroundColor: community.color + '20' }}
           >
-            {community.id === 'creafi'
-              ? <CreafiLogo size={38} />
-              : <span className="text-3xl">{community.emoji}</span>}
+            <CommunityLogo community={community} size={56} className="rounded-xl" emojiClass="text-3xl" />
           </div>
           {/* Text — pt-3 ensures it starts well inside the white section */}
           <div className="flex-1 min-w-0 pt-3 pb-4">
