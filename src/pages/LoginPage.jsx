@@ -5,8 +5,11 @@ import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-colors bg-white"
 
+const BRAND = (typeof window !== 'undefined' && window.__MPACT_BRAND__) || null
+
 export default function LoginPage() {
   const { login, register, communities } = useApp()
+  const brandJoin = BRAND?.joinUrl || null
   const [tab, setTab]         = useState('login') // 'login' | 'register'
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,19 +45,28 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
-      {/* Logo */}
-      <div className="flex items-center gap-3 mb-8">
-        <MpactMIcon size={44} />
-        <MpactWordmark fontSize={28} />
-      </div>
+      {/* Logo — the community's own when served on its domain, otherwise Mpact */}
+      {BRAND ? (
+        <div className="flex flex-col items-center mb-8">
+          {BRAND.logoUrl
+            ? <img src={BRAND.logoUrl} alt={BRAND.name} className="w-28 h-28 object-contain rounded-2xl mb-3" />
+            : <div className="w-16 h-16 rounded-2xl mb-3 flex items-center justify-center text-2xl font-black text-white" style={{ background: BRAND.color || '#4f46e5' }}>{BRAND.name?.[0]}</div>}
+          <h1 className="text-2xl font-extrabold text-white tracking-tight">{BRAND.name}</h1>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 mb-8">
+          <MpactMIcon size={44} />
+          <MpactWordmark fontSize={28} />
+        </div>
+      )}
 
       {/* Card */}
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Tabs */}
         <div className="flex border-b border-gray-100">
-          {['login','register'].map(t => (
+          {(brandJoin ? ['login'] : ['login','register']).map(t => (
             <button key={t} onClick={() => { setTab(t); setError('') }}
-              className={`flex-1 py-4 text-sm font-semibold capitalize transition-colors ${
+              className={`flex-1 py-4 text-sm font-semibold capitalize transition-colors ${brandJoin ? 'cursor-default' : ''} ${
                 tab === t ? 'text-indigo-600 border-b-2 border-indigo-500' : 'text-gray-400 hover:text-gray-600'
               }`}>
               {t === 'login' ? 'Sign In' : 'Create Account'}
@@ -136,6 +148,9 @@ export default function LoginPage() {
         </div>
       </div>
 
+      {brandJoin && (
+        <p className="text-gray-400 text-sm mt-5">Not a member yet? <a href={brandJoin} className="text-white underline underline-offset-2">Join {BRAND.name}</a></p>
+      )}
       <p className="text-gray-700 text-xs mt-6">Powered by Mpact · Community Platform</p>
     </div>
   )

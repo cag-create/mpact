@@ -45,7 +45,7 @@ const INITIAL_COMMUNITIES = [
     id: 'creafi', slug: 'creafi',
     name: "Crea'fi",
     description: "Master creative finance, build wealth, and join a community of forward-thinking money builders. This is where your financial transformation begins.",
-    color: '#18181b', emoji: '💡', memberCount: 0, joinUrl: 'https://creafigenius.com',
+    color: '#18181b', emoji: '💡', memberCount: 0, joinUrl: 'https://creafigenius.com', logoUrl: '/creafi-logo.png',
     category: 'Finance & Wealth', isLocked: false, lockedScreenLogo: null, createdAt: '2026-03-26',
   },
 ]

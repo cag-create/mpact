@@ -118,6 +118,8 @@ app.post('/api/auth/register', needDb, async (req, res) => {
   if (String(password).length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' })
   const [dupe] = await pool.query('SELECT id FROM hub_users WHERE email=?', [email])
   if (dupe.length) return res.status(409).json({ error: 'Email already in use' })
+  const gate = ((await getState('communities')) || []).find(c => c.id === communityId)
+  if (gate?.joinUrl) return res.status(403).json({ error: `Membership for ${gate.name} is by purchase. Join at ${gate.joinUrl}` })
   const { user, member } = await createMemberAndUser({ communityId, name: String(name).trim(), email, password, title, bio, avatarUrl })
   res.json({ token: signToken(user), user: publicUser(user), member })
 })
@@ -218,12 +220,25 @@ function getCommunityIdentifier(host) {
   if (parts.length >= 2 && hostname !== 'localhost') return hostname
   return null
 }
-app.get('*', (req, res) => {
+let brandCache = { at: 0, list: [] }
+async function communityBrand(identifier) {
+  if (!pool) return null
+  if (Date.now() - brandCache.at > 30000) {
+    try { brandCache = { at: Date.now(), list: (await getState('communities')) || [] } } catch { brandCache.at = Date.now() }
+  }
+  const c = brandCache.list.find(c => c.id === identifier || c.slug === identifier || c.customDomain === identifier)
+  return c ? { id: c.id, name: c.name, logoUrl: c.logoUrl || null, color: c.color || null, joinUrl: c.joinUrl || null, description: c.description || '' } : null
+}
+
+app.get('*', async (req, res) => {
   const indexPath = join(__dirname, 'dist', 'index.html')
   const communityId = getCommunityIdentifier(req.headers.host)
   if (communityId) {
     try {
-      const html = readFileSync(indexPath, 'utf8').replace('<head>', `<head><script>window.__MPACT_COMMUNITY__="${communityId}"</script>`)
+      const brand = await communityBrand(communityId)
+      const inject = `<script>window.__MPACT_COMMUNITY__=${JSON.stringify(communityId)};window.__MPACT_BRAND__=${JSON.stringify(brand)}</script>`
+      let html = readFileSync(indexPath, 'utf8').replace('<head>', `<head>${inject}`)
+      if (brand?.name) html = html.replace(/<title>[^<]*<\/title>/, `<title>${brand.name.replace(/[<>&]/g, '')}</title>`)
       res.setHeader('Content-Type', 'text/html'); return res.send(html)
     } catch {}
   }
