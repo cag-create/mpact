@@ -9,7 +9,7 @@ import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
 } from 'date-fns'
-import { useApp, getCommunityUrl, getBaseDomain } from '../App'
+import { useApp } from '../App'
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
 import ContentTab from '../components/ContentTab'
 import PaymentsTab from '../components/PaymentsTab'
@@ -887,7 +887,7 @@ const TABS = [
 export default function CommunityView() {
   const { id, tab } = useParams()
   const navigate = useNavigate()
-  const { communities, members, events, posts, plans, deleteCommunity, updateCommunity, educatorPlan, updateCommunitySlug } = useApp()
+  const { communities, members, events, posts, plans, deleteCommunity, updateCommunity, currentUser } = useApp()
   const [activeTab, setActiveTab] = useState(tab || 'feed')
   const [previewLock, setPreviewLock] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -924,18 +924,16 @@ export default function CommunityView() {
     }
   }
 
-  const isPro = educatorPlan?.tier === 'mpact'
-  const communityUrl = getCommunityUrl(community, isPro)
+  const isAdmin = currentUser?.role === 'platform_admin' || currentUser?.role === 'admin' || currentUser?.role === 'owner'
+  const loginUrl = `${window.location.origin}/login`
+  const joinUrl = community.joinUrl || `${window.location.origin}/join/${community.slug || community.id}`
 
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(communityUrl).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
+  const copyText = (text, which) => {
+    navigator.clipboard.writeText(text).then(() => { setCopied(which); setTimeout(() => setCopied(false), 2000) })
   }
-
-  const handleSaveSlug = () => {
-    if (slugDraft.trim()) updateCommunitySlug(id, slugDraft.trim())
+  const handleSaveJoinUrl = () => {
+    const v = slugDraft.trim()
+    updateCommunity(id, { joinUrl: v ? (/^https?:\/\//.test(v) ? v : `https://${v}`) : null })
     setEditingSlug(false)
   }
 
@@ -1033,65 +1031,46 @@ export default function CommunityView() {
         </div>
       </div>
 
-      {/* Community URL Banner */}
-      <div className="mx-8 mt-4 mb-2 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-4 space-y-3">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Link size={15} className="text-gray-400" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Community Link</span>
-            {isPro && <span className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full font-medium border border-indigo-100">Pro</span>}
-          </div>
-          <button
-            onClick={handleCopyUrl}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              copied ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'
-            }`}
-          >
-            {copied ? <><CheckCheck size={13} /> Copied!</> : <><Copy size={13} /> Copy Link</>}
-          </button>
+      {/* Links: where members join and where they sign in */}
+      <div className="mx-8 mt-4 mb-2 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Link size={15} className="text-gray-400" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Links</span>
         </div>
-
-        {/* URL display */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-mono text-indigo-600 break-all">{communityUrl}</span>
-          {!isPro && (
-            <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full border border-amber-200 whitespace-nowrap">
-              ✦ Upgrade to Pro for a branded subdomain
-            </span>
-          )}
-        </div>
-
-        {/* Pro: editable subdomain slug */}
-        {isPro && (
-          <div className="border-t border-gray-100 pt-3">
-            <p className="text-xs text-gray-400 mb-2">Customize your subdomain — one DNS record covers all Pro subscribers automatically.</p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-xs font-semibold text-gray-500">Join page (public)</span>
+              <div className="flex items-center gap-1">
+                {isAdmin && (
+                  <button onClick={() => { setSlugDraft(community.joinUrl || ''); setEditingSlug(true) }} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Edit join link"><Pencil size={13} /></button>
+                )}
+                <button onClick={() => copyText(joinUrl, 'join')} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Copy">{copied === 'join' ? <CheckCheck size={14} className="text-green-600" /> : <Copy size={14} />}</button>
+              </div>
+            </div>
             {editingSlug ? (
               <div className="flex items-center gap-2 flex-wrap">
-                <input
-                  autoFocus
-                  value={slugDraft}
-                  onChange={e => setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))}
-                  onKeyDown={e => { if (e.key === 'Enter') handleSaveSlug(); if (e.key === 'Escape') setEditingSlug(false) }}
-                  className="border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-36"
-                  placeholder={community.slug}
-                />
-                <span className="text-sm text-gray-400">.{getBaseDomain()}</span>
-                <button onClick={handleSaveSlug} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
+                <input autoFocus value={slugDraft} onChange={e => setSlugDraft(e.target.value.trim())}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSaveJoinUrl(); if (e.key === 'Escape') setEditingSlug(false) }}
+                  className="border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 flex-1 min-w-[200px]" placeholder="https://" />
+                <button onClick={handleSaveJoinUrl} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
                 <button onClick={() => setEditingSlug(false)} className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">Cancel</button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-mono text-gray-700">{community.slug || community.id}.{getBaseDomain()}</span>
-                <button
-                  onClick={() => { setSlugDraft(community.slug || ''); setEditingSlug(true) }}
-                  className="p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors"
-                  title="Edit subdomain"
-                >
-                  <Pencil size={13} />
-                </button>
-              </div>
+              <a href={joinUrl} target="_blank" rel="noreferrer" className="text-sm font-mono text-indigo-600 break-all hover:underline">{joinUrl}</a>
             )}
+            <p className="text-xs text-gray-400 mt-1.5">Send people here. They pay, fill out the form, and get their login by email.</p>
           </div>
+          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <span className="text-xs font-semibold text-gray-500">Member sign-in</span>
+              <button onClick={() => copyText(loginUrl, 'login')} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Copy">{copied === 'login' ? <CheckCheck size={14} className="text-green-600" /> : <Copy size={14} />}</button>
+            </div>
+            <a href={loginUrl} className="text-sm font-mono text-indigo-600 break-all hover:underline">{loginUrl}</a>
+            <p className="text-xs text-gray-400 mt-1.5">Where members log in with the email and password from their welcome email.</p>
+          </div>
+        </div>
+      </div>
         )}
       </div>
 
