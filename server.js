@@ -29,6 +29,18 @@ async function initDb() {
     id VARCHAR(40) PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, password_hash VARCHAR(100) NOT NULL,
     name VARCHAR(255), role VARCHAR(32) NOT NULL DEFAULT 'member', community_id VARCHAR(64), member_id VARCHAR(64),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP, last_login_at DATETIME NULL)`)
+  // Affiliate program: every member gets a referral handle (unique per community); each paid referral
+  // is a row worth `amount`, owed until the operator marks it paid. Indexed so lookups don't scan.
+  await pool.query(`CREATE TABLE IF NOT EXISTS affiliates (
+    community_id VARCHAR(64) NOT NULL, handle VARCHAR(80) NOT NULL, name VARCHAR(255), email VARCHAR(255),
+    member_user_id VARCHAR(40) NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (community_id, handle), INDEX idx_aff_email (community_id, email))`)
+  await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
+    id VARCHAR(40) PRIMARY KEY, community_id VARCHAR(64) NOT NULL, affiliate_handle VARCHAR(80) NOT NULL,
+    affiliate_name VARCHAR(255), affiliate_email VARCHAR(255),
+    referred_email VARCHAR(255), referred_name VARCHAR(255), amount INT NOT NULL DEFAULT 75,
+    status VARCHAR(16) NOT NULL DEFAULT 'owed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, paid_at DATETIME NULL,
+    INDEX idx_ref_aff (community_id, affiliate_handle), INDEX idx_ref_status (community_id, status))`)
   // Seed the platform admin from env the first time.
   const [admins] = await pool.query(`SELECT id FROM hub_users WHERE role='platform_admin' LIMIT 1`)
   if (!admins.length && process.env.MPACT_ADMIN_EMAIL && process.env.MPACT_ADMIN_PASSWORD) {
@@ -150,6 +162,87 @@ app.post('/api/members/provision', needDb, async (req, res) => {
   }
   await createMemberAndUser({ communityId, name, email, password })
   res.json({ existing: false, email, password, loginUrl: `${PUBLIC_URL}/login` })
+})
+
+// ─── Affiliate program ────────────────────────────────────────────────────────
+const AFFILIATE_SITE = (process.env.CREAFI_SITE_URL || 'https://creafigenius.com').replace(/\/$/, '')
+const normHandle = (s = '') => String(s).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 64)
+const affLink = (h) => `${AFFILIATE_SITE}/join?ref=${h}`
+// Community scope for admins: platform admins see everything (null), owners/admins see their own community.
+const adminScope = (u) => (u.role === 'platform_admin' ? null : (u.community_id || '__none__'))
+
+async function assignHandle(communityId, name, email) {
+  const [ex] = await pool.query('SELECT handle FROM affiliates WHERE community_id=? AND email=? LIMIT 1', [communityId, email])
+  if (ex.length) return ex[0].handle
+  const base = normHandle(name) || normHandle((email || '').split('@')[0]) || 'member'
+  let h = base, n = 2
+  for (let i = 0; i < 200; i++) { const [c] = await pool.query('SELECT 1 FROM affiliates WHERE community_id=? AND handle=? LIMIT 1', [communityId, h]); if (!c.length) break; h = base + n; n++ }
+  return h
+}
+
+// Assign (or fetch) this member's own affiliate handle+link. Called server-to-server by onboarding.
+app.post('/api/affiliates/assign', needDb, async (req, res) => {
+  if (!process.env.MPACT_API_KEY || req.headers['x-api-key'] !== process.env.MPACT_API_KEY) return res.status(401).json({ error: 'Bad API key' })
+  const communityId = String(req.body.communityId || 'creafi')
+  const email = String(req.body.email || '').trim().toLowerCase()
+  const name = String(req.body.name || '').trim() || email
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Bad email' })
+  const handle = await assignHandle(communityId, name, email)
+  const [u] = await pool.query('SELECT id FROM hub_users WHERE email=? LIMIT 1', [email])
+  await pool.query(`INSERT INTO affiliates (community_id,handle,name,email,member_user_id) VALUES (?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE name=VALUES(name), email=VALUES(email), member_user_id=COALESCE(VALUES(member_user_id),member_user_id)`,
+    [communityId, handle, name, email, u.length ? u[0].id : null])
+  res.json({ handle, link: affLink(handle) })
+})
+
+// Record a paid referral, crediting the affiliate whose handle came in via ?ref=. Server-to-server.
+app.post('/api/referrals', needDb, async (req, res) => {
+  if (!process.env.MPACT_API_KEY || req.headers['x-api-key'] !== process.env.MPACT_API_KEY) return res.status(401).json({ error: 'Bad API key' })
+  const communityId = String(req.body.communityId || 'creafi')
+  const handle = normHandle(req.body.refHandle || '')
+  const referredEmail = String(req.body.referredEmail || '').trim().toLowerCase()
+  const referredName = String(req.body.referredName || '').trim()
+  const amount = Number.isFinite(+req.body.amount) ? Math.round(+req.body.amount) : 75
+  if (!handle) return res.json({ ok: false, reason: 'no ref' })
+  const [aff] = await pool.query('SELECT * FROM affiliates WHERE community_id=? AND handle=? LIMIT 1', [communityId, handle])
+  if (!aff.length) return res.json({ ok: false, reason: 'unknown handle' })
+  const a = aff[0]
+  // Idempotent: don't double-credit the same referred member for the same affiliate.
+  const [dupe] = await pool.query('SELECT id FROM referrals WHERE community_id=? AND affiliate_handle=? AND referred_email=? LIMIT 1', [communityId, handle, referredEmail])
+  if (dupe.length) return res.json({ ok: true, duplicate: true, affiliate: { handle, name: a.name, email: a.email } })
+  const id = `r${Date.now()}${Math.floor(Math.random() * 1000)}`
+  await pool.query(`INSERT INTO referrals (id,community_id,affiliate_handle,affiliate_name,affiliate_email,referred_email,referred_name,amount,status)
+    VALUES (?,?,?,?,?,?,?,?, 'owed')`, [id, communityId, handle, a.name, a.email, referredEmail, referredName, amount])
+  res.json({ ok: true, referralId: id, affiliate: { handle, name: a.name, email: a.email } })
+})
+
+// ─── Admin: signups + referral ledger (community-scoped) ──────────────────────
+app.get('/api/admin/stats', needDb, auth, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' })
+  const scope = adminScope(req.user)
+  const where = scope ? 'WHERE community_id=?' : ''
+  const args = scope ? [scope] : []
+  const [[cnt]] = await pool.query(`SELECT COUNT(*) AS n FROM hub_users ${where ? where + " AND role<>'platform_admin'" : "WHERE role<>'platform_admin'"}`, args)
+  const [recent] = await pool.query(`SELECT name,email,community_id,created_at,last_login_at FROM hub_users ${where ? where + " AND role<>'platform_admin'" : "WHERE role<>'platform_admin'"} ORDER BY created_at DESC LIMIT 25`, args)
+  const [[owed]] = await pool.query(`SELECT COALESCE(SUM(amount),0) AS amt, COUNT(*) AS n FROM referrals ${scope ? 'WHERE community_id=? AND' : 'WHERE'} status='owed'`, args)
+  res.json({ userCount: cnt.n, recentSignups: recent, owedAmount: owed.amt, owedCount: owed.n })
+})
+
+app.get('/api/admin/referrals', needDb, auth, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' })
+  const scope = adminScope(req.user)
+  const [rows] = await pool.query(`SELECT * FROM referrals ${scope ? 'WHERE community_id=?' : ''} ORDER BY (status='owed') DESC, created_at DESC LIMIT 500`, scope ? [scope] : [])
+  res.json({ referrals: rows })
+})
+
+app.post('/api/admin/referrals/:id/paid', needDb, auth, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' })
+  const scope = adminScope(req.user)
+  const paid = req.body && req.body.status === 'owed' ? 'owed' : 'paid'
+  const [r] = await pool.query(`UPDATE referrals SET status=?, paid_at=${paid === 'paid' ? 'NOW()' : 'NULL'} WHERE id=? ${scope ? 'AND community_id=?' : ''}`,
+    scope ? [paid, req.params.id, scope] : [paid, req.params.id])
+  if (!r.affectedRows) return res.status(404).json({ error: 'Not found' })
+  res.json({ ok: true, status: paid })
 })
 
 // ─── Shared state ─────────────────────────────────────────────────────────────
