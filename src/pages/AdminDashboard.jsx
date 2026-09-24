@@ -483,27 +483,31 @@ function AffiliateAdminCard() {
         </div>
         <button onClick={load} className="text-sm font-semibold text-violet-600 hover:text-violet-700">Refresh</button>
       </div>
-      <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
+      <div className="grid grid-cols-4 divide-x divide-gray-100 border-b border-gray-100">
         <div className="p-5"><div className="text-2xl font-bold text-gray-900">{stats ? stats.userCount : '—'}</div><div className="text-xs text-gray-500 mt-1">Members</div></div>
-        <div className="p-5"><div className="text-2xl font-bold text-gray-900">{stats ? stats.owedCount : '—'}</div><div className="text-xs text-gray-500 mt-1">Referrals owed</div></div>
-        <div className="p-5"><div className="text-2xl font-bold text-emerald-600">{stats ? money(stats.owedAmount) : '—'}</div><div className="text-xs text-gray-500 mt-1">Owed to affiliates</div></div>
+        <div className="p-5"><div className="text-2xl font-bold text-emerald-600">{stats ? money(stats.readyAmount) : '—'}</div><div className="text-xs text-gray-500 mt-1">Ready to pay {stats ? `(${stats.readyCount})` : ''}</div></div>
+        <div className="p-5"><div className="text-2xl font-bold text-amber-500">{stats ? money(stats.pendingAmount) : '—'}</div><div className="text-xs text-gray-500 mt-1">On a plan {stats ? `(${stats.pendingCount})` : ''}</div></div>
+        <div className="p-5"><div className="text-2xl font-bold text-gray-400">{stats ? money(stats.owedAmount) : '—'}</div><div className="text-xs text-gray-500 mt-1">Total owed</div></div>
       </div>
       <div className="p-6">
         <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Referral ledger</h3>
         {!refs ? <p className="text-sm text-gray-400">Loading…</p> : refs.length === 0 ? <p className="text-sm text-gray-400">No referrals yet. Share the affiliate links and they'll show up here.</p> : (
           <div className="overflow-x-auto"><table className="w-full text-sm">
-            <thead><tr className="text-left text-gray-400 text-xs uppercase tracking-wider"><th className="pb-2 pr-4">Affiliate</th><th className="pb-2 pr-4">Referred</th><th className="pb-2 pr-4">Amount</th><th className="pb-2 pr-4">Status</th><th className="pb-2"></th></tr></thead>
+            <thead><tr className="text-left text-gray-400 text-xs uppercase tracking-wider"><th className="pb-2 pr-4">Affiliate</th><th className="pb-2 pr-4">Referred</th><th className="pb-2 pr-4">Amount</th><th className="pb-2 pr-4">Plan</th><th className="pb-2 pr-4">Status</th><th className="pb-2"></th></tr></thead>
             <tbody>
               {refs.map(r => (
                 <tr key={r.id} className="border-t border-gray-100">
                   <td className="py-2 pr-4"><div className="font-semibold text-gray-900">{r.affiliate_name || r.affiliate_handle}</div><div className="text-xs text-gray-400">{r.affiliate_email || ''}</div></td>
                   <td className="py-2 pr-4"><div className="text-gray-900">{r.referred_name || r.referred_email}</div><div className="text-xs text-gray-400">{r.referred_email}</div></td>
                   <td className="py-2 pr-4 font-semibold">{money(r.amount)}</td>
-                  <td className="py-2 pr-4"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${r.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{r.status === 'paid' ? 'Paid' : 'Owed'}</span></td>
+                  <td className="py-2 pr-4 text-xs text-gray-600">{(r.installments_total || 1) > 1 ? `4-pay · ${r.installments_paid || 1}/${r.installments_total}` : 'Paid in full'}</td>
+                  <td className="py-2 pr-4"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${r.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : (r.cleared ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500')}`}>{r.status === 'paid' ? 'Paid' : (r.cleared ? 'Ready' : 'On plan')}</span></td>
                   <td className="py-2 text-right">
                     {r.status === 'paid'
                       ? <button disabled={busy === r.id} onClick={() => mark(r.id, 'owed')} className="text-xs font-semibold text-gray-400 hover:text-gray-600">Undo</button>
-                      : <button disabled={busy === r.id} onClick={() => mark(r.id, 'paid')} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg disabled:opacity-50">Mark paid</button>}
+                      : r.cleared
+                        ? <button disabled={busy === r.id} onClick={() => mark(r.id, 'paid')} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg disabled:opacity-50">Mark paid</button>
+                        : <span className="text-xs text-gray-400" title="Wait until the payment plan is fully collected">Plan in progress</span>}
                   </td>
                 </tr>
               ))}

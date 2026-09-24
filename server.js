@@ -41,6 +41,17 @@ async function initDb() {
     referred_email VARCHAR(255), referred_name VARCHAR(255), amount INT NOT NULL DEFAULT 75,
     status VARCHAR(16) NOT NULL DEFAULT 'owed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, paid_at DATETIME NULL,
     INDEX idx_ref_aff (community_id, affiliate_handle), INDEX idx_ref_status (community_id, status))`)
+  // Payment-plan payout gating: a referral is "cleared" (safe to pay the affiliate) only once the member's
+  // plan is fully collected. Pay-in-full clears immediately; a 4-pay plan clears on its final installment.
+  const addCol = async (table, col, ddl) => {
+    const [c] = await pool.query('SELECT 1 FROM information_schema.COLUMNS WHERE table_schema=DATABASE() AND table_name=? AND column_name=?', [table, col])
+    if (!c.length) await pool.query(`ALTER TABLE ${table} ADD COLUMN ${ddl}`)
+  }
+  await addCol('referrals', 'plan', `plan VARCHAR(24) NOT NULL DEFAULT 'paid_in_full'`)
+  await addCol('referrals', 'installments_total', `installments_total INT NOT NULL DEFAULT 1`)
+  await addCol('referrals', 'installments_paid', `installments_paid INT NOT NULL DEFAULT 1`)
+  await addCol('referrals', 'cleared', `cleared TINYINT NOT NULL DEFAULT 1`)
+  await addCol('referrals', 'subscription_id', `subscription_id VARCHAR(64) NULL`)
   // Seed the platform admin from env the first time.
   const [admins] = await pool.query(`SELECT id FROM hub_users WHERE role='platform_admin' LIMIT 1`)
   if (!admins.length && process.env.MPACT_ADMIN_EMAIL && process.env.MPACT_ADMIN_PASSWORD) {
@@ -203,6 +214,10 @@ app.post('/api/referrals', needDb, async (req, res) => {
   const referredEmail = String(req.body.referredEmail || '').trim().toLowerCase()
   const referredName = String(req.body.referredName || '').trim()
   const amount = Number.isFinite(+req.body.amount) ? Math.round(+req.body.amount) : 75
+  const installmentsTotal = Math.max(1, Number(req.body.installmentsTotal) || 1)
+  const plan = String(req.body.plan || (installmentsTotal > 1 ? 'installment' : 'paid_in_full')).slice(0, 24)
+  const subscriptionId = String(req.body.subscriptionId || '') || null
+  const cleared = installmentsTotal > 1 ? 0 : 1   // pay-in-full is safe to pay right away; plans clear on completion
   if (!handle) return res.json({ ok: false, reason: 'no ref' })
   const [aff] = await pool.query('SELECT * FROM affiliates WHERE community_id=? AND handle=? LIMIT 1', [communityId, handle])
   if (!aff.length) return res.json({ ok: false, reason: 'unknown handle' })
@@ -211,9 +226,23 @@ app.post('/api/referrals', needDb, async (req, res) => {
   const [dupe] = await pool.query('SELECT id FROM referrals WHERE community_id=? AND affiliate_handle=? AND referred_email=? LIMIT 1', [communityId, handle, referredEmail])
   if (dupe.length) return res.json({ ok: true, duplicate: true, affiliate: { handle, name: a.name, email: a.email } })
   const id = `r${Date.now()}${Math.floor(Math.random() * 1000)}`
-  await pool.query(`INSERT INTO referrals (id,community_id,affiliate_handle,affiliate_name,affiliate_email,referred_email,referred_name,amount,status)
-    VALUES (?,?,?,?,?,?,?,?, 'owed')`, [id, communityId, handle, a.name, a.email, referredEmail, referredName, amount])
-  res.json({ ok: true, referralId: id, affiliate: { handle, name: a.name, email: a.email } })
+  await pool.query(`INSERT INTO referrals (id,community_id,affiliate_handle,affiliate_name,affiliate_email,referred_email,referred_name,amount,status,plan,installments_total,installments_paid,cleared,subscription_id)
+    VALUES (?,?,?,?,?,?,?,?, 'owed', ?,?,1,?,?)`, [id, communityId, handle, a.name, a.email, referredEmail, referredName, amount, plan, installmentsTotal, cleared, subscriptionId])
+  res.json({ ok: true, referralId: id, cleared: !!cleared, affiliate: { handle, name: a.name, email: a.email } })
+})
+
+// Payment-plan progress: the Crea'fi installment webhook calls this on each collected payment so a
+// referral only "clears" (becomes safe to pay out) when the full plan is collected. Server-to-server.
+app.post('/api/referrals/progress', needDb, async (req, res) => {
+  if (!process.env.MPACT_API_KEY || req.headers['x-api-key'] !== process.env.MPACT_API_KEY) return res.status(401).json({ error: 'Bad API key' })
+  const subscriptionId = String(req.body.subscriptionId || '')
+  if (!subscriptionId) return res.status(400).json({ error: 'subscriptionId required' })
+  const paidN = Math.max(0, Number(req.body.installmentsPaid) || 0)
+  const totalN = Math.max(1, Number(req.body.installmentsTotal) || 1)
+  const cleared = req.body.cleared != null ? (req.body.cleared ? 1 : 0) : (paidN >= totalN ? 1 : 0)
+  const [r] = await pool.query(`UPDATE referrals SET installments_paid=?, installments_total=?, cleared=? WHERE subscription_id=?`,
+    [paidN, totalN, cleared, subscriptionId])
+  res.json({ ok: true, updated: r.affectedRows, cleared: !!cleared })
 })
 
 // ─── Admin: signups + referral ledger (community-scoped) ──────────────────────
@@ -224,8 +253,11 @@ app.get('/api/admin/stats', needDb, auth, async (req, res) => {
   const args = scope ? [scope] : []
   const [[cnt]] = await pool.query(`SELECT COUNT(*) AS n FROM hub_users ${where ? where + " AND role<>'platform_admin'" : "WHERE role<>'platform_admin'"}`, args)
   const [recent] = await pool.query(`SELECT name,email,community_id,created_at,last_login_at FROM hub_users ${where ? where + " AND role<>'platform_admin'" : "WHERE role<>'platform_admin'"} ORDER BY created_at DESC LIMIT 25`, args)
-  const [[owed]] = await pool.query(`SELECT COALESCE(SUM(amount),0) AS amt, COUNT(*) AS n FROM referrals ${scope ? 'WHERE community_id=? AND' : 'WHERE'} status='owed'`, args)
-  res.json({ userCount: cnt.n, recentSignups: recent, owedAmount: owed.amt, owedCount: owed.n })
+  const w2 = scope ? 'WHERE community_id=? AND' : 'WHERE'
+  const [[owed]] = await pool.query(`SELECT COALESCE(SUM(amount),0) AS amt, COUNT(*) AS n FROM referrals ${w2} status='owed'`, args)
+  const [[ready]] = await pool.query(`SELECT COALESCE(SUM(amount),0) AS amt, COUNT(*) AS n FROM referrals ${w2} status='owed' AND cleared=1`, args)
+  const [[pending]] = await pool.query(`SELECT COALESCE(SUM(amount),0) AS amt, COUNT(*) AS n FROM referrals ${w2} status='owed' AND cleared=0`, args)
+  res.json({ userCount: cnt.n, recentSignups: recent, owedAmount: owed.amt, owedCount: owed.n, readyAmount: ready.amt, readyCount: ready.n, pendingAmount: pending.amt, pendingCount: pending.n })
 })
 
 app.get('/api/admin/referrals', needDb, auth, async (req, res) => {
