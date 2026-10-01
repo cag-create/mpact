@@ -273,12 +273,11 @@ export default function PaymentsTab({ communityId, community }) {
   return (
     <div className="space-y-6">
       {/* Revenue stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Total Revenue',    value: fmtMoney(totalRevenue), icon: DollarSign, color: '#10b981', bg: '#f0fdf4' },
           { label: 'Monthly Recurring', value: fmtMoney(mrr),          icon: TrendingUp,  color: '#6366f1', bg: '#eef2ff' },
           { label: 'Active Subs',       value: activeSubs,              icon: Users,       color: '#3b82f6', bg: '#eff6ff' },
-          { label: 'One-time Sales',    value: oneTimeSales,            icon: Star,        color: '#f59e0b', bg: '#fffbeb' },
         ].map(stat => {
           const Icon = stat.icon
           return (

@@ -875,6 +875,73 @@ function PricingTab({ communityId, community }) {
 
 // ─── Community View ─────────────────────────────────────────────────────────────
 
+// Affiliates tab (admin-only): who's owed, who's still on a plan, and Mark-paid.
+// Payout is gated — a referral only becomes payable once the referred member has PAID IN FULL (cleared).
+function AffiliatesTab({ communityId, community }) {
+  const token = () => { try { return JSON.parse(localStorage.getItem('hub_session') || '{}').token || '' } catch { return '' } }
+  const [stats, setStats] = React.useState(null)
+  const [refs, setRefs] = React.useState(null)
+  const [busy, setBusy] = React.useState('')
+  const loadStats = React.useCallback(() => fetch('/api/admin/stats', { headers: { Authorization: `Bearer ${token()}` } }).then(r => r.ok ? r.json() : null).then(setStats).catch(() => {}), [])
+  const load = React.useCallback(() => { loadStats(); fetch('/api/admin/referrals', { headers: { Authorization: `Bearer ${token()}` } }).then(r => r.ok ? r.json() : { referrals: [] }).then(d => setRefs(d.referrals || [])).catch(() => setRefs([])) }, [loadStats])
+  React.useEffect(load, [load])
+  const money = n => '$' + Number(n || 0).toLocaleString()
+  const mark = async (id, next) => {
+    setBusy(id)
+    try {
+      await fetch(`/api/admin/referrals/${id}/paid`, { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ status: next }) })
+      setRefs(rs => rs.map(r => r.id === id ? { ...r, status: next, paid_at: next === 'paid' ? new Date().toISOString() : null } : r))
+      loadStats()
+    } finally { setBusy('') }
+  }
+  const Tile = ({ label, value, color }) => (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5"><p className="text-xs text-gray-500 font-medium mb-1">{label}</p><p className="text-2xl font-black" style={{ color: color || '#111827' }}>{value}</p></div>
+  )
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <h2 className="text-lg font-bold text-gray-900">Affiliates</h2>
+        <p className="text-sm text-gray-500 mt-1">$75 per referral · paid by Zelle or a mailed check · a fee becomes payable only once that member has <strong>paid in full</strong>.</p>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Tile label="Members" value={stats ? stats.userCount : '—'} />
+        <Tile label={`Ready to pay${stats ? ` (${stats.readyCount})` : ''}`} value={stats ? money(stats.readyAmount) : '—'} color="#10b981" />
+        <Tile label={`On a plan${stats ? ` (${stats.pendingCount})` : ''}`} value={stats ? money(stats.pendingAmount) : '—'} color="#f59e0b" />
+        <Tile label="Total owed" value={stats ? money(stats.owedAmount) : '—'} color="#6b7280" />
+      </div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Referral ledger</h3>
+          <button onClick={load} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">Refresh</button>
+        </div>
+        {!refs ? <p className="text-sm text-gray-400">Loading…</p> : refs.length === 0 ? <p className="text-sm text-gray-400">No referrals yet. Share the affiliate links and they'll show up here.</p> : (
+          <div className="overflow-x-auto"><table className="w-full text-sm">
+            <thead><tr className="text-left text-gray-400 text-xs uppercase tracking-wider"><th className="pb-2 pr-4">Affiliate</th><th className="pb-2 pr-4">Referred</th><th className="pb-2 pr-4">Amount</th><th className="pb-2 pr-4">Plan</th><th className="pb-2 pr-4">Status</th><th className="pb-2"></th></tr></thead>
+            <tbody>
+              {refs.map(r => (
+                <tr key={r.id} className="border-t border-gray-100">
+                  <td className="py-2 pr-4"><div className="font-semibold text-gray-900">{r.affiliate_name || r.affiliate_handle}</div><div className="text-xs text-gray-400">{r.affiliate_email || ''}</div></td>
+                  <td className="py-2 pr-4"><div className="text-gray-900">{r.referred_name || r.referred_email}</div><div className="text-xs text-gray-400">{r.referred_email}</div></td>
+                  <td className="py-2 pr-4 font-semibold">{money(r.amount)}</td>
+                  <td className="py-2 pr-4 text-xs text-gray-600">{(r.installments_total || 1) > 1 ? `4-pay · ${r.installments_paid || 1}/${r.installments_total}` : 'Paid in full'}</td>
+                  <td className="py-2 pr-4"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${r.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : (r.cleared ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500')}`}>{r.status === 'paid' ? 'Paid' : (r.cleared ? 'Ready' : 'On plan')}</span></td>
+                  <td className="py-2 text-right">
+                    {r.status === 'paid'
+                      ? <button disabled={busy === r.id} onClick={() => mark(r.id, 'owed')} className="text-xs font-semibold text-gray-400 hover:text-gray-600">Undo</button>
+                      : r.cleared
+                        ? <button disabled={busy === r.id} onClick={() => mark(r.id, 'paid')} className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg disabled:opacity-50">Mark paid</button>
+                        : <span className="text-xs text-gray-400" title="Payable once the member has paid in full">Not due yet</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table></div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const TABS = [
   { id: 'feed',        label: 'Community Feed', icon: MessageSquare },
   { id: 'calendar',   label: 'Live Training',  icon: Calendar },
@@ -883,6 +950,7 @@ const TABS = [
   { id: 'content',    label: 'Courses',        icon: BookOpen },
   { id: 'replays',    label: 'The Lab',        icon: Video },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
+  { id: 'affiliates', label: 'Affiliates',     icon: Link },
 ]
 
 export default function CommunityView() {
@@ -1004,7 +1072,7 @@ export default function CommunityView() {
 
         {/* Tabs */}
         <div className="flex gap-1 overflow-x-auto">
-          {TABS.filter(t => t.id !== 'payments' || isAdmin).map(t => {
+          {TABS.filter(t => (t.id !== 'payments' && t.id !== 'affiliates') || isAdmin).map(t => {
             const Icon = t.icon
             const active = activeTab === t.id
             return (
@@ -1075,6 +1143,7 @@ export default function CommunityView() {
         {activeTab === 'content'    && <CoursesTab     communityId={id} community={community} />}
         {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
         {activeTab === 'payments'   && isAdmin && <PaymentsTab    communityId={id} community={community} />}
+        {activeTab === 'affiliates' && isAdmin && <AffiliatesTab  communityId={id} community={community} />}
       </div>
 
       {/* Lock Screen Preview */}
