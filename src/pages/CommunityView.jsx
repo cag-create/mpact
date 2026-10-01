@@ -250,7 +250,7 @@ const TYPE_CONFIG = {
 
 function CalendarTab({ communityId, community }) {
   const { events, addEvent, deleteEvent } = useApp()
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 2, 1))
+  const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
   const [showAddEvent, setShowAddEvent] = useState(false)
 
@@ -926,7 +926,7 @@ export default function CommunityView() {
   }
 
   const isAdmin = currentUser?.role === 'platform_admin' || currentUser?.role === 'admin' || currentUser?.role === 'owner'
-  const loginUrl = `${window.location.origin}/login`
+  const loginUrl = community.loginUrl || `${window.location.origin}/login`
   const joinUrl = community.joinUrl || `${window.location.origin}/join/${community.slug || community.id}`
 
   const copyText = (text, which) => {
@@ -975,13 +975,6 @@ export default function CommunityView() {
       <div className="bg-white border-b border-gray-100 px-8 pb-0">
         {/* Icon overlaps banner; text row stays fully on white */}
         <div className="flex items-start gap-4">
-          {/* Icon — negative margin pulls it up into the banner */}
-          <div
-            className="-mt-9 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white flex-shrink-0 overflow-hidden"
-            style={{ backgroundColor: community.color + '20' }}
-          >
-            <CommunityLogo community={community} size={56} className="rounded-xl" emojiClass="text-3xl" />
-          </div>
           {/* Text — pt-3 ensures it starts well inside the white section */}
           <div className="flex-1 min-w-0 pt-3 pb-4">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -1011,7 +1004,7 @@ export default function CommunityView() {
 
         {/* Tabs */}
         <div className="flex gap-1 overflow-x-auto">
-          {TABS.map(t => {
+          {TABS.filter(t => t.id !== 'payments' || isAdmin).map(t => {
             const Icon = t.icon
             const active = activeTab === t.id
             return (
@@ -1081,7 +1074,7 @@ export default function CommunityView() {
         {activeTab === 'leaderboard'&& <LeaderboardTab communityId={id} community={community} />}
         {activeTab === 'content'    && <CoursesTab     communityId={id} community={community} />}
         {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
-        {activeTab === 'payments'   && <PaymentsTab    communityId={id} community={community} />}
+        {activeTab === 'payments'   && isAdmin && <PaymentsTab    communityId={id} community={community} />}
       </div>
 
       {/* Lock Screen Preview */}

@@ -47,12 +47,6 @@ function CommunityCard({ community, memberCount, eventCount, postCount }) {
       {/* Content */}
       <div className="p-5">
         <div className="flex items-start gap-3 mb-3">
-          <div
-            className="-mt-10 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md border-2 border-white flex-shrink-0 overflow-hidden"
-            style={{ backgroundColor: community.color + '22', borderColor: 'white' }}
-          >
-            <CommunityLogo community={community} size={34} emojiClass="text-2xl" />
-          </div>
           <div className="pt-1 min-w-0">
             <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-1" style={{ backgroundColor: community.color + '15', color: community.color }}>
               {community.category}

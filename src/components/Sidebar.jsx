@@ -217,7 +217,7 @@ export default function Sidebar() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate leading-tight">{community.name}</p>
                     <p className="text-xs text-gray-600 group-hover:text-gray-500">
-                      {community.memberCount} members · {community.isLocked ? 'Paid' : 'Free'}
+                      {community.memberCount} members
                     </p>
                   </div>
                 )}
