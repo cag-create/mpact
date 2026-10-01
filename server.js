@@ -38,7 +38,7 @@ async function initDb() {
   await pool.query(`CREATE TABLE IF NOT EXISTS referrals (
     id VARCHAR(40) PRIMARY KEY, community_id VARCHAR(64) NOT NULL, affiliate_handle VARCHAR(80) NOT NULL,
     affiliate_name VARCHAR(255), affiliate_email VARCHAR(255),
-    referred_email VARCHAR(255), referred_name VARCHAR(255), amount INT NOT NULL DEFAULT 80,
+    referred_email VARCHAR(255), referred_name VARCHAR(255), amount INT NOT NULL DEFAULT 75,
     status VARCHAR(16) NOT NULL DEFAULT 'owed', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, paid_at DATETIME NULL,
     INDEX idx_ref_aff (community_id, affiliate_handle), INDEX idx_ref_status (community_id, status))`)
   // Payment-plan payout gating: a referral is "cleared" (safe to pay the affiliate) only once the member's
@@ -213,7 +213,7 @@ app.post('/api/referrals', needDb, async (req, res) => {
   const handle = normHandle(req.body.refHandle || '')
   const referredEmail = String(req.body.referredEmail || '').trim().toLowerCase()
   const referredName = String(req.body.referredName || '').trim()
-  const amount = Number.isFinite(+req.body.amount) ? Math.round(+req.body.amount) : 80
+  const amount = Number.isFinite(+req.body.amount) ? Math.round(+req.body.amount) : 75
   const installmentsTotal = Math.max(1, Number(req.body.installmentsTotal) || 1)
   const plan = String(req.body.plan || (installmentsTotal > 1 ? 'installment' : 'paid_in_full')).slice(0, 24)
   const subscriptionId = String(req.body.subscriptionId || '') || null
