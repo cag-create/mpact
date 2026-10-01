@@ -72,7 +72,7 @@ export default function ReplaysTab({ communityId, community }) {
     <div>
       <div className="flex items-start justify-between mb-5 gap-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Replays</h2>
+          <h2 className="text-lg font-bold text-gray-900">The Lab</h2>
           <p className="text-sm text-gray-500 mt-0.5">Every live session, recorded. Filter by what you're working on.</p>
         </div>
         {isAdmin && <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90" style={{ backgroundColor: community.color }}><Plus size={15} /> Add replay</button>}
@@ -89,7 +89,7 @@ export default function ReplaysTab({ communityId, community }) {
       {list.length === 0 ? (
         <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-14 text-center">
           <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4"><Video size={28} className="text-indigo-400" /></div>
-          <h3 className="font-bold text-gray-700 mb-1">{replays.some(r => r.communityId === communityId) ? 'Nothing matches those filters' : 'No replays yet'}</h3>
+          <h3 className="font-bold text-gray-700 mb-1">{replays.some(r => r.communityId === communityId) ? 'Nothing matches those filters' : 'Nothing in The Lab yet'}</h3>
           <p className="text-sm text-gray-400 max-w-sm mx-auto">{isAdmin ? 'After each live session, upload the recording (YouTube unlisted works well) and add it here with the topic and property type.' : 'Recordings of the live sessions will show up here after each call.'}</p>
         </div>
       ) : (

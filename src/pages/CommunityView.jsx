@@ -881,7 +881,7 @@ const TABS = [
   { id: 'members',    label: 'Members',        icon: Users },
   { id: 'leaderboard',label: 'Leaderboard',    icon: Trophy },
   { id: 'content',    label: 'Courses',        icon: BookOpen },
-  { id: 'replays',    label: 'Replays',        icon: Video },
+  { id: 'replays',    label: 'The Lab',        icon: Video },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
 ]
 
