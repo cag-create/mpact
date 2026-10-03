@@ -953,11 +953,11 @@ function AffiliatesTab({ communityId, community }) {
 }
 
 const TABS = [
-  { id: 'feed',        label: 'Community Feed', icon: MessageSquare },
-  { id: 'calendar',   label: 'Live Training',  icon: Calendar },
-  { id: 'members',    label: 'Members',        icon: Users },
-  { id: 'leaderboard',label: 'Leaderboard',    icon: Trophy },
-  { id: 'content',    label: 'Courses',        icon: BookOpen },
+  { id: 'feed',        label: "Genius's Feed",  icon: MessageSquare },
+  { id: 'calendar',   label: 'Live Calls',     icon: Calendar },
+  { id: 'members',    label: "Crea'fi G's",    icon: Users },
+  { id: 'leaderboard',label: 'Champions',      icon: Trophy },
+  { id: 'content',    label: 'Capsules',       icon: BookOpen },
   { id: 'replays',    label: 'The Lab',        icon: Video },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
   { id: 'affiliates', label: 'Affiliates',     icon: Link },

@@ -7,14 +7,14 @@ import { moduleUnlocked } from '../lib/release'
 const TYPE_ICON = { video: Play, text: FileText, pdf: File, link: LinkIcon }
 
 // Member-facing course player: modules + lessons down the side, the lesson itself in the middle.
-export default function LessonPlayer({ course, communityId, onBack, canEdit = false }) {
+export default function LessonPlayer({ course, communityId, onBack, canEdit = false, moduleId = null }) {
   const { modules, lessons, progress, currentUser, members, setLessonComplete } = useApp()
   const memberId = currentUser?.memberId || currentUser?.id
   const member = members?.find(m => m.id === memberId)
 
   const courseModules = useMemo(() => modules
-    .filter(m => m.communityId === communityId && (m.courseId || null) === course.id && (canEdit || m.isPublished !== false))
-    .sort((a, b) => a.order - b.order), [modules, communityId, course.id, canEdit])
+    .filter(m => m.communityId === communityId && (m.courseId || null) === course.id && (canEdit || m.isPublished !== false) && (!moduleId || m.id === moduleId))
+    .sort((a, b) => a.order - b.order), [modules, communityId, course.id, canEdit, moduleId])
 
   // Admin (canEdit) sees everything unlocked. For members, a module is unlocked only once released.
   const unlockedById = useMemo(() => {
