@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
-  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video } from 'lucide-react'
+  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
@@ -951,6 +951,7 @@ const TABS = [
   { id: 'replays',    label: 'The Lab',        icon: Video },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
   { id: 'affiliates', label: 'Affiliates',     icon: Link },
+  { id: 'merch',      label: 'Merch',          icon: ShoppingBag, soon: true },
 ]
 
 export default function CommunityView() {
@@ -1075,6 +1076,16 @@ export default function CommunityView() {
           {TABS.filter(t => (t.id !== 'payments' && t.id !== 'affiliates') || isAdmin).map(t => {
             const Icon = t.icon
             const active = activeTab === t.id
+            if (t.soon) {
+              return (
+                <div key={t.id} title="Coming soon"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-300 whitespace-nowrap cursor-default select-none">
+                  <Icon size={15} />
+                  {t.label}
+                  <span className="text-[10px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-full">Soon</span>
+                </div>
+              )
+            }
             return (
               <button
                 key={t.id}

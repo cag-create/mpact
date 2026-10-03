@@ -238,6 +238,10 @@ function AppProvider({ children }) {
     if (role === 'admin')     _awardBadge(memberId, 'Admin')
     if (role === 'moderator') _awardBadge(memberId, 'Moderator')
   }
+  // Member profile photo (stored as a small data URL on the member record).
+  const setMemberAvatar = (memberId, avatarUrl) => {
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, avatarUrl } : m))
+  }
   // Per-participant module drip-release: add/remove a moduleId on a member's releasedModules list.
   const setMemberModuleRelease = (memberId, moduleId, on) => {
     setMembers(prev => prev.map(m => {
@@ -452,7 +456,7 @@ function AppProvider({ children }) {
       // Notifications
       pushNotification, markNotificationRead, markAllNotificationsRead, clearNotifications,
       // Points
-      awardPoints, updateMemberRole, setMemberModuleRelease,
+      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar,
       // Messages
       sendMessage, markMessageRead, markConversationRead,
       // Communities

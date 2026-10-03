@@ -1,7 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Plus, ChevronRight, Shield, Lock, MessageCircle, BarChart2, LogOut, User, KeyRound, X } from 'lucide-react'
+import { LayoutDashboard, Plus, ChevronRight, Shield, Lock, MessageCircle, BarChart2, LogOut, User, KeyRound, X, Camera } from 'lucide-react'
 import { useApp } from '../App'
+
+// Downscale an uploaded image to a small square data URL so profile photos stay light.
+function downscaleImage(file, max, cb) {
+  const reader = new FileReader()
+  reader.onload = e => {
+    const img = new Image()
+    img.onload = () => {
+      const side = Math.min(img.width, img.height)
+      const canvas = document.createElement('canvas')
+      canvas.width = max; canvas.height = max
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, max, max)
+      cb(canvas.toDataURL('image/jpeg', 0.85))
+    }
+    img.src = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
 import { CreateCommunityModal } from './Modals'
 import CreafiLogo, { CommunityLogo } from './CreafiLogo'
 import NotificationBell from './NotificationBell'
@@ -101,8 +119,9 @@ export function MpactWordmark({ fontSize = 22 }) {
 export default function Sidebar() {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const { communities, currentUser, logout, messages, members, changePassword } = useApp()
+  const { communities, currentUser, logout, messages, members, changePassword, setMemberAvatar } = useApp()
   const [showPw, setShowPw] = useState(false)
+  const photoRef = useRef(null)
   // Brand the sidebar with the community when we're on its own address, or for a member of exactly that community
   const injected = typeof window !== 'undefined' ? window.__MPACT_BRAND__ : null
   const brandCommunity = (injected && (communities.find(c => c.id === injected.id) || injected))
@@ -253,12 +272,24 @@ export default function Sidebar() {
         <div className="px-3 pb-3 pt-3 border-t border-white/5 space-y-1">
           {!collapsed && currentUser && (
             <div className="flex items-center gap-2 px-2 py-2 mb-1">
-              <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {currentUser.name?.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
-              </div>
+              <input ref={photoRef} type="file" accept="image/*" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f && me) downscaleImage(f, 256, url => setMemberAvatar(me.id, url)); e.target.value = '' }} />
+              <button type="button" onClick={() => me && photoRef.current?.click()} disabled={!me}
+                className="relative w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden group bg-white/10 disabled:cursor-default">
+                {me?.avatarUrl
+                  ? <img src={me.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
+                  : <User size={18} className="text-gray-400" />}
+                {me && (
+                  <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Camera size={13} className="text-white" />
+                  </span>
+                )}
+              </button>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-gray-300 truncate">{currentUser.name}</p>
-                <p className="text-[10px] text-gray-600 truncate">{currentUser.role === 'platform_admin' ? 'Platform Admin' : 'Member'}</p>
+                {me
+                  ? <button onClick={() => photoRef.current?.click()} className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors">{me.avatarUrl ? 'Change photo' : 'Add photo'}</button>
+                  : <p className="text-[10px] text-gray-600 truncate">Platform Admin</p>}
               </div>
             </div>
           )}

@@ -609,11 +609,10 @@ export default function AdminDashboard() {
         <AffiliateAdminCard />
 
         {/* Stat cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {[
             { label: 'Total Revenue',      value: fmtMoney(totalRevenue),  icon: DollarSign,  color: '#10b981', bg: '#f0fdf4', sub: 'Community sales'     },
             { label: 'Community MRR',      value: fmtMoney(mrr),           icon: TrendingUp,  color: '#6366f1', bg: '#eef2ff', sub: 'Member subscriptions' },
-            { label: 'Platform MRR',       value: fmtMoney(platformMRR),   icon: Building2,   color: '#8B2FE0', bg: '#f5f3ff', sub: `${educators.length} educators`  },
             { label: 'Members',            value: totalMembers,            icon: Users,       color: '#3b82f6', bg: '#eff6ff', sub: 'Across all communities' },
           ].map(stat => {
             const Icon = stat.icon
@@ -632,131 +631,6 @@ export default function AdminDashboard() {
           })}
         </div>
 
-        {/* Platform Subscribers */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="font-bold text-gray-900">Platform Subscribers</h2>
-              {overdueCount > 0 && (
-                <span className="flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-                  <AlertCircle size={11} />
-                  {overdueCount} overdue
-                </span>
-              )}
-            </div>
-            <button
-              onClick={() => setShowAddEdu(true)}
-              className="flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:text-violet-800 bg-violet-50 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              <Plus size={14} />
-              Add Educator
-            </button>
-          </div>
-
-          {educators.length === 0 ? (
-            <div className="px-6 py-10 text-center">
-              <Building2 size={32} className="text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">No platform subscribers yet</p>
-              <button onClick={() => setShowAddEdu(true)} className="mt-3 text-sm font-semibold text-violet-600 hover:text-violet-700">
-                Add your first educator
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                    {['Educator', 'Community', 'Plan', 'Next Billing', 'Status', 'Actions'].map(h => (
-                      <th key={h} className="px-6 py-3 whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {educators.map(edu => {
-                    const overdue = isOverdue(edu)
-                    const comm = communities.find(c => c.id === edu.communityId)
-                    return (
-                      <tr key={edu.id} className={`hover:bg-gray-50 transition-colors ${overdue ? 'bg-amber-50/30' : ''}`}>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2.5">
-                            <Initials name={edu.name} color={overdue ? '#f59e0b' : '#8B2FE0'} />
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">{edu.name}</p>
-                              <p className="text-xs text-gray-500">{edu.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-700">{comm?.name || '—'}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full"
-                            style={{
-                              backgroundColor: (edu.plan === 'mpact' ? '#8B2FE0' : '#6366f1') + '15',
-                              color: edu.plan === 'mpact' ? '#8B2FE0' : '#6366f1',
-                            }}
-                          >
-                            {edu.plan === 'mpact' && <Crown size={10} />}
-                            {edu.plan === 'mpact' ? 'Mpact $59/mo' : 'Base $7/mo'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`text-sm ${overdue ? 'text-amber-700 font-semibold' : 'text-gray-700'}`}>
-                            {fmtDate(edu.nextBillingDate)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <select
-                            value={overdue && edu.status !== 'overdue' ? 'overdue' : edu.status}
-                            onChange={e => updateEducator(edu.id, { status: e.target.value, nextBillingDate: e.target.value === 'active' ? (() => { const d = new Date(); d.setMonth(d.getMonth()+1); return d.toISOString().split('T')[0] })() : edu.nextBillingDate })}
-                            className={`text-xs font-semibold rounded-full px-2.5 py-1 border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-400 ${
-                              (overdue || edu.status === 'overdue') ? 'bg-amber-100 text-amber-800' :
-                              edu.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            <option value="active">Active</option>
-                            <option value="overdue">Overdue</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                const plan = PLATFORM_PLANS.find(p => p.tier !== edu.plan)
-                                if (plan && window.confirm(`Switch to ${plan.name} plan ($${plan.price}/mo)?`)) {
-                                  updateEducator(edu.id, { plan: plan.tier })
-                                }
-                              }}
-                              title="Switch plan"
-                              className="text-xs text-gray-500 hover:text-violet-700 font-medium px-2 py-1 rounded-lg hover:bg-violet-50 transition-colors"
-                            >
-                              Switch Plan
-                            </button>
-                            <button
-                              onClick={() => { if (window.confirm('Remove this educator?')) deleteEducator(edu.id) }}
-                              className="text-gray-400 hover:text-red-500 transition-colors p-1 rounded"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Your Mpact Plan */}
-        <YourPlanSection educatorPlan={educatorPlan} onUpgrade={(tier) => {
-          if (window.confirm(`Switch to the ${tier === 'mpact' ? 'Mpact ($59/mo)' : 'Base ($7/mo)'} plan?`)) {
-            upgradeEducatorPlan(tier)
-          }
-        }} />
 
         <div className="grid grid-cols-3 gap-6">
           {/* Revenue by community */}
