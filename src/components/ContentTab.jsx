@@ -2,10 +2,62 @@ import React, { useState } from 'react'
 import {
   BookOpen, Play, FileText, File, Link as LinkIcon, Plus, Trash2,
   ChevronDown, ChevronRight, Eye, EyeOff, ArrowUp, ArrowDown,
-  Edit3, Check, X, Video, Lock, Unlock, Youtube
+  Edit3, Check, X, Video, Lock, Unlock, Youtube, Users
 } from 'lucide-react'
 import { useApp } from '../App'
 import { getYouTubeId, getYouTubeThumbnail, VideoEmbed } from '../lib/video.jsx'
+
+// ─── Release-to-members modal (per-participant drip) ───────────────────────────
+function ReleaseMembersModal({ module, communityId, onClose }) {
+  const { members, setMemberModuleRelease } = useApp()
+  const roster = (members || [])
+    .filter(m => m.communityId === communityId && !['admin', 'owner', 'platform_admin'].includes(m.role))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+  const isReleased = (m) => Array.isArray(m.releasedModules) && m.releasedModules.includes(module.id)
+  const releasedCount = roster.filter(isReleased).length
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+          <div>
+            <h3 className="font-bold text-gray-900">Release to participants</h3>
+            <p className="text-xs text-gray-400 mt-0.5 truncate">{module.title}</p>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
+        </div>
+        <div className="px-6 py-3 text-xs text-gray-500 border-b border-gray-50">
+          {module.released
+            ? <span className="text-green-600 font-medium">This module is released to everyone. Per-person settings are ignored while it's open to all.</span>
+            : <>Released to <span className="font-semibold text-gray-700">{releasedCount}</span> of {roster.length} participant{roster.length !== 1 ? 's' : ''}.</>}
+        </div>
+        <div className="max-h-[55vh] overflow-y-auto px-2 py-2">
+          {roster.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">No participants yet.</p>
+          ) : roster.map(m => {
+            const on = isReleased(m)
+            return (
+              <button key={m.id} onClick={() => setMemberModuleRelease(m.id, module.id, !on)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-gray-50 text-left transition-colors">
+                <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 border-2 ${on ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
+                  {on && <Check size={13} className="text-white" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-800 truncate">{m.name}</p>
+                  {m.email && <p className="text-xs text-gray-400 truncate">{m.email}</p>}
+                </div>
+                <span className={`text-xs font-medium flex-shrink-0 ${on ? 'text-green-600' : 'text-gray-300'}`}>{on ? 'Released' : 'Locked'}</span>
+              </button>
+            )
+          })}
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+          <button onClick={onClose} className="px-5 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800">Done</button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const TYPE_META = {
   video: { icon: Play,      label: 'Video',    color: '#ef4444', bg: '#fef2f2' },
@@ -285,10 +337,12 @@ function LessonRow({ lesson, onEdit, onDelete }) {
 // ─── Module Row ───────────────────────────────────────────────────────────────
 
 function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, onEditModule, onDeleteModule }) {
-  const { addLesson, updateLesson, deleteLesson } = useApp()
+  const { addLesson, updateLesson, deleteLesson, updateModule } = useApp()
   const [expanded, setExpanded] = useState(true)
   const [editingLesson, setEditingLesson] = useState(null)
   const [addingLesson, setAddingLesson] = useState(false)
+  const [showRelease, setShowRelease] = useState(false)
+  const released = module.alwaysOpen || module.released === true
 
   const moduleLessons = lessons
     .filter(l => l.moduleId === module.id)
@@ -325,15 +379,30 @@ function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, o
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xs text-gray-400">{moduleLessons.length} lesson{moduleLessons.length !== 1 ? 's' : ''}</span>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-              module.isPublished ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-100 text-gray-400'
-            }`}>
-              {module.isPublished ? 'Live' : 'Draft'}
-            </span>
+            {module.alwaysOpen ? (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-600 flex items-center gap-1"><Unlock size={10} /> Always open</span>
+            ) : released ? (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-600 flex items-center gap-1"><Unlock size={10} /> Released</span>
+            ) : (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 flex items-center gap-1"><Lock size={10} /> Locked</span>
+            )}
           </div>
 
           {/* Reorder + actions */}
           <div className="flex items-center gap-0.5 ml-2" onClick={e => e.stopPropagation()}>
+            {!module.alwaysOpen && (
+              <>
+                <button
+                  onClick={() => updateModule(module.id, { released: !(module.released === true) })}
+                  title={module.released ? 'Lock this module for everyone' : 'Release this module to everyone'}
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${module.released ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                  {module.released ? <><Lock size={11} /> Lock</> : <><Unlock size={11} /> Release</>}
+                </button>
+                <button onClick={() => setShowRelease(true)} title="Release to specific participants" className="p-1.5 rounded hover:bg-gray-100 text-gray-300 hover:text-indigo-500 transition-colors">
+                  <Users size={13} />
+                </button>
+              </>
+            )}
             <button disabled={isFirst} onClick={() => onReorder(module.id, 'up')} className="p-1.5 rounded hover:bg-gray-100 text-gray-300 hover:text-gray-600 disabled:opacity-20 transition-colors">
               <ArrowUp size={13} />
             </button>
@@ -385,6 +454,9 @@ function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, o
       )}
       {editingLesson && (
         <LessonModal lesson={editingLesson} moduleId={module.id} communityId={communityId} onSave={handleEditLesson} onClose={() => setEditingLesson(null)} />
+      )}
+      {showRelease && (
+        <ReleaseMembersModal module={module} communityId={communityId} onClose={() => setShowRelease(false)} />
       )}
     </>
   )

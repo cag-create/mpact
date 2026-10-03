@@ -237,6 +237,15 @@ function AppProvider({ children }) {
     if (role === 'admin')     _awardBadge(memberId, 'Admin')
     if (role === 'moderator') _awardBadge(memberId, 'Moderator')
   }
+  // Per-participant module drip-release: add/remove a moduleId on a member's releasedModules list.
+  const setMemberModuleRelease = (memberId, moduleId, on) => {
+    setMembers(prev => prev.map(m => {
+      if (m.id !== memberId) return m
+      const cur = Array.isArray(m.releasedModules) ? m.releasedModules : []
+      const next = on ? [...new Set([...cur, moduleId])] : cur.filter(x => x !== moduleId)
+      return { ...m, releasedModules: next }
+    }))
+  }
 
   // ── Messages ──────────────────────────────────────────────────────────────
   const sendMessage = (fromId, toId, content) => {
@@ -442,7 +451,7 @@ function AppProvider({ children }) {
       // Notifications
       pushNotification, markNotificationRead, markAllNotificationsRead, clearNotifications,
       // Points
-      awardPoints, updateMemberRole,
+      awardPoints, updateMemberRole, setMemberModuleRelease,
       // Messages
       sendMessage, markMessageRead, markConversationRead,
       // Communities
