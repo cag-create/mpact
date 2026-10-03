@@ -491,6 +491,10 @@ function AppProvider({ children }) {
 function SubdomainHandler({ communities }) {
   const navigate = useNavigate()
   useEffect(() => {
+    // Only funnel into the community from a root/entry path. Don't override deep links to real
+    // app routes like /admin, /dashboard, /analytics — those must stay reachable on the branded domain.
+    const p = window.location.pathname
+    if (!['/', '', '/login', '/welcome', '/index.html'].includes(p)) return
     const injected = window.__MPACT_COMMUNITY__
     if (injected) {
       const c = communities.find(c => c.slug === injected || c.id === injected || c.customDomain === injected)
