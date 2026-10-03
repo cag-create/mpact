@@ -127,7 +127,7 @@ export default function Sidebar() {
             <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate(brandCommunity ? `/community/${brandCommunity.id}` : '/')}>
               {brandCommunity ? <CommunityLogo community={brandCommunity} size={40} className="rounded-xl" emojiClass="text-2xl" /> : <MpactMIcon size={36} />}
               {brandCommunity
-                ? <div className="min-w-0"><p className="text-white font-extrabold text-lg leading-tight truncate">{brandCommunity.name}</p><p className="text-[10px] text-gray-500 leading-tight">Powered by Mpact</p></div>
+                ? <div className="min-w-0"><p className="text-white font-extrabold text-lg leading-tight truncate">{brandCommunity.name}</p></div>
                 : <MpactWordmark fontSize={22} />}
             </div>
           ) : (
@@ -229,8 +229,8 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Host on Mpact — hosting plans for creators */}
-        {!collapsed && (
+        {/* Host on Mpact — hosting plans for creators (platform only; hidden on a community's own site) */}
+        {!collapsed && !brandCommunity && (
           <div className="px-3 pb-3">
             <div className="rounded-xl border border-white/10 bg-white/5 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">Host on Mpact</p>

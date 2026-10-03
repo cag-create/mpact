@@ -369,7 +369,7 @@ async function communityBrand(identifier) {
     try { brandCache = { at: Date.now(), list: (await getState('communities')) || [] } } catch { brandCache.at = Date.now() }
   }
   const c = brandCache.list.find(c => c.id === identifier || c.slug === identifier || c.customDomain === identifier)
-  return c ? { id: c.id, name: c.name, logoUrl: c.logoUrl || null, color: c.color || null, joinUrl: c.joinUrl || null, description: c.description || '' } : null
+  return c ? { id: c.id, name: c.name, logoUrl: c.logoUrl || null, faviconUrl: c.faviconUrl || c.logoUrl || null, color: c.color || null, joinUrl: c.joinUrl || null, description: c.description || '' } : null
 }
 
 // Marketing site: the front page of ourmpact.com (apex + www). The app lives at /dashboard, /login, ….
@@ -390,6 +390,11 @@ app.get('*', async (req, res) => {
       const inject = `<script>window.__MPACT_COMMUNITY__=${JSON.stringify(communityId)};window.__MPACT_BRAND__=${JSON.stringify(brand)}</script>`
       let html = readFileSync(indexPath, 'utf8').replace('<head>', `<head>${inject}`)
       if (brand?.name) html = html.replace(/<title>[^<]*<\/title>/, `<title>${brand.name.replace(/[<>&]/g, '')}</title>`)
+      if (brand?.faviconUrl) {
+        const fav = String(brand.faviconUrl).replace(/["'<>]/g, '')
+        html = html.replace(/<link rel="apple-touch-icon"[^>]*>/g, '').replace(/<link rel="icon"[^>]*>/g, '')
+          .replace('</head>', `<link rel="icon" href="${fav}"><link rel="apple-touch-icon" href="${fav}"></head>`)
+      }
       res.setHeader('Content-Type', 'text/html'); return res.send(html)
     } catch {}
   }
