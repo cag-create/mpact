@@ -151,7 +151,7 @@ export default function LoginPage() {
       {brandJoin && (
         <p className="text-gray-400 text-sm mt-5">Not a member yet? <a href={brandJoin} className="text-white underline underline-offset-2">Join {BRAND.name}</a></p>
       )}
-      <p className="text-gray-700 text-xs mt-6">Powered by Mpact · Community Platform</p>
+      {!BRAND && <p className="text-gray-700 text-xs mt-6">Powered by Mpact · Community Platform</p>}
     </div>
   )
 }

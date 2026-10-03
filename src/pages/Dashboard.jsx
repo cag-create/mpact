@@ -82,15 +82,25 @@ function CommunityCard({ community, memberCount, eventCount, postCount }) {
 }
 
 export default function Dashboard() {
-  const { communities, members, events, posts } = useApp()
+  const { communities, members, events, posts, currentUser } = useApp()
   const navigate = useNavigate()
   const [showCreate, setShowCreate] = useState(false)
 
-  const totalMembers = members.length
-  const totalEvents  = events.length
-  const totalPosts   = posts.length
+  // Isolation: only the platform owner sees every community. A community owner/admin
+  // (a host running their own community on Mpact) sees only their own — never anyone
+  // else's community or courses. Plain members never belong on this host console.
+  const isPlatformAdmin = currentUser?.role === 'platform_admin'
+  const visibleCommunities = isPlatformAdmin ? communities : communities.filter(c => c.id === currentUser?.communityId)
+  const visibleIds = new Set(visibleCommunities.map(c => c.id))
+  const scopedMembers = isPlatformAdmin ? members : members.filter(m => visibleIds.has(m.communityId))
+  const scopedEvents  = isPlatformAdmin ? events  : events.filter(e => visibleIds.has(e.communityId))
+  const scopedPosts   = isPlatformAdmin ? posts   : posts.filter(p => visibleIds.has(p.communityId))
 
-  const upcomingEvents = events
+  const totalMembers = scopedMembers.length
+  const totalEvents  = scopedEvents.length
+  const totalPosts   = scopedPosts.length
+
+  const upcomingEvents = scopedEvents
     .filter(e => e.date >= new Date().toISOString().split('T')[0])
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 4)
@@ -122,7 +132,7 @@ export default function Dashboard() {
       <div className="px-8 py-8">
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
-          <StatCard icon={Sparkles} label="Total Communities" value={communities.length} color="#6366f1" />
+          <StatCard icon={Sparkles} label="Total Communities" value={visibleCommunities.length} color="#6366f1" />
           <StatCard icon={Users} label="Total Members" value={totalMembers} color="#10b981" />
           <StatCard icon={Calendar} label="Upcoming Events" value={totalEvents} color="#f59e0b" />
           <StatCard icon={MessageSquare} label="Introductions" value={totalPosts} color="#8b5cf6" />
@@ -133,12 +143,12 @@ export default function Dashboard() {
           <div className="col-span-2">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-gray-900">Your Communities</h2>
-              {communities.length > 0 && (
-                <span className="text-sm text-gray-500">{communities.length} total</span>
+              {visibleCommunities.length > 0 && (
+                <span className="text-sm text-gray-500">{visibleCommunities.length} total</span>
               )}
             </div>
 
-            {communities.length === 0 ? (
+            {visibleCommunities.length === 0 ? (
               <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
                 <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Sparkles size={28} className="text-indigo-400" />
@@ -154,7 +164,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
-                {communities.map(c => (
+                {visibleCommunities.map(c => (
                   <CommunityCard
                     key={c.id}
                     community={c}
