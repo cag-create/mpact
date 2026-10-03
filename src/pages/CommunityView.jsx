@@ -1091,48 +1091,6 @@ export default function CommunityView() {
         </div>
       </div>
 
-      {/* Links: where members join and where they sign in (feed tab only) */}
-      {activeTab === 'feed' && (
-      <div className="mx-8 mt-4 mb-2 rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Link size={15} className="text-gray-400" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Links</span>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="text-xs font-semibold text-gray-500">Join page (public)</span>
-              <div className="flex items-center gap-1">
-                {isAdmin && (
-                  <button onClick={() => { setSlugDraft(community.joinUrl || ''); setEditingSlug(true) }} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Edit join link"><Pencil size={13} /></button>
-                )}
-                <button onClick={() => copyText(joinUrl, 'join')} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Copy">{copied === 'join' ? <CheckCheck size={14} className="text-green-600" /> : <Copy size={14} />}</button>
-              </div>
-            </div>
-            {editingSlug ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <input autoFocus value={slugDraft} onChange={e => setSlugDraft(e.target.value.trim())}
-                  onKeyDown={e => { if (e.key === 'Enter') handleSaveJoinUrl(); if (e.key === 'Escape') setEditingSlug(false) }}
-                  className="border border-indigo-300 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 flex-1 min-w-[200px]" placeholder="https://" />
-                <button onClick={handleSaveJoinUrl} className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg font-medium hover:bg-indigo-700">Save</button>
-                <button onClick={() => setEditingSlug(false)} className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">Cancel</button>
-              </div>
-            ) : (
-              <a href={joinUrl} target="_blank" rel="noreferrer" className="text-sm font-mono text-indigo-600 break-all hover:underline">{joinUrl}</a>
-            )}
-            <p className="text-xs text-gray-400 mt-1.5">Send people here. They pay, fill out the form, and get their login by email.</p>
-          </div>
-          <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="text-xs font-semibold text-gray-500">Member sign-in</span>
-              <button onClick={() => copyText(loginUrl, 'login')} className="p-1 text-gray-400 hover:text-indigo-600 rounded" title="Copy">{copied === 'login' ? <CheckCheck size={14} className="text-green-600" /> : <Copy size={14} />}</button>
-            </div>
-            <a href={loginUrl} className="text-sm font-mono text-indigo-600 break-all hover:underline">{loginUrl}</a>
-            <p className="text-xs text-gray-400 mt-1.5">Where members log in with the email and password from their welcome email.</p>
-          </div>
-        </div>
-      </div>
-      )}
 
       {/* Tab Content */}
       <div className="px-8 py-8">
