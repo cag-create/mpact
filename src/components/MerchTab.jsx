@@ -7,7 +7,13 @@ function MerchModal({ item, community, onSave, onClose }) {
   const [form, setForm] = useState({
     title: item?.title || '', description: item?.description || '', price: item?.price || '',
     imageUrl: item?.imageUrl || '', buyUrl: item?.buyUrl || '', isPublished: item?.isPublished ?? false,
+    sizesText: (item?.sizes || []).join(', '),
   })
+  const save = () => {
+    if (!form.title.trim()) return
+    const sizes = form.sizesText.split(',').map(s => s.trim()).filter(Boolean)
+    onSave({ ...form, sizes })
+  }
   const cls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -36,6 +42,10 @@ function MerchModal({ item, community, onSave, onClose }) {
             <input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Short description" className={cls} />
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Sizes (comma-separated, optional)</label>
+            <input value={form.sizesText} onChange={e => setForm(p => ({ ...p, sizesText: e.target.value }))} placeholder="XS, S, M, L, XL, XXL" className={cls} />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Buy link (Stripe link, Shopify, print-on-demand…)</label>
             <input value={form.buyUrl} onChange={e => setForm(p => ({ ...p, buyUrl: e.target.value }))} placeholder="https://buy.stripe.com/…" className={cls} />
           </div>
@@ -45,7 +55,7 @@ function MerchModal({ item, community, onSave, onClose }) {
         </div>
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
           <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</button>
-          <button onClick={() => form.title.trim() && onSave(form)} disabled={!form.title.trim()} className="px-5 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40">{isNew ? 'Add product' : 'Save'}</button>
+          <button onClick={save} disabled={!form.title.trim()} className="px-5 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40">{isNew ? 'Add product' : 'Save'}</button>
         </div>
       </div>
     </div>
@@ -106,6 +116,13 @@ export default function MerchTab({ communityId, community }) {
                   {item.price && <span className="text-sm font-bold text-gray-900 whitespace-nowrap">{item.price}</span>}
                 </div>
                 {item.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>}
+                {Array.isArray(item.sizes) && item.sizes.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {item.sizes.map(sz => (
+                      <span key={sz} className="text-[11px] font-semibold px-2 py-0.5 rounded-md border border-gray-200 text-gray-600">{sz}</span>
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center gap-2 mt-auto pt-4">
                   {item.buyUrl
                     ? <a href={item.buyUrl} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-white text-sm font-semibold hover:opacity-90" style={{ backgroundColor: community.color }}><ExternalLink size={14} /> Buy</a>

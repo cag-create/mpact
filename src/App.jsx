@@ -449,7 +449,7 @@ function AppProvider({ children }) {
   // ── Merch ───────────────────────────────────────────────────────────────────
   const addMerchItem = (communityId, data) => {
     const maxOrder = Math.max(0, ...merch.filter(m => m.communityId === communityId).map(m => m.order || 0))
-    const item = { id: `mch${Date.now()}`, communityId, title: data.title, description: data.description || '', price: data.price || '', imageUrl: data.imageUrl || '', buyUrl: data.buyUrl || '', order: maxOrder + 1, isPublished: !!data.isPublished }
+    const item = { id: `mch${Date.now()}`, communityId, title: data.title, description: data.description || '', price: data.price || '', imageUrl: data.imageUrl || '', buyUrl: data.buyUrl || '', sizes: Array.isArray(data.sizes) ? data.sizes : [], order: maxOrder + 1, isPublished: !!data.isPublished }
     setMerch(prev => [...prev, item]); return item
   }
   const updateMerchItem = (id, data) => setMerch(prev => prev.map(m => m.id === id ? { ...m, ...data } : m))
