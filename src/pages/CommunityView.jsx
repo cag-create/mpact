@@ -1090,10 +1090,12 @@ export default function CommunityView() {
             {visibleTabs.map(t => {
               const Icon = t.icon
               const active = activeTab === t.id
+              const locked = t.id === 'merch' && !isAdmin   // members see Merch but it's locked
               return (
-                <button key={t.id} onClick={() => handleTabChange(t.id)}
+                <button key={t.id} onClick={() => handleTabChange(t.id)} title={locked ? 'Locked — coming soon' : undefined}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${active ? 'bg-white/15 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'}`}>
                   <Icon size={15} /> {t.label}
+                  {locked && <Lock size={12} className="opacity-80" />}
                 </button>
               )
             })}
