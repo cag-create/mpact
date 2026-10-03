@@ -14,7 +14,7 @@ import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Mod
 import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
 import PaymentsTab from '../components/PaymentsTab'
-import MerchTab from '../components/MerchTab'
+import MerchTab, { MerchLocked } from '../components/MerchTab'
 import { MpactMIcon, MpactWordmark, ChangePasswordModal, downscaleImage } from '../components/Sidebar'
 import { CommunityLogo } from '../components/CreafiLogo'
 
@@ -1073,7 +1073,7 @@ export default function CommunityView() {
 
   const navBg = community.color || '#18181b'
   const heroGrad = `linear-gradient(120deg, ${navBg} 0%, #4c1d95 50%, #7c3aed 100%)`
-  const ADMIN_ONLY_TABS = ['payments', 'affiliates', 'merch']  // merch stays hidden from members until it's ready to launch
+  const ADMIN_ONLY_TABS = ['payments', 'affiliates']
   const visibleTabs = TABS.filter(t => !ADMIN_ONLY_TABS.includes(t.id) || isAdmin)
   const currentTab = TABS.find(t => t.id === activeTab) || TABS[0]
 
@@ -1130,7 +1130,7 @@ export default function CommunityView() {
         {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
         {activeTab === 'payments'   && isAdmin && <PaymentsTab    communityId={id} community={community} />}
         {activeTab === 'affiliates' && isAdmin && <AffiliatesTab  communityId={id} community={community} />}
-        {activeTab === 'merch'      && isAdmin && <MerchTab       communityId={id} community={community} />}
+        {activeTab === 'merch'      && (isAdmin ? <MerchTab communityId={id} community={community} /> : <MerchLocked community={community} />)}
       </div>
 
       {previewLock && (

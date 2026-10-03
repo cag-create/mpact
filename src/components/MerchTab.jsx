@@ -62,6 +62,25 @@ function MerchModal({ item, community, onSave, onClose }) {
   )
 }
 
+// Member-facing teaser: the Merch tab is visible but locked, to build hype before the drop.
+export function MerchLocked({ community }) {
+  const grad = `linear-gradient(135deg, ${community?.color || '#18181b'} 0%, #4c1d95 55%, #7c3aed 100%)`
+  return (
+    <div className="max-w-xl mx-auto py-6">
+      <div className="relative rounded-3xl overflow-hidden px-8 py-12 text-center" style={{ background: grad }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.16) 1.2px, transparent 1.3px)', backgroundSize: '16px 16px', opacity: 0.5 }} />
+        <div className="relative">
+          <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-5"><Lock size={28} className="text-white" /></div>
+          <p className="font-grotesk font-semibold tracking-[0.2em] uppercase text-white/70 text-xs mb-2">{community?.name || 'Crea’fi Genius'} Merch</p>
+          <h2 className="font-display uppercase text-white leading-none text-4xl sm:text-5xl mb-4" style={{ textShadow: '0 2px 14px rgba(0,0,0,.25)' }}>The Drop<br />Is Coming</h2>
+          <p className="text-white/80 max-w-sm mx-auto mb-7 text-sm sm:text-base">Hoodies, tees, fitted caps, 40oz tumblers, notebooks and more — built for the Geniuses. Gear up soon.</p>
+          <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/15 text-white text-sm font-bold"><Lock size={14} /> Locked</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MerchTab({ communityId, community }) {
   const { merch, currentUser, addMerchItem, updateMerchItem, deleteMerchItem } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
