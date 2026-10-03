@@ -523,9 +523,14 @@ export default function App() {
 function InnerApp() {
   const { communities, currentUser } = useContext(AppContext)
   // On a community's own address (name.ourmpact.com or a custom domain) the home route is that community.
+  // The brand is injected into the HTML synchronously, so its id is available immediately — use it so we
+  // route straight into the community on login instead of briefly falling back to /dashboard while the
+  // full community record (with customDomain) is still loading from the server.
   const injected = typeof window !== 'undefined' ? window.__MPACT_COMMUNITY__ : null
+  const brandForHome = typeof window !== 'undefined' ? window.__MPACT_BRAND__ : null
   const injectedCommunity = injected ? communities.find(c => c.slug === injected || c.id === injected || c.customDomain === injected) : null
-  const home = injectedCommunity ? `/community/${injectedCommunity.id}` : '/dashboard'
+  const homeCommunityId = injectedCommunity?.id || brandForHome?.id || null
+  const home = homeCommunityId ? `/community/${homeCommunityId}` : '/dashboard'
   if (!currentUser) {
     const brand = typeof window !== 'undefined' ? window.__MPACT_BRAND__ : null
     return (
