@@ -29,14 +29,17 @@ export default function WelcomeLanding() {
       </header>
 
       {/* Hero */}
-      <main className="relative flex-1 flex items-end justify-center overflow-hidden">
+      <main className="relative flex-1 flex flex-col items-center justify-start sm:justify-end overflow-hidden">
+        {/* Mobile: full banner at the top, crisp and uncropped */}
+        {hero && <img src={hero} alt={name} className="sm:hidden w-full block" />}
+        {/* Desktop: immersive full-bleed cover */}
         {hero
-          ? <img src={hero} alt={name} className="absolute inset-0 w-full h-full object-contain sm:object-cover object-center" />
+          ? <img src={hero} alt={name} className="hidden sm:block absolute inset-0 w-full h-full object-cover object-center" />
           : <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${BRAND?.color || '#4f46e5'}, ${navy})` }} />}
-        {/* Subtle bottom-only gradient purely for CTA legibility — keeps the photo crisp and true (no wash/blur) */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(11,37,69,0) 52%, rgba(11,37,69,0.72) 100%)' }} />
+        {/* Subtle bottom-only gradient (desktop) purely for CTA legibility — keeps the photo crisp (no wash/blur) */}
+        <div className="hidden sm:block absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(11,37,69,0) 52%, rgba(11,37,69,0.72) 100%)' }} />
 
-        <div className="relative z-10 text-center px-6 pb-8 sm:pb-12 w-full">
+        <div className="relative z-10 text-center px-6 mt-8 mb-10 sm:mt-0 sm:mb-0 sm:pb-12 w-full">
           <button
             onClick={getStarted}
             className="inline-flex items-center justify-center px-10 py-3.5 rounded-xl text-white text-base font-bold shadow-lg transition-colors"
