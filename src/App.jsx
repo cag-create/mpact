@@ -7,6 +7,7 @@ import CommunityView from './pages/CommunityView'
 import AdminDashboard from './pages/AdminDashboard'
 import JoinPage from './pages/JoinPage'
 import LoginPage from './pages/LoginPage'
+import WelcomeLanding from './pages/WelcomeLanding'
 import MessagesPage from './pages/MessagesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 
@@ -526,10 +527,13 @@ function InnerApp() {
   const injectedCommunity = injected ? communities.find(c => c.slug === injected || c.id === injected || c.customDomain === injected) : null
   const home = injectedCommunity ? `/community/${injectedCommunity.id}` : '/dashboard'
   if (!currentUser) {
+    const brand = typeof window !== 'undefined' ? window.__MPACT_BRAND__ : null
     return (
       <Routes>
         <Route path="/join/:slugOrId" element={<JoinPage />} />
-        <Route path="*" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        {/* On a community's own domain, logged-out visitors land on the branded welcome page. */}
+        <Route path="*" element={brand ? <WelcomeLanding /> : <LoginPage />} />
       </Routes>
     )
   }
