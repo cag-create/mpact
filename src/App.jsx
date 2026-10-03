@@ -504,10 +504,12 @@ function AppProvider({ children }) {
 function SubdomainHandler({ communities }) {
   const navigate = useNavigate()
   useEffect(() => {
-    // Only funnel into the community from a root/entry path. Don't override deep links to real
-    // app routes like /admin, /dashboard, /analytics — those must stay reachable on the branded domain.
+    // On a community's own white-labeled domain, the community IS home. Funnel entry paths
+    // (root, login, welcome) AND the host Dashboard into the community so nobody "logs in and
+    // sees the Mpact host console." Admin tools (/admin, /analytics) stay reachable via direct
+    // link and the sidebar.
     const p = window.location.pathname
-    if (!['/', '', '/login', '/welcome', '/index.html'].includes(p)) return
+    if (!['/', '', '/login', '/welcome', '/index.html', '/dashboard'].includes(p)) return
     const injected = window.__MPACT_COMMUNITY__
     if (injected) {
       const c = communities.find(c => c.slug === injected || c.id === injected || c.customDomain === injected)
