@@ -28,18 +28,13 @@ export default function WelcomeLanding() {
         <button onClick={() => navigate('/login')} className="text-white/90 hover:text-white text-sm font-semibold px-3 py-1.5">Login</button>
       </header>
 
-      {/* Hero */}
-      <main className="relative flex-1 flex flex-col items-center justify-start sm:justify-end overflow-hidden">
-        {/* Mobile: full banner at the top, crisp and uncropped */}
-        {hero && <img src={hero} alt={name} className="sm:hidden w-full block" />}
-        {/* Desktop: immersive full-bleed cover */}
+      {/* Hero — the full banner, shown exactly as-is (never cropped/zoomed), with the CTA below it */}
+      <main className="flex-1 flex flex-col items-center justify-center overflow-hidden py-6">
         {hero
-          ? <img src={hero} alt={name} className="hidden sm:block absolute inset-0 w-full h-full object-cover object-center" />
-          : <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${BRAND?.color || '#4f46e5'}, ${navy})` }} />}
-        {/* Subtle bottom-only gradient (desktop) purely for CTA legibility — keeps the photo crisp (no wash/blur) */}
-        <div className="hidden sm:block absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(11,37,69,0) 52%, rgba(11,37,69,0.72) 100%)' }} />
+          ? <img src={hero} alt={name} className="w-full block" />
+          : <div className="w-full h-64" style={{ background: `linear-gradient(135deg, ${BRAND?.color || '#4f46e5'}, ${navy})` }} />}
 
-        <div className="relative z-10 text-center px-6 mt-8 mb-10 sm:mt-0 sm:mb-0 sm:pb-12 w-full">
+        <div className="text-center px-6 mt-8 w-full">
           <button
             onClick={getStarted}
             className="inline-flex items-center justify-center px-10 py-3.5 rounded-xl text-white text-base font-bold shadow-lg transition-colors"
