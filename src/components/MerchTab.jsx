@@ -57,6 +57,7 @@ export default function MerchTab({ communityId, community }) {
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [spin, setSpin] = useState({})   // tap-to-spin: product id -> accumulated degrees
 
   const items = merch
     .filter(m => m.communityId === communityId && (isAdmin || m.isPublished))
@@ -87,9 +88,13 @@ export default function MerchTab({ communityId, community }) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {items.map(item => (
             <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-              <div className="aspect-square bg-gray-100 relative">
+              <div className="aspect-square bg-gray-100 relative" style={{ perspective: '900px' }} title={item.imageUrl ? 'Tap to spin' : undefined}>
                 {item.imageUrl
-                  ? <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                  ? <img src={item.imageUrl} alt={item.title}
+                      onClick={() => setSpin(s => ({ ...s, [item.id]: (s[item.id] || 0) + 360 }))}
+                      className="w-full h-full object-cover cursor-pointer select-none"
+                      style={{ transform: `rotateY(${spin[item.id] || 0}deg)`, transformStyle: 'preserve-3d', transition: 'transform .9s cubic-bezier(.2,.8,.2,1)' }}
+                      draggable={false} />
                   : <div className="w-full h-full flex items-center justify-center"><ShoppingBag size={34} className="text-gray-300" /></div>}
                 {isAdmin && (
                   <span className={`absolute top-3 left-3 text-[11px] font-semibold px-2 py-0.5 rounded-full ${item.isPublished ? 'bg-white text-gray-900' : 'bg-amber-400 text-amber-950'}`}>{item.isPublished ? 'Live' : 'Draft'}</span>
