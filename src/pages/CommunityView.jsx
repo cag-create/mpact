@@ -13,6 +13,7 @@ import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Mod
 import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
 import PaymentsTab from '../components/PaymentsTab'
+import MerchTab from '../components/MerchTab'
 import { MpactMIcon, MpactWordmark } from '../components/Sidebar'
 import { CommunityLogo } from '../components/CreafiLogo'
 
@@ -951,7 +952,7 @@ const TABS = [
   { id: 'replays',    label: 'The Lab',        icon: Video },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
   { id: 'affiliates', label: 'Affiliates',     icon: Link },
-  { id: 'merch',      label: 'Merch',          icon: ShoppingBag, soon: true },
+  { id: 'merch',      label: 'Merch',          icon: ShoppingBag },
 ]
 
 export default function CommunityView() {
@@ -1113,6 +1114,7 @@ export default function CommunityView() {
         {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
         {activeTab === 'payments'   && isAdmin && <PaymentsTab    communityId={id} community={community} />}
         {activeTab === 'affiliates' && isAdmin && <AffiliatesTab  communityId={id} community={community} />}
+        {activeTab === 'merch'      && <MerchTab       communityId={id} community={community} />}
       </div>
 
       {/* Lock Screen Preview */}

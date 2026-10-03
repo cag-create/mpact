@@ -115,6 +115,7 @@ function AppProvider({ children }) {
   const [courses,        setCourses]        = useState(() => load('hub_courses',        []))
   const [replays,        setReplays]        = useState(() => load('hub_replays',        []))
   const [progress,       setProgress]       = useState(() => load('hub_progress',       []))
+  const [merch,          setMerch]          = useState(() => load('hub_merch',          []))
   const [currentUser,    setCurrentUser]    = useState(() => getSession()?.user || null)
   const [hydrated,       setHydrated]       = useState(false)
   const lastServer = useRef({})   // key -> JSON of last value seen from/sent to the server
@@ -122,7 +123,7 @@ function AppProvider({ children }) {
 
   const setters = { communities: setCommunities, members: setMembers, events: setEvents, posts: setPosts, plans: setPlans,
     modules: setModules, lessons: setLessons, enrollments: setEnrollments, educators: setEducators, educatorPlan: setEducatorPlan,
-    messages: setMessages, notifications: setNotifications, sequences: setSequences, courses: setCourses, replays: setReplays, progress: setProgress }
+    messages: setMessages, notifications: setNotifications, sequences: setSequences, courses: setCourses, replays: setReplays, progress: setProgress, merch: setMerch }
 
   // ── Server hydration: everything shared lives on the server (Railway MySQL); localStorage is only a cache ──
   const pull = async () => {
@@ -179,6 +180,7 @@ function AppProvider({ children }) {
   useEffect(() => sync('notifications', notifications), [notifications])
   useEffect(() => sync('sequences', sequences), [sequences])
   useEffect(() => sync('courses', courses), [courses])
+  useEffect(() => sync('merch', merch), [merch])
   useEffect(() => sync('replays', replays), [replays])
   useEffect(() => sync('progress', progress), [progress])
 
@@ -443,14 +445,25 @@ function AppProvider({ children }) {
   const updateSequence = (id, data) => setSequences(prev => prev.map(s => s.id === id ? { ...s, ...data } : s))
   const deleteSequence = (id) => setSequences(prev => prev.filter(s => s.id !== id))
 
+  // ── Merch ───────────────────────────────────────────────────────────────────
+  const addMerchItem = (communityId, data) => {
+    const maxOrder = Math.max(0, ...merch.filter(m => m.communityId === communityId).map(m => m.order || 0))
+    const item = { id: `mch${Date.now()}`, communityId, title: data.title, description: data.description || '', price: data.price || '', imageUrl: data.imageUrl || '', buyUrl: data.buyUrl || '', order: maxOrder + 1, isPublished: !!data.isPublished }
+    setMerch(prev => [...prev, item]); return item
+  }
+  const updateMerchItem = (id, data) => setMerch(prev => prev.map(m => m.id === id ? { ...m, ...data } : m))
+  const deleteMerchItem = (id) => setMerch(prev => prev.filter(m => m.id !== id))
+
   return (
     <AppContext.Provider value={{
       // State
       communities, members, events, posts, plans, modules, lessons, enrollments,
       educators, brevoSettings, educatorPlan, users, messages, notifications, sequences, currentUser,
-      courses, replays, progress,
+      courses, replays, progress, merch,
       // Courses / replays / progress
       addCourse, updateCourse, deleteCourse, reorderCourse, addReplay, updateReplay, deleteReplay, setLessonComplete,
+      // Merch
+      addMerchItem, updateMerchItem, deleteMerchItem,
       // Auth
       login, logout, register, changePassword,
       // Notifications
