@@ -27,11 +27,12 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
+      // No service worker — always load the latest app from the network.
+      // Also proactively remove any previously-installed worker + its caches.
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {})
-        })
+        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {})
       }
+      if (window.caches) { caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(() => {}) }
     </script>
   </body>
 </html>
