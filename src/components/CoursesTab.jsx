@@ -101,7 +101,7 @@ export default function CoursesTab({ communityId, community }) {
                   )}
                 </div>
                 <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="font-bold text-gray-900">{c.title}</h3>
+                  <h3 className="font-display text-lg text-gray-900 leading-tight">{c.title}</h3>
                   {c.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{c.description}</p>}
                   <p className="text-xs text-gray-400 mt-3">{st.mods} module{st.mods !== 1 ? 's' : ''} · {st.less} lesson{st.less !== 1 ? 's' : ''}</p>
                   {st.less > 0 && (

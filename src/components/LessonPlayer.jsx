@@ -55,7 +55,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {current?.type === 'video' && <VideoEmbed url={current.content} title={current.title} className="rounded-none" />}
             <div className="p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">{courseModules.find(m => m.id === current?.moduleId)?.title}</p>
+              <p className="text-xs font-display uppercase tracking-wider text-fuchsia-600 mb-1">{courseModules.find(m => m.id === current?.moduleId)?.title}</p>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{current?.title}</h3>
               {current?.type === 'text' && <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">{current.content}</div>}
               {current?.type === 'pdf' && (
@@ -87,7 +87,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
             <div className="max-h-[70vh] overflow-y-auto">
               {courseModules.map(m => (
                 <div key={m.id}>
-                  <p className="px-4 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{m.title}</p>
+                  <p className="px-4 pt-3 pb-1 text-[11px] font-display uppercase tracking-wider text-fuchsia-600">{m.title}</p>
                   {(lessonsByModule[m.id] || []).map(l => {
                     const Icon = TYPE_ICON[l.type] || Play
                     const active = l.id === current?.id, done = doneIds.has(l.id)

@@ -317,7 +317,7 @@ function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, o
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 text-sm">{module.title}</p>
+            <p className="font-display text-base leading-tight bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 bg-clip-text text-transparent">{module.title}</p>
             {module.description && (
               <p className="text-xs text-gray-400 mt-0.5">{module.description}</p>
             )}
