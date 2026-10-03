@@ -3,6 +3,7 @@ import { BookOpen, Plus, Edit3, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, X, Play
 import { useApp } from '../App'
 import ContentTab from './ContentTab'
 import LessonPlayer from './LessonPlayer'
+import { CommunityLogo } from './CreafiLogo'
 
 function CourseModal({ course, onSave, onClose }) {
   const isNew = !course
@@ -39,6 +40,16 @@ function CourseModal({ course, onSave, onClose }) {
     </div>
   )
 }
+
+const CARD_GRADS = [
+  { panel: 'linear-gradient(135deg,#7c3aed 0%,#d946ef 55%,#fb7185 100%)', bar: 'linear-gradient(90deg,#7c3aed,#d946ef)', solid: '#7c3aed', btn: 'linear-gradient(135deg,#7c3aed,#d946ef)' },
+  { panel: 'linear-gradient(135deg,#0ea5e9 0%,#2563eb 55%,#1e3a8a 100%)', bar: 'linear-gradient(90deg,#0ea5e9,#2563eb)', solid: '#2563eb', btn: 'linear-gradient(135deg,#0ea5e9,#2563eb)' },
+  { panel: 'linear-gradient(135deg,#f59e0b 0%,#f97316 50%,#ef4444 100%)', bar: 'linear-gradient(90deg,#f59e0b,#ef4444)', solid: '#ea580c', btn: 'linear-gradient(135deg,#f97316,#ef4444)' },
+  { panel: 'linear-gradient(135deg,#10b981 0%,#14b8a6 55%,#0891b2 100%)', bar: 'linear-gradient(90deg,#10b981,#0891b2)', solid: '#0d9488', btn: 'linear-gradient(135deg,#10b981,#0891b2)' },
+  { panel: 'linear-gradient(135deg,#ec4899 0%,#d946ef 55%,#8b5cf6 100%)', bar: 'linear-gradient(90deg,#ec4899,#8b5cf6)', solid: '#db2777', btn: 'linear-gradient(135deg,#ec4899,#8b5cf6)' },
+  { panel: 'linear-gradient(135deg,#6366f1 0%,#3b82f6 55%,#06b6d4 100%)', bar: 'linear-gradient(90deg,#6366f1,#06b6d4)', solid: '#4f46e5', btn: 'linear-gradient(135deg,#6366f1,#06b6d4)' },
+]
+const DOTS = 'radial-gradient(rgba(255,255,255,0.22) 1.4px, transparent 1.5px)'
 
 export default function CoursesTab({ communityId, community }) {
   const { courses, modules, lessons, progress, currentUser, addCourse, updateCourse, deleteCourse, reorderCourse } = useApp()
@@ -89,29 +100,38 @@ export default function CoursesTab({ communityId, community }) {
           {isAdmin && <button onClick={() => setShowAdd(true)} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90" style={{ backgroundColor: community.color }}>Create your first course</button>}
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid gap-5 xl:grid-cols-2">
           {mine.map((c, i) => {
             const st = statsFor(c)
+            const g = CARD_GRADS[i % CARD_GRADS.length]
             return (
-              <div key={c.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                <div className="h-32 bg-gray-900 relative">
-                  {c.coverUrl ? <img src={c.coverUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><BookOpen size={30} className="text-white/30" /></div>}
-                  {isAdmin && !previewAsMember && (
-                    <span className={`absolute top-3 left-3 text-[11px] font-semibold px-2 py-0.5 rounded-full ${c.isPublished ? 'bg-white text-gray-900' : 'bg-amber-400 text-amber-950'}`}>{c.isPublished ? 'Published' : 'Draft'}</span>
-                  )}
+              <div key={c.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden grid grid-cols-1 sm:grid-cols-[190px_1fr]">
+                <div className="relative flex flex-col justify-between p-5 min-h-[128px] sm:min-h-[172px] text-white overflow-hidden" style={{ background: c.coverUrl ? `linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)), url(${c.coverUrl}) center/cover` : g.panel }}>
+                  {!c.coverUrl && <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: DOTS, backgroundSize: '12px 12px', opacity: 0.6 }} />}
+                  <div className="relative flex items-center justify-between">
+                    <span className="font-grotesk font-semibold text-[11px] tracking-[0.14em] uppercase opacity-90">Course {String(i + 1).padStart(2, '0')}</span>
+                    {isAdmin && !previewAsMember && (
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${c.isPublished ? 'bg-white/90 text-gray-900' : 'bg-amber-400 text-amber-950'}`}>{c.isPublished ? 'Published' : 'Draft'}</span>
+                    )}
+                  </div>
+                  <h3 className="relative font-display uppercase leading-[0.95] tracking-tight text-[22px] sm:text-[26px]" style={{ textShadow: '0 2px 10px rgba(0,0,0,.18)' }}>{c.title}</h3>
+                  <div className="relative flex items-center gap-2 font-grotesk font-bold text-[12px] opacity-95">
+                    <CommunityLogo community={community} size={20} />
+                    <span className="uppercase tracking-wide truncate">{community.name}</span>
+                  </div>
                 </div>
-                <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="font-display text-lg text-gray-900 leading-tight">{c.title}</h3>
-                  {c.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{c.description}</p>}
-                  <p className="text-xs text-gray-400 mt-3">{st.mods} module{st.mods !== 1 ? 's' : ''} · {st.less} lesson{st.less !== 1 ? 's' : ''}</p>
+                <div className="p-5 flex flex-col">
+                  <h4 className="font-display text-lg leading-tight" style={{ color: g.solid }}>{c.title}</h4>
+                  {c.description && <p className="font-grotesk text-sm text-gray-500 mt-1.5 line-clamp-2 leading-snug">{c.description}</p>}
+                  <p className="font-grotesk font-bold text-[11px] tracking-widest uppercase text-gray-400 mt-3">{st.mods} module{st.mods !== 1 ? 's' : ''} · {st.less} lesson{st.less !== 1 ? 's' : ''}</p>
                   {st.less > 0 && (
                     <div className="mt-2">
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-500" style={{ width: `${st.pct}%` }} /></div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${st.pct}%`, background: g.bar }} /></div>
                       <p className="text-[11px] text-gray-400 mt-1">{st.pct}% complete</p>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 mt-auto pt-4">
-                    <button onClick={() => setMode({ view: 'play', courseId: c.id })} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800"><Play size={14} /> {st.done > 0 && st.done < st.less ? 'Continue' : 'Start'}</button>
+                  <div className="flex flex-wrap items-center gap-2 mt-auto pt-4">
+                    <button onClick={() => setMode({ view: 'play', courseId: c.id })} className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold font-grotesk hover:opacity-90" style={{ background: g.btn }}><Play size={14} /> {st.done > 0 && st.done < st.less ? 'Continue training' : 'View training'}</button>
                     {isAdmin && !previewAsMember && (
                       <>
                         <button onClick={() => setMode({ view: 'build', courseId: c.id })} className="px-3 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50">Build</button>
