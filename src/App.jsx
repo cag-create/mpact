@@ -304,9 +304,10 @@ function AppProvider({ children }) {
 
   // ── Posts ─────────────────────────────────────────────────────────────────
   const EMPTY_REACTIONS = { love: [], celebrate: [], clap: [], fire: [], star: [] }
-  const addPost = (communityId, memberId, content, imageUrl = null) => {
+  const addPost = (communityId, memberId, content, imageUrl = null, author = null) => {
     const p = {
       id: `p${Date.now()}`, communityId, memberId, content, type: 'introduction',
+      authorName: author?.name || null, authorAvatar: author?.avatarUrl || null,
       imageUrl, reactions: { ...EMPTY_REACTIONS }, comments: [], createdAt: new Date().toISOString(),
     }
     setPosts(prev => [p, ...prev])
@@ -335,10 +336,10 @@ function AppProvider({ children }) {
       return { ...p, reactions }
     }))
   }
-  const addComment = (postId, memberId, content) => {
+  const addComment = (postId, memberId, content, author = null) => {
     setPosts(prev => prev.map(p => {
       if (p.id !== postId) return p
-      const comment = { id: `c${Date.now()}`, memberId, content, createdAt: new Date().toISOString() }
+      const comment = { id: `c${Date.now()}`, memberId, content, authorName: author?.name || null, authorAvatar: author?.avatarUrl || null, createdAt: new Date().toISOString() }
       awardPoints(memberId, 5)
       if (p.memberId !== memberId) {
         const commenter = members.find(m => m.id === memberId)

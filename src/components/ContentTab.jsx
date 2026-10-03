@@ -367,7 +367,7 @@ function ModuleRow({ module, lessons, isFirst, isLast, communityId, onReorder, o
           onClick={() => setExpanded(e => !e)}
         >
           <div className="w-7 h-7 rounded-lg bg-gray-900 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-white">{module.order}</span>
+            <span className="text-xs font-bold text-white">{module.order - 1}</span>
           </div>
 
           <div className="flex-1 min-w-0">

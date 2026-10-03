@@ -58,21 +58,21 @@ function MemberAvatar({ member }) {
   return <Initials name={member?.name} color={member?.color} size="lg" />
 }
 
-function PostCard({ post, members, allMembers, onReact, onComment }) {
+function PostCard({ post, members, allMembers, me, onReact, onComment }) {
   const member = members.find(m => m.id === post.memberId)
+    || (post.memberId === me?.id ? me : null)
+    || (post.authorName ? { name: post.authorName, avatarUrl: post.authorAvatar } : null)
+    || { name: 'Member' }
   const [showComments, setShowComments] = useState(false)
   const [commentText, setCommentText] = useState('')
-  if (!member) return null
 
   const reactions = post.reactions || {}
   const totalReactions = Object.values(reactions).reduce((s, arr) => s + (arr?.length || 0), 0)
   const reactionSummary = REACTIONS.filter(r => (reactions[r.key]?.length || 0) > 0)
 
   const handleComment = () => {
-    if (!commentText.trim()) return
-    // Post as first member or 'me' placeholder
-    const meId = members[0]?.id || 'me'
-    onComment(post.id, meId, commentText.trim())
+    if (!commentText.trim() || !me) return
+    onComment(post.id, me.id, commentText.trim(), me)
     setCommentText('')
   }
 
@@ -151,7 +151,10 @@ function PostCard({ post, members, allMembers, onReact, onComment }) {
         <div className="px-5 pb-4 border-t border-gray-50">
           {/* Existing comments */}
           {(post.comments || []).map(comment => {
-            const commenter = allMembers.find(m => m.id === comment.memberId) || members[0]
+            const commenter = allMembers.find(m => m.id === comment.memberId)
+              || (comment.memberId === me?.id ? me : null)
+              || (comment.authorName ? { name: comment.authorName, avatarUrl: comment.authorAvatar } : null)
+              || { name: 'Member' }
             return (
               <div key={comment.id} className="flex items-start gap-2.5 mt-3">
                 <MemberAvatar member={commenter} />
@@ -164,7 +167,7 @@ function PostCard({ post, members, allMembers, onReact, onComment }) {
           })}
           {/* Add comment */}
           <div className="flex items-center gap-2.5 mt-3">
-            <MemberAvatar member={members[0]} />
+            <MemberAvatar member={me} />
             <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-2xl px-3 py-2">
               <input
                 value={commentText}
@@ -187,10 +190,15 @@ function PostCard({ post, members, allMembers, onReact, onComment }) {
 }
 
 function FeedTab({ communityId, community }) {
-  const { members, posts, reactToPost, addComment } = useApp()
+  const { members, posts, reactToPost, addComment, currentUser } = useApp()
   const [showPost, setShowPost] = useState(false)
 
   const communityMembers = members.filter(m => m.communityId === communityId)
+  // Who the viewer actually is — their member record, or (for an admin with no member
+  // profile here) an identity derived from their account. Used so comments are attributed
+  // to the real author, not the first member in the list.
+  const meMember = members.find(m => m.id === currentUser?.memberId)
+  const me = meMember || (currentUser ? { id: currentUser.id, name: currentUser.name || 'You', avatarUrl: null, role: currentUser.role, communityId } : null)
   const communityPosts   = posts.filter(p => p.communityId === communityId)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
@@ -228,6 +236,7 @@ function FeedTab({ communityId, community }) {
               post={post}
               members={communityMembers}
               allMembers={members}
+              me={me}
               onReact={reactToPost}
               onComment={addComment}
             />
