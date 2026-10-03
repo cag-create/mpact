@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
-  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag } from 'lucide-react'
+  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag,
+  User, Camera, MessageCircle, LayoutDashboard, BarChart2, KeyRound, LogOut } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
@@ -14,8 +15,61 @@ import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
 import PaymentsTab from '../components/PaymentsTab'
 import MerchTab from '../components/MerchTab'
-import { MpactMIcon, MpactWordmark } from '../components/Sidebar'
+import { MpactMIcon, MpactWordmark, ChangePasswordModal, downscaleImage } from '../components/Sidebar'
 import { CommunityLogo } from '../components/CreafiLogo'
+
+const HERO_DOTS = 'radial-gradient(rgba(255,255,255,0.18) 1.2px, transparent 1.3px)'
+
+// Top-nav profile menu: avatar (photo or silhouette) -> dropdown with photo/admin/sign-out.
+function ProfileMenu() {
+  const { currentUser, members, logout, changePassword, setMemberAvatar } = useApp()
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const [showPw, setShowPw] = useState(false)
+  const photoRef = useRef(null)
+  const me = members.find(m => m.id === currentUser?.memberId)
+  const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
+  const go = (path) => { setOpen(false); navigate(path) }
+  const Item = ({ icon: Icon, label, onClick, danger }) => (
+    <button onClick={onClick} className={`w-full flex items-center gap-2.5 px-4 py-2 text-sm text-left transition-colors ${danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-50'}`}>
+      <Icon size={15} className="flex-shrink-0" /> {label}
+    </button>
+  )
+  return (
+    <div className="relative flex-shrink-0">
+      <input ref={photoRef} type="file" accept="image/*" className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f && me) downscaleImage(f, 256, url => setMemberAvatar(me.id, url)); e.target.value = '' }} />
+      <button onClick={() => setOpen(o => !o)} className="w-9 h-9 rounded-full overflow-hidden bg-white/15 ring-2 ring-white/25 flex items-center justify-center hover:ring-white/40 transition-all">
+        {me?.avatarUrl ? <img src={me.avatarUrl} alt="" className="w-full h-full object-cover" /> : <User size={18} className="text-white" />}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 py-2">
+            <div className="px-4 py-2 border-b border-gray-50">
+              <p className="text-sm font-semibold text-gray-900 truncate">{currentUser?.name}</p>
+              <p className="text-xs text-gray-400">{isAdmin ? 'Platform Admin' : 'Member'}</p>
+            </div>
+            {me && <Item icon={Camera} label={me.avatarUrl ? 'Change photo' : 'Add photo'} onClick={() => { setOpen(false); photoRef.current?.click() }} />}
+            <Item icon={MessageCircle} label="Messages" onClick={() => go('/messages')} />
+            {isAdmin && (
+              <>
+                <div className="my-1 border-t border-gray-50" />
+                <Item icon={LayoutDashboard} label="Dashboard" onClick={() => go('/dashboard')} />
+                <Item icon={Shield} label="Admin Panel" onClick={() => go('/admin')} />
+                <Item icon={BarChart2} label="Analytics" onClick={() => go('/analytics')} />
+              </>
+            )}
+            <div className="my-1 border-t border-gray-50" />
+            <Item icon={KeyRound} label="Change password" onClick={() => { setOpen(false); setShowPw(true) }} />
+            <Item icon={LogOut} label="Sign out" onClick={logout} danger />
+          </div>
+        </>
+      )}
+      {showPw && <ChangePasswordModal onClose={() => setShowPw(false)} changePassword={changePassword} userId={currentUser?.id} />}
+    </div>
+  )
+}
 
 // ─── Shared Helpers ────────────────────────────────────────────────────────────
 
@@ -1017,104 +1071,56 @@ export default function CommunityView() {
     setEditingSlug(false)
   }
 
+  const navBg = community.color || '#18181b'
+  const heroGrad = `linear-gradient(120deg, ${navBg} 0%, #4c1d95 50%, #7c3aed 100%)`
+  const visibleTabs = TABS.filter(t => (t.id !== 'payments' && t.id !== 'affiliates') || isAdmin)
+  const currentTab = TABS.find(t => t.id === activeTab) || TABS[0]
+
   return (
-    <div className="min-h-full">
-      {/* Banner */}
-      <div className="relative h-40" style={{ background: `linear-gradient(135deg, ${community.color}ee, ${community.color}88)` }}>
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: `radial-gradient(circle at 25% 50%, white 1.5px, transparent 1.5px), radial-gradient(circle at 75% 30%, white 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
-        }} />
-        <div className="absolute top-4 left-4">
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm transition-colors bg-black/10 hover:bg-black/20 px-3 py-1.5 rounded-lg">
-            <ArrowLeft size={14} />
-            Back
+    <div className="min-h-screen" style={{ background: '#f3f1fb' }}>
+      {/* Top nav — logo, tabs, profile */}
+      <header className="sticky top-0 z-30 shadow-md" style={{ background: navBg }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+          <button onClick={() => handleTabChange('feed')} className="flex items-center gap-2.5 flex-shrink-0">
+            <CommunityLogo community={community} size={36} className="rounded-xl" />
+            <span className="text-white font-extrabold text-lg tracking-tight hidden md:block">{community.name}</span>
           </button>
-        </div>
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          {community.isLocked && (
-            <button
-              onClick={() => setPreviewLock(true)}
-              title="Preview member lock screen"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/20 hover:bg-black/40 text-white/80 hover:text-white text-xs font-medium transition-colors"
-            >
-              <Eye size={13} /> Preview Lock Page
-            </button>
-          )}
-          <button onClick={handleDelete} className="p-2 rounded-lg bg-black/10 hover:bg-red-500/80 text-white/70 hover:text-white transition-colors">
-            <Trash2 size={15} />
-          </button>
-        </div>
-        <div className="absolute bottom-3 right-8 opacity-90 select-none">
-          <CommunityLogo community={community} size={96} className="rounded-2xl shadow-lg" emojiClass="text-7xl" />
-        </div>
-      </div>
-
-      {/* Community info */}
-      <div className="bg-white border-b border-gray-100 px-8 pb-0">
-        {/* Icon overlaps banner; text row stays fully on white */}
-        <div className="flex items-start gap-4">
-          {/* Text — pt-3 ensures it starts well inside the white section */}
-          <div className="flex-1 min-w-0 pt-3 pb-4">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h1 className="text-xl font-bold text-gray-900">{community.name}</h1>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: community.color + '20', color: community.color }}>
-                {community.category}
-              </span>
-            </div>
-            <p className="text-sm text-gray-500 line-clamp-1">{community.description}</p>
-          </div>
-          {/* Stats */}
-          <div className="flex items-center gap-6 text-center pt-4 flex-shrink-0">
-            <div>
-              <p className="text-xl font-bold text-gray-900">{memberCount}</p>
-              <p className="text-xs text-gray-400">Members</p>
-            </div>
-            <div>
-              <p className="text-xl font-bold text-gray-900">{eventCount}</p>
-              <p className="text-xs text-gray-400">Events</p>
-            </div>
-            <div>
-              <p className="text-xl font-bold text-gray-900">{postCount}</p>
-              <p className="text-xs text-gray-400">Posts</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 overflow-x-auto">
-          {TABS.filter(t => (t.id !== 'payments' && t.id !== 'affiliates') || isAdmin).map(t => {
-            const Icon = t.icon
-            const active = activeTab === t.id
-            if (t.soon) {
+          <nav className="flex-1 flex items-center gap-0.5 overflow-x-auto px-1" style={{ scrollbarWidth: 'none' }}>
+            {visibleTabs.map(t => {
+              const Icon = t.icon
+              const active = activeTab === t.id
               return (
-                <div key={t.id} title="Coming soon"
-                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-300 whitespace-nowrap cursor-default select-none">
-                  <Icon size={15} />
-                  {t.label}
-                  <span className="text-[10px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-full">Soon</span>
-                </div>
+                <button key={t.id} onClick={() => handleTabChange(t.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${active ? 'bg-white/15 text-white' : 'text-white/70 hover:text-white hover:bg-white/10'}`}>
+                  <Icon size={15} /> {t.label}
+                </button>
               )
-            }
-            return (
-              <button
-                key={t.id}
-                onClick={() => handleTabChange(t.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  active ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
-                }`}
-              >
-                <Icon size={15} />
-                {t.label}
-              </button>
-            )
-          })}
+            })}
+          </nav>
+          <ProfileMenu />
+        </div>
+      </header>
+
+      {/* Colored hero band with the tab title */}
+      <div className="relative overflow-hidden" style={{ background: heroGrad }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: HERO_DOTS, backgroundSize: '16px 16px', opacity: 0.5 }} />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <div className="flex items-end justify-between gap-6 flex-wrap">
+            <div className="min-w-0">
+              <h1 className="font-display uppercase text-white tracking-tight leading-none text-4xl sm:text-6xl" style={{ textShadow: '0 2px 14px rgba(0,0,0,.25)' }}>{currentTab.label}</h1>
+              {activeTab === 'feed' && community.description && <p className="text-white/80 mt-3 max-w-2xl text-sm sm:text-base">{community.description}</p>}
+            </div>
+            <div className="flex items-center gap-6 text-center flex-shrink-0">
+              {[['Members', memberCount], ['Events', eventCount], ['Posts', postCount]].map(([l, v]) => (
+                <div key={l}><p className="text-2xl font-bold text-white">{v}</p><p className="text-[11px] text-white/60 uppercase tracking-wide">{l}</p></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-
 
       {/* Tab Content */}
-      <div className="px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {activeTab === 'feed'        && <FeedTab        communityId={id} community={community} />}
         {activeTab === 'calendar'   && <CalendarTab    communityId={id} community={community} />}
         {activeTab === 'members'    && <MembersTab     communityId={id} community={community} />}
@@ -1126,7 +1132,6 @@ export default function CommunityView() {
         {activeTab === 'merch'      && <MerchTab       communityId={id} community={community} />}
       </div>
 
-      {/* Lock Screen Preview */}
       {previewLock && (
         <LockScreen community={community} plans={plans} onClose={() => setPreviewLock(false)} />
       )}

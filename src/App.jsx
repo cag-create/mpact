@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { api, getSession, setSession, clearSession } from './lib/api'
-import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import CommunityView from './pages/CommunityView'
@@ -546,6 +546,7 @@ export default function App() {
 
 function InnerApp() {
   const { communities, currentUser } = useContext(AppContext)
+  const location = useLocation()
   // On a community's own address (name.ourmpact.com or a custom domain) the home route is that community.
   // The brand is injected into the HTML synchronously, so its id is available immediately — use it so we
   // route straight into the community on login instead of briefly falling back to /dashboard while the
@@ -566,11 +567,13 @@ function InnerApp() {
       </Routes>
     )
   }
+  const onCommunity = location.pathname.startsWith('/community/')
   return (
     <>
       <SubdomainHandler communities={communities} />
       <div className="flex h-screen bg-gray-50 overflow-hidden">
-        <Sidebar />
+        {/* Community pages use their own SubTo-style top nav — hide the left sidebar there. */}
+        {!onCommunity && <Sidebar />}
         <div className="flex-1 overflow-auto">
           <Routes>
             <Route path="/"                   element={<Navigate to={home} replace />} />

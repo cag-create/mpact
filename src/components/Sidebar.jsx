@@ -4,7 +4,7 @@ import { LayoutDashboard, Plus, ChevronRight, Shield, Lock, MessageCircle, BarCh
 import { useApp } from '../App'
 
 // Downscale an uploaded image to a small square data URL so profile photos stay light.
-function downscaleImage(file, max, cb) {
+export function downscaleImage(file, max, cb) {
   const reader = new FileReader()
   reader.onload = e => {
     const img = new Image()
@@ -24,7 +24,7 @@ import { CreateCommunityModal } from './Modals'
 import CreafiLogo, { CommunityLogo } from './CreafiLogo'
 import NotificationBell from './NotificationBell'
 
-function ChangePasswordModal({ onClose, changePassword, userId }) {
+export function ChangePasswordModal({ onClose, changePassword, userId }) {
   const [oldPw, setOldPw] = useState(''), [newPw, setNewPw] = useState(''), [again, setAgain] = useState('')
   const [msg, setMsg] = useState(''), [ok, setOk] = useState(false), [busy, setBusy] = useState(false)
   const submit = async (e) => {
