@@ -44,7 +44,7 @@ const INITIAL_COMMUNITIES = [
   {
     id: 'creafi', slug: 'creafi',
     name: "Crea'fi",
-    description: "Creative finance, built on integrity — helping others and building real wealth. Your transformation starts now.",
+    description: "Create finance, built on integrity — helping others and building real wealth. Your transformation starts now.",
     color: '#18181b', emoji: '💡', memberCount: 0, joinUrl: 'https://creafigenius.com', logoUrl: '/creafi-logo.png',
     category: 'Finance & Wealth', isLocked: false, lockedScreenLogo: null, createdAt: '2026-03-26',
   },
