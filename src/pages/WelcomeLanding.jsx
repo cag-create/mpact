@@ -31,7 +31,7 @@ export default function WelcomeLanding() {
       {/* Hero */}
       <main className="relative flex-1 flex items-end justify-center overflow-hidden">
         {hero
-          ? <img src={hero} alt={name} className="absolute inset-0 w-full h-full object-cover object-center" />
+          ? <img src={hero} alt={name} className="absolute inset-0 w-full h-full object-contain sm:object-cover object-center" />
           : <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${BRAND?.color || '#4f46e5'}, ${navy})` }} />}
         {/* Subtle bottom-only gradient purely for CTA legibility — keeps the photo crisp and true (no wash/blur) */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(11,37,69,0) 52%, rgba(11,37,69,0.72) 100%)' }} />
