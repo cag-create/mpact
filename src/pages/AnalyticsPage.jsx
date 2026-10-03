@@ -31,7 +31,7 @@ function MiniBar({ label, value, max, color }) {
 }
 
 export default function AnalyticsPage() {
-  const { communities, members, posts, events, enrollments, plans, educators } = useApp()
+  const { communities, members, posts, events, enrollments, plans } = useApp()
 
   const stats = useMemo(() => {
     const totalRevenue = enrollments.reduce((s, e) => s + (e.amount || 0), 0)
@@ -166,25 +166,6 @@ export default function AnalyticsPage() {
                 </div>
               </div>
           }
-        </div>
-      </div>
-
-      {/* Platform subscribers */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-base font-bold text-gray-900 mb-4">Platform Subscribers</h3>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-indigo-50 rounded-xl">
-            <p className="text-2xl font-bold text-indigo-700">{educators.length}</p>
-            <p className="text-xs text-indigo-500 mt-1">Total Educators</p>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-xl">
-            <p className="text-2xl font-bold text-green-700">{educators.filter(e=>e.status==='active').length}</p>
-            <p className="text-xs text-green-500 mt-1">Active</p>
-          </div>
-          <div className="text-center p-4 bg-amber-50 rounded-xl">
-            <p className="text-2xl font-bold text-amber-700">{educators.filter(e=>e.plan==='mpact').length}</p>
-            <p className="text-xs text-amber-500 mt-1">Pro ($59)</p>
-          </div>
         </div>
       </div>
     </div>
