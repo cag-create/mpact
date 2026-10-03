@@ -36,9 +36,7 @@ export default function WelcomeLanding() {
         {/* Subtle bottom-only gradient purely for CTA legibility — keeps the photo crisp and true (no wash/blur) */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(11,37,69,0) 52%, rgba(11,37,69,0.72) 100%)' }} />
 
-        <div className="relative z-10 text-center px-6 pb-12 sm:pb-16 pt-24 w-full">
-          <p className="text-white font-semibold tracking-wide text-xs sm:text-sm mb-1 uppercase" style={{ textShadow: '0 2px 10px rgba(0,0,0,.55)' }}>Welcome to</p>
-          <h1 className="text-white font-extrabold tracking-tight leading-none text-3xl sm:text-5xl mb-6" style={{ textShadow: '0 2px 14px rgba(0,0,0,.55)' }}>{name}</h1>
+        <div className="relative z-10 text-center px-6 pb-8 sm:pb-12 w-full">
           <button
             onClick={getStarted}
             className="inline-flex items-center justify-center px-10 py-3.5 rounded-xl text-white text-base font-bold shadow-lg transition-colors"
