@@ -23,15 +23,18 @@ export function getEmbed(url = '') {
   if (/\.(mp4|webm|m4v|mov)(\?.*)?$/i.test(u)) return { kind: 'video', src: u, provider: 'Video file' }
   return { kind: 'link', src: u, provider: 'Link' }
 }
-export function VideoEmbed({ url, title = 'Video', className = '' }) {
+export function VideoEmbed({ url, title = 'Video', className = '', autoPlay = false }) {
   const e = getEmbed(url)
   if (!e) return null
-  if (e.kind === 'iframe') return (
-    <div className={`relative w-full aspect-video bg-black rounded-xl overflow-hidden ${className}`}>
-      <iframe src={e.src} title={title} className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
-    </div>
-  )
-  if (e.kind === 'video') return <video src={e.src} controls className={`w-full aspect-video bg-black rounded-xl ${className}`} />
+  if (e.kind === 'iframe') {
+    const src = autoPlay ? e.src + (e.src.includes('?') ? '&' : '?') + 'autoplay=1' : e.src
+    return (
+      <div className={`relative w-full aspect-video bg-black rounded-xl overflow-hidden ${className}`}>
+        <iframe src={src} title={title} className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+      </div>
+    )
+  }
+  if (e.kind === 'video') return <video src={e.src} controls autoPlay={autoPlay} className={`w-full aspect-video bg-black rounded-xl ${className}`} />
   return (
     <a href={e.src} target="_blank" rel="noreferrer" className={`block w-full aspect-video bg-gray-900 text-white rounded-xl flex items-center justify-center text-sm font-medium hover:bg-gray-800 ${className}`}>
       Open video in a new tab →

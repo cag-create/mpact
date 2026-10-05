@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, Play, FileText, File, Link as LinkIcon, Circle, CheckCircle2, Lock } from 'lucide-react'
 import { useApp } from '../App'
 import { VideoEmbed } from '../lib/video.jsx'
+
+const INTRO_URL = 'https://creafigenius.com/assets/creafi-intro.mp4'  // branded pre-roll before every lesson video
 import { moduleUnlocked } from '../lib/release'
 
 const TYPE_ICON = { video: Play, text: FileText, pdf: File, link: LinkIcon }
@@ -39,6 +41,25 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const [currentId, setCurrentId] = useState(firstUndone?.id || null)
   const current = flat.find(l => l.id === currentId) || flat[0]
   const idx = flat.findIndex(l => l.id === current?.id)
+
+  // Branded intro pre-roll: plays before every video lesson (members), then rolls the lesson video.
+  const introRef = useRef(null)
+  const [introDone, setIntroDone] = useState(false)
+  const [showSkip, setShowSkip] = useState(false)
+  useEffect(() => {
+    if (!canEdit && current?.type === 'video') {
+      setIntroDone(false); setShowSkip(false)
+      const t = setTimeout(() => setShowSkip(true), 4000)
+      return () => clearTimeout(t)
+    }
+    setIntroDone(true)
+  }, [current?.id, current?.type, canEdit])
+  useEffect(() => {
+    if (!introDone && introRef.current) {
+      const v = introRef.current
+      v.play().catch(() => { v.muted = true; v.play().catch(() => {}) })
+    }
+  }, [introDone, current?.id])
   const pct = flat.length ? Math.round((flat.filter(l => doneIds.has(l.id)).length / flat.length) * 100) : 0
 
   const markDone = (done) => { if (current && memberId) setLessonComplete(memberId, current, done) }
@@ -66,7 +87,14 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             {current ? (
             <>
-            {current?.type === 'video' && <VideoEmbed url={current.content} title={current.title} className="rounded-none" />}
+            {current?.type === 'video' && (!introDone ? (
+              <div className="relative w-full aspect-video bg-black">
+                <video ref={introRef} src={INTRO_URL} autoPlay playsInline onEnded={() => setIntroDone(true)} className="w-full h-full object-contain bg-black" />
+                {showSkip && <button onClick={() => setIntroDone(true)} className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-colors">Skip intro ▸</button>}
+              </div>
+            ) : (
+              <VideoEmbed url={current.content} title={current.title} className="rounded-none" autoPlay={!canEdit} />
+            ))}
             <div className="p-6">
               <p className="text-xs font-display uppercase tracking-wider text-fuchsia-600 mb-1">{courseModules.find(m => m.id === current?.moduleId)?.title}</p>
               <h3 className="text-xl font-bold text-gray-900 mb-3">{current?.title}</h3>
