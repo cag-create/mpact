@@ -227,16 +227,68 @@ function PlanCard({ plan, enrollmentCount, onEdit, onDelete, onToggle }) {
   )
 }
 
+// ─── Place a member on a plan (manual enroll / backfill) ────────────────────────
+
+function PlaceMemberModal({ communityId, members, plans, enrollments, onEnroll, onClose }) {
+  const enrolledIds = new Set(enrollments.filter(e => e.status === 'active').map(e => e.memberId))
+  const options = members.filter(m => !enrolledIds.has(m.id))
+  const activePlans = plans.filter(p => p.isActive !== false)
+  const [memberId, setMemberId] = useState(options[0]?.id || '')
+  const [planId, setPlanId]     = useState(activePlans[0]?.id || '')
+  const plan = plans.find(p => p.id === planId)
+  const cls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+  const canSave = memberId && planId
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Place a member on a plan</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
+        </div>
+        <div className="px-6 py-4 space-y-4">
+          {activePlans.length === 0 ? (
+            <p className="text-sm text-gray-500">Create a plan first, then place a member on it.</p>
+          ) : options.length === 0 ? (
+            <p className="text-sm text-gray-500">Every member is already on a plan.</p>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Member</label>
+                <select value={memberId} onChange={e => setMemberId(e.target.value)} className={cls}>
+                  {options.map(m => <option key={m.id} value={m.id}>{m.name}{m.email ? ` — ${m.email}` : ''}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Plan</label>
+                <select value={planId} onChange={e => setPlanId(e.target.value)} className={cls}>
+                  {activePlans.map(p => <option key={p.id} value={p.id}>{p.name} — ${p.price}{intervalLabel(p.interval)}</option>)}
+                </select>
+              </div>
+              <p className="text-xs text-gray-400">Records an active enrollment of ${plan?.price || 0}. Use this to place an existing member (e.g. someone who paid outside the app) so the counts are accurate.</p>
+            </>
+          )}
+        </div>
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100">Cancel</button>
+          <button onClick={() => canSave && onEnroll(memberId, planId, plan?.price || 0)} disabled={!canSave} className="px-5 py-2 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40">Place member</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Payments Tab ─────────────────────────────────────────────────────────────
 
 export default function PaymentsTab({ communityId, community }) {
-  const { plans, enrollments, members, addPlan, updatePlan, deletePlan, togglePlan } = useApp()
+  const { plans, enrollments, members, addPlan, updatePlan, deletePlan, togglePlan, addEnrollment } = useApp()
   const [showAddPlan, setShowAddPlan] = useState(false)
   const [editingPlan, setEditingPlan] = useState(null)
+  const [showPlace, setShowPlace] = useState(false)
   const [stripeConnected] = useState(false) // UI placeholder
 
   const communityPlans       = plans.filter(p => p.communityId === communityId)
   const communityEnrollments = enrollments.filter(e => e.communityId === communityId)
+  const communityMembers     = members.filter(m => m.communityId === communityId)
 
   const totalRevenue = communityEnrollments.reduce((sum, e) => sum + (e.amount || 0), 0)
   const mrr = communityEnrollments
@@ -245,10 +297,15 @@ export default function PaymentsTab({ communityId, community }) {
       return plan?.interval === 'month'
     })
     .reduce((sum, e) => sum + (e.amount || 0), 0)
-  const activeSubs = communityEnrollments.filter(e => {
-    const plan = plans.find(p => p.id === e.planId)
-    return plan?.interval === 'month' || plan?.interval === 'year'
-  }).length
+  // Active subscribers = members with live access. Memberships are provisioned on
+  // payment — one-time, lifetime, and installment (payment-plan) buyers all count,
+  // not only recurring enrollments — so count paying members rather than enrollments.
+  // Exclude staff (owners/admins are not subscribers). Members marked inactive/removed
+  // (status set) are excluded; a missing status means active.
+  const STAFF_ROLES = ['owner', 'admin', 'platform_admin']
+  const activeSubs = communityMembers.filter(m =>
+    !STAFF_ROLES.includes(m.role) && (!m.status || m.status === 'active')
+  ).length
   const oneTimeSales = communityEnrollments.filter(e => {
     const plan = plans.find(p => p.id === e.planId)
     return plan?.interval === 'once'
@@ -298,14 +355,23 @@ export default function PaymentsTab({ communityId, community }) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-gray-900">Membership</h3>
-          <button
-            onClick={() => setShowAddPlan(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: community.color }}
-          >
-            <Plus size={14} />
-            Add Plan
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPlace(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Users size={14} />
+              Place a member
+            </button>
+            <button
+              onClick={() => setShowAddPlan(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: community.color }}
+            >
+              <Plus size={14} />
+              Add Plan
+            </button>
+          </div>
         </div>
 
         {communityPlans.length === 0 ? (
@@ -411,6 +477,16 @@ export default function PaymentsTab({ communityId, community }) {
       )}
       {editingPlan && (
         <PlanModal plan={editingPlan} communityId={communityId} onSave={handleEditPlan} onClose={() => setEditingPlan(null)} />
+      )}
+      {showPlace && (
+        <PlaceMemberModal
+          communityId={communityId}
+          members={communityMembers}
+          plans={communityPlans}
+          enrollments={communityEnrollments}
+          onEnroll={(memberId, planId, amount) => { addEnrollment(communityId, memberId, planId, amount); setShowPlace(false) }}
+          onClose={() => setShowPlace(false)}
+        />
       )}
     </div>
   )

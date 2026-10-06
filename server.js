@@ -157,6 +157,32 @@ app.post('/api/auth/change-password', needDb, auth, async (req, res) => {
   res.json({ ok: true })
 })
 
+// Find a community plan by name (case-insensitive), else create one. Keeps the
+// Payments tab's plans in sync with what people actually buy.
+async function getOrCreatePlan(communityId, { name, price, interval }) {
+  const plans = (await getState('plans')) || []
+  const want = String(name || 'Membership').trim()
+  let plan = plans.find(p => p.communityId === communityId && String(p.name || '').toLowerCase() === want.toLowerCase())
+  if (plan) return plan
+  plan = { id: `pl${Date.now()}${Math.floor(Math.random()*1000)}`, communityId, name: want,
+    price: Number(price) || 0, interval: interval || 'once', description: '', features: [], isActive: true }
+  await setState('plans', [...plans, plan])
+  return plan
+}
+
+// Place a member on a plan (idempotent): one active enrollment per member/community.
+// Called on payment so Active Subs / enrolled / revenue reflect reality.
+async function ensureEnrollment({ communityId, memberId, planName, price, interval, amount }) {
+  if (!memberId) return null
+  const enrollments = (await getState('enrollments')) || []
+  if (enrollments.some(e => e.communityId === communityId && e.memberId === memberId && e.status === 'active')) return null
+  const plan = await getOrCreatePlan(communityId, { name: planName, price, interval })
+  const enr = { id: `en${Date.now()}${Math.floor(Math.random()*1000)}`, communityId, memberId, planId: plan.id,
+    status: 'active', enrolledAt: new Date().toISOString().split('T')[0], amount: Number(amount ?? price) || 0 }
+  await setState('enrollments', [...enrollments, enr])
+  return enr
+}
+
 // ─── Provisioning (server-to-server, used by creafigenius.com after payment) ──
 app.post('/api/members/provision', needDb, async (req, res) => {
   const key = req.headers['x-api-key']
@@ -164,14 +190,24 @@ app.post('/api/members/provision', needDb, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase(), name = String(req.body.name || '').trim() || email
   const communityId = String(req.body.communityId || 'creafi')
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Bad email' })
+  // Plan the buyer paid for (so they are placed on a plan and the counts are accurate).
+  const planInfo = {
+    communityId,
+    planName: req.body.planName || req.body.plan || 'Membership',
+    price:    req.body.planPrice,
+    interval: req.body.interval || 'once',
+    amount:   req.body.amount,
+  }
   const password = crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 12)
   const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
   if (rows.length) {
     if (rows[0].role === 'platform_admin') return res.status(409).json({ error: 'That email belongs to the platform admin; sign in normally.' })
     await pool.query('UPDATE hub_users SET password_hash=? WHERE id=?', [await bcrypt.hash(password, 10), rows[0].id])
+    await ensureEnrollment({ ...planInfo, memberId: rows[0].member_id })   // place existing members too
     return res.json({ existing: true, email, password, loginUrl: `${PUBLIC_URL}/login` })
   }
-  await createMemberAndUser({ communityId, name, email, password })
+  const { member } = await createMemberAndUser({ communityId, name, email, password })
+  await ensureEnrollment({ ...planInfo, memberId: member.id })
   res.json({ existing: false, email, password, loginUrl: `${PUBLIC_URL}/login` })
 })
 
