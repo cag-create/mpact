@@ -244,6 +244,10 @@ function AppProvider({ children }) {
   const setMemberAvatar = (memberId, avatarUrl) => {
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, avatarUrl } : m))
   }
+  // Admin: mark/unmark a member's community-rules agreement as signed (for the roster + offline signers).
+  const setMemberRules = (memberId, signed) => {
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, rulesSignedAt: signed ? (m.rulesSignedAt || new Date().toISOString().split('T')[0]) : null } : m))
+  }
   // Per-participant module drip-release: add/remove a moduleId on a member's releasedModules list.
   const setMemberModuleRelease = (memberId, moduleId, on) => {
     setMembers(prev => prev.map(m => {
@@ -471,7 +475,7 @@ function AppProvider({ children }) {
       // Notifications
       pushNotification, markNotificationRead, markAllNotificationsRead, clearNotifications,
       // Points
-      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar,
+      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules,
       // Messages
       sendMessage, markMessageRead, markConversationRead,
       // Communities

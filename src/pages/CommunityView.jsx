@@ -14,6 +14,7 @@ import { occursOn, upcomingOccurrences, timeLabel, RECUR_LABEL } from '../lib/ev
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
 import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
+import RosterTab from '../components/RosterTab'
 import PaymentsTab from '../components/PaymentsTab'
 import MerchTab, { MerchLocked } from '../components/MerchTab'
 import { MpactMIcon, MpactWordmark, ChangePasswordModal, downscaleImage } from '../components/Sidebar'
@@ -1039,14 +1040,15 @@ const TABS = [
   { id: 'leaderboard',label: 'Champions',      icon: Trophy },
   { id: 'content',    label: 'Capsules',       icon: BookOpen },
   { id: 'replays',    label: 'The Lab',        icon: Video },
+  { id: 'roster',     label: 'Roster',         icon: Shield },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
   { id: 'affiliates', label: 'Affiliates',     icon: Link },
   { id: 'merch',      label: 'Merch',          icon: ShoppingBag },
 ]
 
-// Tabs only the owner/admins may open (revenue, payouts). Hidden from the nav AND
+// Tabs only the owner/admins may open (roster, revenue, payouts). Hidden from the nav AND
 // unreachable by direct URL for members.
-const ADMIN_ONLY_TABS = ['payments', 'affiliates']
+const ADMIN_ONLY_TABS = ['roster', 'payments', 'affiliates']
 
 export default function CommunityView() {
   const { id, tab } = useParams()
@@ -1166,6 +1168,7 @@ export default function CommunityView() {
         {activeTab === 'leaderboard'&& <LeaderboardTab communityId={id} community={community} />}
         {activeTab === 'content'    && <CoursesTab     communityId={id} community={community} />}
         {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
+        {activeTab === 'roster'     && isAdmin && <RosterTab      communityId={id} community={community} />}
         {activeTab === 'payments'   && isAdmin && <PaymentsTab    communityId={id} community={community} />}
         {activeTab === 'affiliates' && isAdmin && <AffiliatesTab  communityId={id} community={community} />}
         {activeTab === 'merch'      && (isAdmin ? <MerchTab communityId={id} community={community} /> : <MerchLocked community={community} />)}
