@@ -1044,6 +1044,10 @@ const TABS = [
   { id: 'merch',      label: 'Merch',          icon: ShoppingBag },
 ]
 
+// Tabs only the owner/admins may open (revenue, payouts). Hidden from the nav AND
+// unreachable by direct URL for members.
+const ADMIN_ONLY_TABS = ['payments', 'affiliates']
+
 export default function CommunityView() {
   const { id, tab } = useParams()
   const navigate = useNavigate()
@@ -1085,6 +1089,13 @@ export default function CommunityView() {
   }
 
   const isAdmin = currentUser?.role === 'platform_admin' || currentUser?.role === 'admin' || currentUser?.role === 'owner'
+  // Members never land on an admin-only tab (e.g. a shared /payments link) — bounce them to the feed.
+  React.useEffect(() => {
+    if (ADMIN_ONLY_TABS.includes(activeTab) && !isAdmin) {
+      setActiveTab('feed')
+      navigate(`/community/${id}/feed`, { replace: true })
+    }
+  }, [activeTab, isAdmin, id])
   const loginUrl = community.loginUrl || `${window.location.origin}/login`
   const joinUrl = community.joinUrl || `${window.location.origin}/join/${community.slug || community.id}`
 
@@ -1099,7 +1110,6 @@ export default function CommunityView() {
 
   const navBg = community.color || '#18181b'
   const heroGrad = `linear-gradient(120deg, ${navBg} 0%, #4c1d95 50%, #7c3aed 100%)`
-  const ADMIN_ONLY_TABS = ['payments', 'affiliates']
   const visibleTabs = TABS.filter(t => !ADMIN_ONLY_TABS.includes(t.id) || isAdmin)
   const currentTab = TABS.find(t => t.id === activeTab) || TABS[0]
 
