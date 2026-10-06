@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react'
-import { Video, Plus, Edit3, Trash2, X, Search, Eye, EyeOff, Calendar } from 'lucide-react'
+import React, { useMemo, useState, useEffect } from 'react'
+import { Video, Plus, Edit3, Trash2, X, Search, Eye, EyeOff } from 'lucide-react'
 import { useApp } from '../App'
 import { getYouTubeThumbnail, VideoEmbed } from '../lib/video.jsx'
+import { MediaRow, Pager, PAGE_SIZE } from './MediaList'
 
 export const SESSION_TYPES  = ['Deal Lab', 'Sales Practice', 'Office Hours', 'Training', 'Q&A', 'Guest']
 export const TOPICS         = ['Creative Finance', 'Wholesale', 'Agent Outreach', 'Sales', 'Dispositions', 'Contracts', 'Mindset', 'General']
@@ -68,6 +69,11 @@ export default function ReplaysTab({ communityId, community }) {
 
   const clear = () => { setFType(null); setFTopic(null); setFProp(null); setQ('') }
 
+  const [page, setPage] = useState(1)
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
+  useEffect(() => { setPage(1) }, [fType, fTopic, fProp, q])
+  const pageList = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
   return (
     <div>
       <div className="flex items-start justify-between mb-5 gap-4">
@@ -93,30 +99,31 @@ export default function ReplaysTab({ communityId, community }) {
           <p className="text-sm text-gray-400 max-w-sm mx-auto">{isAdmin ? 'After each live session, upload the recording (YouTube unlisted works well) and add it here with the topic and property type.' : 'Recordings of the live sessions will show up here after each call.'}</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {list.map(r => {
-            const thumb = getYouTubeThumbnail(r.videoUrl)
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 px-2 sm:px-4 py-2">
+          {pageList.map(r => {
+            const metaBits = [fmt(r.date), r.topic, r.propertyType].filter(Boolean)
             return (
-              <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                <button onClick={() => setWatching(r)} className="relative aspect-video bg-gray-900 w-full group">
-                  {thumb ? <img src={thumb} alt="" className="w-full h-full object-cover opacity-90 group-hover:opacity-100" /> : <div className="w-full h-full flex items-center justify-center"><Video size={28} className="text-white/40" /></div>}
-                  <span className="absolute bottom-2 left-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-black/70 text-white">{r.sessionType}</span>
-                  {isAdmin && r.isPublished === false && <span className="absolute top-2 left-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-400 text-amber-950">Hidden</span>}
-                </button>
-                <div className="p-4 flex-1 flex flex-col">
-                  <p className="font-semibold text-gray-900 leading-snug">{r.title}</p>
-                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Calendar size={11} /> {fmt(r.date)}</p>
-                  <div className="flex flex-wrap gap-1.5 mt-2.5">{[r.topic, r.propertyType].filter(Boolean).map(t => <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{t}</span>)}</div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-1 mt-auto pt-3 justify-end">
-                      <button onClick={() => setEditing(r)} className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-gray-50"><Edit3 size={13} /></button>
-                      <button onClick={() => { if (window.confirm('Delete this replay?')) deleteReplay(r.id) }} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-gray-50"><Trash2 size={13} /></button>
-                    </div>
-                  )}
-                </div>
+              <div key={r.id} className="relative group">
+                <MediaRow
+                  thumb={getYouTubeThumbnail(r.videoUrl)}
+                  badge={r.sessionType}
+                  title={r.title}
+                  description={r.notes}
+                  meta={metaBits.join(' · ')}
+                  accent={community.color || '#2563eb'}
+                  onClick={() => setWatching(r)}
+                />
+                {isAdmin && r.isPublished === false && <span className="absolute top-5 left-4 sm:left-5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-amber-400 text-amber-950 z-10">Hidden</span>}
+                {isAdmin && (
+                  <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={(e) => { e.stopPropagation(); setEditing(r) }} className="p-1.5 rounded-lg bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-indigo-600"><Edit3 size={13} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete this replay?')) deleteReplay(r.id) }} className="p-1.5 rounded-lg bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-red-500"><Trash2 size={13} /></button>
+                  </div>
+                )}
               </div>
             )
           })}
+          <Pager page={page} pages={pages} onPage={setPage} />
         </div>
       )}
 
