@@ -6,6 +6,8 @@ import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-colors bg-white"
 
 const BRAND = (typeof window !== 'undefined' && window.__MPACT_BRAND__) || null
+// Password reset is handled by the community's site (it has the email keys). Crea'fi by default.
+const FORGOT_URL = (BRAND && BRAND.forgotUrl) || 'https://creafigenius.com/api/forgot-password'
 
 export default function LoginPage() {
   const { login, register, communities } = useApp()
@@ -14,6 +16,9 @@ export default function LoginPage() {
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw]   = useState(false)
+  const [forgot, setForgot]       = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSent, setForgotSent]   = useState(false)
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const [regForm,   setRegForm]   = useState({ name: '', email: '', password: '', communityId: communities[0]?.id || '', title: '', bio: '' })
@@ -27,6 +32,19 @@ export default function LoginPage() {
     setLoading(true)
     const user = await login(loginForm.email.trim(), loginForm.password)
     if (!user) setError('Incorrect email or password')
+    setLoading(false)
+  }
+
+  const handleForgot = async (e) => {
+    e.preventDefault()
+    setError('')
+    const email = forgotEmail.trim().toLowerCase()
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError('Enter the email you signed up with')
+    setLoading(true)
+    try {
+      await fetch(FORGOT_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email }) })
+    } catch { /* always show the same confirmation */ }
+    setForgotSent(true)
     setLoading(false)
   }
 
@@ -63,16 +81,18 @@ export default function LoginPage() {
       {/* Card */}
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Tabs */}
-        <div className="flex border-b border-gray-100">
-          {(brandJoin ? ['login'] : ['login','register']).map(t => (
-            <button key={t} onClick={() => { setTab(t); setError('') }}
-              className={`flex-1 py-4 text-sm font-semibold capitalize transition-colors ${brandJoin ? 'cursor-default' : ''} ${
-                tab === t ? 'text-indigo-600 border-b-2 border-indigo-500' : 'text-gray-400 hover:text-gray-600'
-              }`}>
-              {t === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          ))}
-        </div>
+        {!forgot && (
+          <div className="flex border-b border-gray-100">
+            {(brandJoin ? ['login'] : ['login','register']).map(t => (
+              <button key={t} onClick={() => { setTab(t); setError('') }}
+                className={`flex-1 py-4 text-sm font-semibold capitalize transition-colors ${brandJoin ? 'cursor-default' : ''} ${
+                  tab === t ? 'text-indigo-600 border-b-2 border-indigo-500' : 'text-gray-400 hover:text-gray-600'
+                }`}>
+                {t === 'login' ? 'Sign In' : 'Create Account'}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="px-6 py-6">
           {error && (
@@ -81,7 +101,30 @@ export default function LoginPage() {
             </div>
           )}
 
-          {tab === 'login' ? (
+          {forgot ? (
+            forgotSent ? (
+              <div className="text-center py-2">
+                <h3 className="font-bold text-gray-900 mb-1.5">Check your email</h3>
+                <p className="text-sm text-gray-500 mb-5">If an account exists for <span className="font-medium text-gray-700">{forgotEmail.trim()}</span>, we just emailed a new password. It can take a minute — check spam too.</p>
+                <button onClick={() => { setForgot(false); setForgotSent(false); setForgotEmail(''); setError('') }} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">← Back to sign in</button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgot} className="space-y-4">
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">Reset your password</h3>
+                  <p className="text-sm text-gray-500 mb-3">Enter the email you signed up with and we'll send you a new password.</p>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Email</label>
+                  <input type="email" placeholder="you@example.com" value={forgotEmail}
+                    onChange={e => setForgotEmail(e.target.value)} className={inputClass} required autoFocus />
+                </div>
+                <button type="submit" disabled={loading}
+                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors disabled:opacity-60">
+                  {loading ? 'Sending…' : 'Send new password'}
+                </button>
+                <button type="button" onClick={() => { setForgot(false); setError('') }} className="w-full text-sm font-medium text-gray-500 hover:text-gray-700">← Back to sign in</button>
+              </form>
+            )
+          ) : tab === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Email</label>
@@ -102,6 +145,10 @@ export default function LoginPage() {
               <button type="submit" disabled={loading}
                 className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors disabled:opacity-60">
                 {loading ? 'Signing in…' : 'Sign In'}
+              </button>
+              <button type="button" onClick={() => { setForgot(true); setError('') }}
+                className="w-full text-center text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                Forgot password?
               </button>
             </form>
           ) : (

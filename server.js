@@ -157,6 +157,20 @@ app.post('/api/auth/change-password', needDb, auth, async (req, res) => {
   res.json({ ok: true })
 })
 
+// Forgot password (server-to-server, called by the community site which sends the email).
+// Resets an EXISTING member's password and returns it; never creates an account, never touches
+// the platform admin. Replies {found:false} for unknown emails so nothing is revealed downstream.
+app.post('/api/auth/forgot', needDb, async (req, res) => {
+  if (!process.env.MPACT_API_KEY || req.headers['x-api-key'] !== process.env.MPACT_API_KEY) return res.status(401).json({ error: 'Bad API key' })
+  const email = String(req.body.email || '').trim().toLowerCase()
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.json({ found: false })
+  const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
+  if (!rows.length || rows[0].role === 'platform_admin') return res.json({ found: false })
+  const password = crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 12)
+  await pool.query('UPDATE hub_users SET password_hash=? WHERE id=?', [await bcrypt.hash(password, 10), rows[0].id])
+  res.json({ found: true, email, password, name: rows[0].name, loginUrl: `${PUBLIC_URL}/login` })
+})
+
 // Find a community plan by name (case-insensitive), else create one. Keeps the
 // Payments tab's plans in sync with what people actually buy.
 async function getOrCreatePlan(communityId, { name, price, interval }) {
