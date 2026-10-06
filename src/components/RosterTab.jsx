@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from 'react'
 import { useApp } from '../App'
-import { CheckCircle2, Circle, Mail, ChevronDown, ChevronUp, Search, ShieldCheck, Clock, KeyRound, Loader2 } from 'lucide-react'
+import { CheckCircle2, Circle, Mail, ChevronDown, ChevronUp, Search, ShieldCheck, Clock, KeyRound, Loader2, FileText, FileCheck2 } from 'lucide-react'
 
 const FORGOT_URL = (typeof window !== 'undefined' && window.__MPACT_BRAND__?.forgotUrl) || 'https://creafigenius.com/api/forgot-password'
+const RULES_COPY_URL = (typeof window !== 'undefined' && window.__MPACT_BRAND__?.rulesUrl) || 'https://creafigenius.com/community-rules.pdf'
 const fmtDate = (d) => d ? new Date(d + (String(d).length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
 
 // Admin roster: who joined, what they filled on the form, and who has signed the community rules.
 export default function RosterTab({ communityId, community }) {
-  const { members, enrollments, plans, currentUser, setMemberRules } = useApp()
+  const { members, enrollments, plans, currentUser, setMemberRules, setMemberW9 } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState({})
@@ -25,6 +26,7 @@ export default function RosterTab({ communityId, community }) {
 
   const signed = roster.filter(m => m.rulesSignedAt).length
   const pending = roster.length - signed
+  const w9Count = roster.filter(m => m.w9OnFile).length
 
   const resend = async (m) => {
     if (!m.email) return
@@ -46,11 +48,12 @@ export default function RosterTab({ communityId, community }) {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
         {[
           { label: 'Members', value: roster.length, icon: Mail, color: '#6366f1', bg: '#eef2ff' },
           { label: 'Rules signed', value: signed, icon: ShieldCheck, color: '#10b981', bg: '#f0fdf4' },
           { label: 'Awaiting signature', value: pending, icon: Clock, color: '#f59e0b', bg: '#fffbeb' },
+          { label: 'W-9 on file', value: w9Count, icon: FileCheck2, color: '#0ea5e9', bg: '#eff6ff' },
         ].map(s => {
           const Icon = s.icon
           return (
@@ -82,6 +85,7 @@ export default function RosterTab({ communityId, community }) {
                   <th className="px-5 py-3">Plan</th>
                   <th className="px-5 py-3">Joined</th>
                   <th className="px-5 py-3">Rules</th>
+                  <th className="px-5 py-3">W-9</th>
                   <th className="px-5 py-3">Login</th>
                   <th className="px-5 py-3"></th>
                 </tr>
@@ -118,6 +122,17 @@ export default function RosterTab({ communityId, community }) {
                           )}
                         </td>
                         <td className="px-5 py-3">
+                          {m.w9OnFile ? (
+                            <button onClick={() => setMemberW9(m.id, false)} title={`On file${m.w9At ? ` ${fmtDate(m.w9At)}` : ''} — click to clear`} className="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200 rounded-full px-2.5 py-1 hover:bg-sky-100">
+                              <FileCheck2 size={13} /> On file
+                            </button>
+                          ) : (
+                            <button onClick={() => setMemberW9(m.id, true)} title="Mark the W-9 as received" className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 hover:bg-gray-100">
+                              <FileText size={13} /> Needed
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-5 py-3">
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active</span>
                         </td>
                         <td className="px-5 py-3">
@@ -134,9 +149,9 @@ export default function RosterTab({ communityId, community }) {
                       </tr>
                       {isOpen && (
                         <tr className="bg-gray-50/60">
-                          <td colSpan={6} className="px-5 py-4">
+                          <td colSpan={7} className="px-5 py-4">
                             {m.intake ? (
-                              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-sm">
+                              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-2 text-sm mb-3">
                                 <Detail label="Location" value={m.intake.cityStateZip} />
                                 <Detail label="Markets" value={m.intake.markets} />
                                 <Detail label="Shirt size" value={m.intake.tshirt} />
@@ -145,8 +160,16 @@ export default function RosterTab({ communityId, community }) {
                                 {m.contractId && <Detail label="Agreement ID" value={m.contractId} />}
                               </div>
                             ) : (
-                              <p className="text-sm text-gray-400">No form details on file for this member yet. New members' form answers show here automatically.</p>
+                              <p className="text-sm text-gray-400 mb-3">No form details on file for this member yet. New members' form answers show here automatically.</p>
                             )}
+                            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                              <a href={RULES_COPY_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50">
+                                <ShieldCheck size={13} /> Community rules {m.rulesSignedAt ? `· signed ${fmtDate(m.rulesSignedAt)}` : '(copy)'}
+                              </a>
+                              {m.w9Url
+                                ? <a href={m.w9Url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-medium text-sky-700 bg-white border border-sky-200 rounded-lg px-2.5 py-1.5 hover:bg-sky-50"><FileCheck2 size={13} /> View W-9 on file</a>
+                                : <span className="inline-flex items-center gap-1.5 text-xs text-gray-400 bg-white border border-gray-100 rounded-lg px-2.5 py-1.5"><FileText size={13} /> {m.w9OnFile ? 'W-9 on file (no link)' : 'W-9 not received'}</span>}
+                            </div>
                           </td>
                         </tr>
                       )}

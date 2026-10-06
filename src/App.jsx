@@ -248,6 +248,10 @@ function AppProvider({ children }) {
   const setMemberRules = (memberId, signed) => {
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, rulesSignedAt: signed ? (m.rulesSignedAt || new Date().toISOString().split('T')[0]) : null } : m))
   }
+  // Admin: track whether a member's W-9 is on file (and an optional link to where it's stored).
+  const setMemberW9 = (memberId, onFile, url) => {
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, w9OnFile: !!onFile, w9At: onFile ? (m.w9At || new Date().toISOString().split('T')[0]) : null, ...(url !== undefined ? { w9Url: url } : {}) } : m))
+  }
   // Per-participant module drip-release: add/remove a moduleId on a member's releasedModules list.
   const setMemberModuleRelease = (memberId, moduleId, on) => {
     setMembers(prev => prev.map(m => {
@@ -475,7 +479,7 @@ function AppProvider({ children }) {
       // Notifications
       pushNotification, markNotificationRead, markAllNotificationsRead, clearNotifications,
       // Points
-      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules,
+      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules, setMemberW9,
       // Messages
       sendMessage, markMessageRead, markConversationRead,
       // Communities
