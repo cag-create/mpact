@@ -320,6 +320,7 @@ function CalendarTab({ communityId, community }) {
   const [selectedDay, setSelectedDay] = useState(null)
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
+  const [confirmDel, setConfirmDel] = useState(null)
 
   const communityEvents = events.filter(e => e.communityId === communityId)
 
@@ -445,8 +446,17 @@ function CalendarTab({ communityId, community }) {
                         </div>
                         {isAdmin && (
                           <div className="flex items-center gap-1 flex-shrink-0">
-                            <button onClick={() => openEdit(event)} className="text-gray-300 hover:text-indigo-500 transition-colors"><Pencil size={13} /></button>
-                            <button onClick={() => { if (window.confirm(`Delete "${event.title}"${event.recur && event.recur !== 'none' ? ' and all its repeats' : ''}?`)) deleteEvent(event.id) }} className="text-gray-300 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                            {confirmDel === event.id ? (
+                              <>
+                                <button onClick={() => { deleteEvent(event.id); setConfirmDel(null) }} className="text-xs font-bold text-red-500 hover:text-red-600 px-1">Delete</button>
+                                <button onClick={() => setConfirmDel(null)} className="text-xs text-gray-400 hover:text-gray-600 px-1">Cancel</button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => openEdit(event)} className="text-gray-300 hover:text-indigo-500 transition-colors"><Pencil size={13} /></button>
+                                <button onClick={() => setConfirmDel(event.id)} className="text-gray-300 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
