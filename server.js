@@ -158,6 +158,19 @@ app.post('/api/auth/change-password', needDb, auth, async (req, res) => {
   res.json({ ok: true })
 })
 
+// Admin reset: an owner/admin resets a member's password and SEES the new one (to relay directly).
+// Does not email; never touches the platform admin.
+app.post('/api/auth/admin-reset', needDb, auth, async (req, res) => {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Admin only' })
+  const email = String(req.body.email || '').trim().toLowerCase()
+  const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
+  if (!rows.length) return res.status(404).json({ error: 'No login exists for that email' })
+  if (rows[0].role === 'platform_admin') return res.status(400).json({ error: 'That is the platform admin account' })
+  const password = crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 12)
+  await pool.query('UPDATE hub_users SET password_hash=? WHERE id=?', [await bcrypt.hash(password, 10), rows[0].id])
+  res.json({ ok: true, email, password, name: rows[0].name, loginUrl: `${PUBLIC_URL}/login` })
+})
+
 // Forgot password (server-to-server, called by the community site which sends the email).
 // Resets an EXISTING member's password and returns it; never creates an account, never touches
 // the platform admin. Replies {found:false} for unknown emails so nothing is revealed downstream.

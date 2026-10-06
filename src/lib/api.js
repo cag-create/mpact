@@ -18,6 +18,7 @@ export const api = {
   register:       (payload)         => call('/api/auth/register', { method: 'POST', body: payload }),
   me:             ()                => call('/api/auth/me'),
   changePassword: (oldPassword, newPassword) => call('/api/auth/change-password', { method: 'POST', body: { oldPassword, newPassword } }),
+  adminResetPassword: (email) => call('/api/auth/admin-reset', { method: 'POST', body: { email } }),
   getState:       ()                => call('/api/state'),
   putState:       (key, value)      => call(`/api/state/${key}`, { method: 'PUT', body: { value } }),
 }

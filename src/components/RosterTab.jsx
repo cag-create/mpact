@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useApp } from '../App'
-import { CheckCircle2, Circle, Mail, ChevronDown, ChevronUp, Search, ShieldCheck, Clock, KeyRound, Loader2, FileText, FileCheck2 } from 'lucide-react'
+import { api } from '../lib/api'
+import { CheckCircle2, Circle, Mail, ChevronDown, ChevronUp, Search, ShieldCheck, Clock, KeyRound, Loader2, FileText, FileCheck2, Lock, Copy } from 'lucide-react'
 
 const FORGOT_URL = (typeof window !== 'undefined' && window.__MPACT_BRAND__?.forgotUrl) || 'https://creafigenius.com/api/forgot-password'
 const RULES_COPY_URL = (typeof window !== 'undefined' && window.__MPACT_BRAND__?.rulesUrl) || 'https://creafigenius.com/community-rules.pdf'
@@ -13,6 +14,8 @@ export default function RosterTab({ communityId, community }) {
   const [q, setQ] = useState('')
   const [open, setOpen] = useState({})
   const [sending, setSending] = useState({})   // memberId -> 'sending' | 'sent'
+  const [pw, setPw] = useState({})              // memberId -> { password } | { error }
+  const [copied, setCopied] = useState(null)
 
   const roster = useMemo(() => members
     .filter(m => m.communityId === communityId && !['owner', 'admin', 'platform_admin'].includes(m.role))
@@ -35,6 +38,14 @@ export default function RosterTab({ communityId, community }) {
     setSending(s => ({ ...s, [m.id]: 'sent' }))
     setTimeout(() => setSending(s => ({ ...s, [m.id]: undefined })), 3000)
   }
+  // Reset the member's password and SHOW it, so the admin can relay it directly (no email needed).
+  const resetShow = async (m) => {
+    if (!m.email) return
+    setPw(p => ({ ...p, [m.id]: { loading: true } }))
+    try { const r = await api.adminResetPassword(m.email); setPw(p => ({ ...p, [m.id]: { password: r.password } })) }
+    catch (e) { setPw(p => ({ ...p, [m.id]: { error: e.message || 'Reset failed' } })) }
+  }
+  const copyPw = (id, val) => { try { navigator.clipboard.writeText(val); setCopied(id); setTimeout(() => setCopied(null), 2000) } catch {} }
 
   if (!isAdmin) return null
 
@@ -137,9 +148,12 @@ export default function RosterTab({ communityId, community }) {
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => resetShow(m)} disabled={pw[m.id]?.loading} className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-60" title="Reset the password and show it so you can give it to them directly">
+                              {pw[m.id]?.loading ? <Loader2 size={13} className="animate-spin" /> : <Lock size={13} />} Set password
+                            </button>
                             <button onClick={() => resend(m)} disabled={state === 'sending'} className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 disabled:opacity-60" title="Email this member a new password">
                               {state === 'sending' ? <Loader2 size={13} className="animate-spin" /> : <KeyRound size={13} />}
-                              {state === 'sent' ? 'Sent' : state === 'sending' ? 'Sending' : 'Resend login'}
+                              {state === 'sent' ? 'Emailed' : state === 'sending' ? 'Sending' : 'Email reset'}
                             </button>
                             <button onClick={() => setOpen(o => ({ ...o, [m.id]: !o[m.id] }))} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100" title="Form details">
                               {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
@@ -147,6 +161,22 @@ export default function RosterTab({ communityId, community }) {
                           </div>
                         </td>
                       </tr>
+                      {pw[m.id]?.password && (
+                        <tr className="bg-amber-50/70">
+                          <td colSpan={7} className="px-5 py-3">
+                            <div className="flex flex-wrap items-center gap-3 text-sm">
+                              <span className="font-semibold text-amber-900">New password for {m.name}:</span>
+                              <code className="font-mono text-[15px] bg-white border border-amber-200 rounded px-2.5 py-1 text-gray-900 select-all">{pw[m.id].password}</code>
+                              <button onClick={() => copyPw(m.id, pw[m.id].password)} className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700"><Copy size={12} /> {copied === m.id ? 'Copied' : 'Copy'}</button>
+                              <span className="text-xs text-gray-500 basis-full sm:basis-auto">Give this to {(m.name || '').split(' ')[0] || 'them'} directly — their old password no longer works. They can change it after logging in.</span>
+                              <button onClick={() => setPw(p => ({ ...p, [m.id]: undefined }))} className="text-xs text-gray-400 hover:text-gray-600 ml-auto">Hide</button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      {pw[m.id]?.error && (
+                        <tr className="bg-red-50/70"><td colSpan={7} className="px-5 py-2 text-sm text-red-600">{pw[m.id].error}</td></tr>
+                      )}
                       {isOpen && (
                         <tr className="bg-gray-50/60">
                           <td colSpan={7} className="px-5 py-4">
