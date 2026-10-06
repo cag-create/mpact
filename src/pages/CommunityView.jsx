@@ -10,6 +10,7 @@ import {
   addMonths, subMonths, isSameDay, getDay, isToday
 } from 'date-fns'
 import { useApp } from '../App'
+import { occursOn, upcomingOccurrences, timeLabel, RECUR_LABEL } from '../lib/events'
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
 import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
@@ -313,10 +314,12 @@ const TYPE_CONFIG = {
 }
 
 function CalendarTab({ communityId, community }) {
-  const { events, addEvent, deleteEvent } = useApp()
+  const { events, deleteEvent, currentUser } = useApp()
+  const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [editingEvent, setEditingEvent] = useState(null)
 
   const communityEvents = events.filter(e => e.communityId === communityId)
 
@@ -327,18 +330,20 @@ function CalendarTab({ communityId, community }) {
 
   const getEventsForDay = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd')
-    return communityEvents.filter(e => e.date === dateStr)
+    return communityEvents.filter(e => occursOn(e, dateStr))
   }
 
   const selectedDayEvents = selectedDay ? getEventsForDay(selectedDay) : []
 
-  const upcomingEvents = communityEvents
-    .filter(e => e.date >= format(new Date(), 'yyyy-MM-dd'))
-    .sort((a, b) => a.date.localeCompare(b.date))
+  const upcomingEvents = upcomingOccurrences(communityEvents, format(new Date(), 'yyyy-MM-dd'))
+
+  // Edit the stored series (not the expanded occurrence, whose date is an instance date).
+  const openEdit = (ev) => { setEditingEvent(communityEvents.find(e => e.id === ev.id) || ev); setShowAddEvent(true) }
+  const openAdd  = () => { setEditingEvent(null); setShowAddEvent(true) }
 
   return (
     <div>
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Calendar */}
         <div className="flex-1">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -411,9 +416,11 @@ function CalendarTab({ communityId, community }) {
               {selectedDayEvents.length === 0 ? (
                 <div className="text-center py-4">
                   <p className="text-sm text-gray-400 mb-3">No events on this day</p>
-                  <button onClick={() => setShowAddEvent(true)} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                    + Add Event
-                  </button>
+                  {isAdmin && (
+                    <button onClick={openAdd} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
+                      + Add Event
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -422,12 +429,13 @@ function CalendarTab({ communityId, community }) {
                     return (
                       <div key={event.id} className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: cfg.bg }}>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0.5">
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                             <span className="text-xs font-medium px-1.5 py-0.5 rounded-md" style={{ backgroundColor: cfg.color + '20', color: cfg.color }}>{cfg.label}</span>
+                            {event.recur && event.recur !== 'none' && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-gray-900/5 text-gray-500">↻ {RECUR_LABEL[event.recur]}</span>}
                           </div>
                           <p className="font-semibold text-gray-800 text-sm">{event.title}</p>
                           {event.description && <p className="text-xs text-gray-500 mt-0.5">{event.description}</p>}
-                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Clock size={11} />{event.time}</p>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Clock size={11} />{timeLabel(event)}</p>
                           {event.liveUrl && (
                             <a href={event.liveUrl} target="_blank" rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
@@ -435,9 +443,12 @@ function CalendarTab({ communityId, community }) {
                             </a>
                           )}
                         </div>
-                        <button onClick={() => deleteEvent(event.id)} className="text-gray-300 hover:text-red-400 transition-colors">
-                          <Trash2 size={14} />
-                        </button>
+                        {isAdmin && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button onClick={() => openEdit(event)} className="text-gray-300 hover:text-indigo-500 transition-colors"><Pencil size={13} /></button>
+                            <button onClick={() => { if (window.confirm(`Delete "${event.title}"${event.recur && event.recur !== 'none' ? ' and all its repeats' : ''}?`)) deleteEvent(event.id) }} className="text-gray-300 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
@@ -448,15 +459,17 @@ function CalendarTab({ communityId, community }) {
         </div>
 
         {/* Sidebar: upcoming + add */}
-        <div className="w-72 flex-shrink-0 space-y-4">
-          <button
-            onClick={() => setShowAddEvent(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
-            style={{ backgroundColor: community.color }}
-          >
-            <Plus size={16} />
-            Add Event
-          </button>
+        <div className="w-full lg:w-72 flex-shrink-0 space-y-4">
+          {isAdmin && (
+            <button
+              onClick={openAdd}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: community.color }}
+            >
+              <Plus size={16} />
+              Add Event
+            </button>
+          )}
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <h4 className="font-semibold text-gray-800 mb-4">Upcoming Events</h4>
@@ -468,15 +481,15 @@ function CalendarTab({ communityId, community }) {
                   const cfg = TYPE_CONFIG[event.type] || TYPE_CONFIG.other
                   const date = new Date(event.date + 'T00:00:00')
                   return (
-                    <div key={event.id} className="flex items-start gap-3">
+                    <div key={event.id + event.date} className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-xl flex flex-col items-center justify-center flex-shrink-0" style={{ backgroundColor: cfg.bg }}>
                         <span className="text-xs font-bold leading-none" style={{ color: cfg.color }}>{format(date, 'd')}</span>
                         <span className="text-xs leading-none" style={{ color: cfg.color }}>{format(date, 'MMM')}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{event.title}</p>
-                        <p className="text-xs text-gray-400">{event.time}</p>
-                        <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}</span>
+                        <p className="text-xs text-gray-400">{timeLabel(event)}</p>
+                        <span className="text-xs font-medium" style={{ color: cfg.color }}>{cfg.label}{event.recur && event.recur !== 'none' ? ` · ${RECUR_LABEL[event.recur]}` : ''}</span>
                         {event.liveUrl && (
                           <a href={event.liveUrl} target="_blank" rel="noopener noreferrer"
                             className="block mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
@@ -484,9 +497,11 @@ function CalendarTab({ communityId, community }) {
                           </a>
                         )}
                       </div>
-                      <button onClick={() => deleteEvent(event.id)} className="text-gray-200 hover:text-red-400 transition-colors flex-shrink-0 mt-1">
-                        <Trash2 size={13} />
-                      </button>
+                      {isAdmin && (
+                        <button onClick={() => openEdit(event)} className="text-gray-200 hover:text-indigo-500 transition-colors flex-shrink-0 mt-1">
+                          <Pencil size={13} />
+                        </button>
+                      )}
                     </div>
                   )
                 })}
@@ -509,12 +524,13 @@ function CalendarTab({ communityId, community }) {
         </div>
       </div>
 
-      {showAddEvent && (
+      {showAddEvent && isAdmin && (
         <AddEventModal
           communityId={communityId}
           community={community}
+          event={editingEvent}
           defaultDate={selectedDay ? format(selectedDay, 'yyyy-MM-dd') : ''}
-          onClose={() => setShowAddEvent(false)}
+          onClose={() => { setShowAddEvent(false); setEditingEvent(null) }}
         />
       )}
     </div>

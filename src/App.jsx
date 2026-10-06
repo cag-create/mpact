@@ -300,6 +300,7 @@ function AppProvider({ children }) {
 
   // ── Events ────────────────────────────────────────────────────────────────
   const addEvent    = (communityId, data) => { const e = { id: `e${Date.now()}`, communityId, ...data }; setEvents(prev => [...prev, e]); return e }
+  const updateEvent = (id, data) => setEvents(prev => prev.map(e => e.id === id ? { ...e, ...data } : e))
   const deleteEvent = (id) => setEvents(prev => prev.filter(e => e.id !== id))
 
   // ── Posts ─────────────────────────────────────────────────────────────────
@@ -478,7 +479,7 @@ function AppProvider({ children }) {
       // Members
       addMember,
       // Events
-      addEvent, deleteEvent,
+      addEvent, updateEvent, deleteEvent,
       // Posts
       addPost, reactToPost, addComment, deletePost,
       // Plans

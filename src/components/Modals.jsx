@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { X, Check, Camera, Image } from 'lucide-react'
 import { useApp } from '../App'
 import { useNavigate } from 'react-router-dom'
+import { RECUR_OPTIONS } from '../lib/events'
 
 // ─── Image helpers ──────────────────────────────────────────────────────────────
 function readFileAsDataURL(file) {
@@ -189,11 +190,16 @@ const EVENT_TYPES = [
   { value: 'other',     label: '📌 Other',       color: '#6b7280' },
 ]
 
-export function AddEventModal({ communityId, community, defaultDate, onClose }) {
-  const { addEvent } = useApp()
+export function AddEventModal({ communityId, community, defaultDate, event, onClose }) {
+  const { addEvent, updateEvent } = useApp()
+  const isEdit = !!event
   const today = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({
-    title: '', description: '', date: defaultDate || today, time: '10:00 AM', type: 'workshop', liveUrl: ''
+    title: event?.title || '', description: event?.description || '',
+    date: event?.date || defaultDate || today,
+    time: event?.time || '10:00 AM', endTime: event?.endTime || '',
+    type: event?.type || 'workshop', liveUrl: event?.liveUrl || '',
+    recur: event?.recur || 'none', until: event?.until || '',
   })
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
@@ -201,13 +207,15 @@ export function AddEventModal({ communityId, community, defaultDate, onClose }) 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!form.title.trim() || !form.date) return
-    addEvent(communityId, form)
+    const payload = { ...form, until: form.recur === 'none' ? '' : form.until }
+    if (isEdit) updateEvent(event.id, payload)
+    else addEvent(communityId, payload)
     onClose()
   }
 
   return (
     <Overlay onClose={onClose}>
-      <ModalCard title="Add Event" subtitle={`Add to ${community.name}`} onClose={onClose}>
+      <ModalCard title={isEdit ? 'Edit Event' : 'Add Event'} subtitle={`${isEdit ? 'Update in' : 'Add to'} ${community.name}`} onClose={onClose}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field label="Event Type">
             <div className="grid grid-cols-2 gap-2">
@@ -230,13 +238,30 @@ export function AddEventModal({ communityId, community, defaultDate, onClose }) 
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Date *">
+            <Field label={form.recur === 'none' ? 'Date *' : 'Start date *'}>
               <input type="date" value={form.date} onChange={e => set('date', e.target.value)} className={inputClass} required />
             </Field>
-            <Field label="Time">
-              <input type="text" placeholder="e.g. 2:00 PM" value={form.time} onChange={e => set('time', e.target.value)} className={inputClass} />
+            <Field label="Repeat">
+              <select value={form.recur} onChange={e => set('recur', e.target.value)} className={inputClass}>
+                {RECUR_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
             </Field>
           </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Start time">
+              <input type="text" placeholder="e.g. 5:00 PM" value={form.time} onChange={e => set('time', e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="End time">
+              <input type="text" placeholder="e.g. 8:00 PM" value={form.endTime} onChange={e => set('endTime', e.target.value)} className={inputClass} />
+            </Field>
+          </div>
+
+          {form.recur !== 'none' && (
+            <Field label="Ends on (optional — leave blank for ongoing)">
+              <input type="date" value={form.until} min={form.date} onChange={e => set('until', e.target.value)} className={inputClass} />
+            </Field>
+          )}
 
           <Field label="Live Session Link (Zoom, Google Meet, etc.)">
             <input type="url" placeholder="https://zoom.us/j/..." value={form.liveUrl} onChange={e => set('liveUrl', e.target.value)} className={inputClass} />
@@ -245,7 +270,7 @@ export function AddEventModal({ communityId, community, defaultDate, onClose }) 
           <div className="flex gap-3 pt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
             <button type="submit" className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90" style={{ backgroundColor: community.color }}>
-              Add Event
+              {isEdit ? 'Save changes' : 'Add Event'}
             </button>
           </div>
         </form>
