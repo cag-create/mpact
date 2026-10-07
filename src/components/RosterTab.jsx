@@ -144,7 +144,13 @@ export default function RosterTab({ communityId, community }) {
                           )}
                         </td>
                         <td className="px-5 py-3">
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active</span>
+                          {(() => {
+                            const st = m.status || 'active'
+                            const cfg = st === 'revoked' ? { d: 'bg-red-500', t: 'text-red-600', l: 'Paused' }
+                              : st === 'past_due' ? { d: 'bg-amber-500', t: 'text-amber-600', l: 'Past due' }
+                              : { d: 'bg-green-500', t: 'text-gray-600', l: 'Active' }
+                            return <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${cfg.t}`} title={st === 'revoked' ? 'Login paused — payment lapsed' : st === 'past_due' ? 'A payment failed; Stripe is retrying' : 'Access active'}><span className={`w-1.5 h-1.5 rounded-full ${cfg.d}`} /> {cfg.l}</span>
+                          })()}
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1">

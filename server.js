@@ -13,6 +13,9 @@ const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SEC
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex')
 const PUBLIC_URL = (process.env.PUBLIC_URL || 'https://mpact-production.up.railway.app').replace(/\/$/, '')
+// Where a paused member updates their card to restore access (Crea'fi Stripe billing portal).
+const BILLING_URL = process.env.BILLING_PORTAL_URL || 'https://billing.stripe.com/p/login/3cIbJ0gR2bJF2f10Cy97G00'
+const PAUSED_MSG = "Your membership is paused — a payment didn't go through. Update your card to restore access, then sign in again."
 
 // ─── Database (Railway MySQL via DATABASE_URL) ─────────────────────────────────
 // All shared app state lives in hub_state (one JSON blob per collection) and
@@ -131,6 +134,11 @@ app.post('/api/auth/login', needDb, async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase(), password = String(req.body.password || '')
   const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
   if (!rows.length || !(await bcrypt.compare(password, rows[0].password_hash))) return res.status(401).json({ error: 'Incorrect email or password' })
+  // Pay-or-revoke: a member whose payment lapsed can't sign in until it's restored. Admins never gated.
+  if (rows[0].role !== 'platform_admin') {
+    const mem = ((await getState('members')) || []).find(m => m.id === rows[0].member_id)
+    if (mem && mem.status === 'revoked') return res.status(403).json({ error: PAUSED_MSG, billingUrl: BILLING_URL })
+  }
   await pool.query('UPDATE hub_users SET last_login_at=NOW() WHERE id=?', [rows[0].id])
   res.json({ token: signToken(rows[0]), user: publicUser({ ...rows[0], last_login_at: new Date() }) })
 })
@@ -148,7 +156,14 @@ app.post('/api/auth/register', needDb, async (req, res) => {
   res.json({ token: signToken(user), user: publicUser(user), member })
 })
 
-app.get('/api/auth/me', needDb, auth, (req, res) => res.json({ user: publicUser(req.user) }))
+app.get('/api/auth/me', needDb, auth, async (req, res) => {
+  // Bounce a revoked member out of an active session on the next load/focus (the app logs out on 401).
+  if (req.user.role !== 'platform_admin') {
+    const mem = ((await getState('members')) || []).find(m => m.id === req.user.member_id)
+    if (mem && mem.status === 'revoked') return res.status(401).json({ error: PAUSED_MSG, billingUrl: BILLING_URL })
+  }
+  res.json({ user: publicUser(req.user) })
+})
 
 app.post('/api/auth/change-password', needDb, auth, async (req, res) => {
   const { oldPassword, newPassword } = req.body || {}
@@ -251,6 +266,20 @@ async function updateMemberFields(memberId, fields) {
   if (!members.some(m => m.id === memberId)) return
   await setState('members', members.map(m => m.id === memberId ? { ...m, ...fields } : m))
 }
+
+// Pay-or-revoke access control. The community site calls this on Stripe payment events to
+// pause (revoke) a member's login when a payment ultimately fails, and restore it when they pay.
+app.post('/api/members/access', needDb, async (req, res) => {
+  if (!process.env.MPACT_API_KEY || req.headers['x-api-key'] !== process.env.MPACT_API_KEY) return res.status(401).json({ error: 'Bad API key' })
+  const email = String(req.body.email || '').trim().toLowerCase()
+  const status = ['active', 'past_due', 'revoked'].includes(req.body.status) ? req.body.status : null
+  if (!email || !status) return res.status(400).json({ error: 'email + status required' })
+  const [rows] = await pool.query('SELECT member_id, role FROM hub_users WHERE email=?', [email])
+  if (!rows.length) return res.json({ found: false })
+  if (rows[0].role === 'platform_admin') return res.json({ found: false })   // never pause the admin
+  await updateMemberFields(rows[0].member_id, { status, statusAt: new Date().toISOString().split('T')[0] })
+  res.json({ found: true, email, status })
+})
 
 // ─── Affiliate program ────────────────────────────────────────────────────────
 const AFFILIATE_SITE = (process.env.CREAFI_SITE_URL || 'https://creafigenius.com').replace(/\/$/, '')
