@@ -4,14 +4,29 @@ import { useApp } from '../App'
 
 // Crea'fi's starter contract library (hosted on the site). Always available for the Crea'fi
 // community; admins can add more below (those are stored and show alongside these).
+const C = 'https://creafigenius.com/contracts/'
 const CREAFI_DEFAULTS = [
-  { id: 'cf-purchase',  title: 'Purchase Contract (Creative Financing)', category: 'Purchase & Assignment',          fileUrl: 'https://creafigenius.com/contracts/purchase-contract-creative-financing.pdf', description: 'Full purchase & escrow-instructions contract built for creative deals — cash, subject-to, or seller finance.' },
-  { id: 'cf-subto',     title: 'Subject-To Addendum',                    category: 'Creative Finance (Sub-To / Wrap)', fileUrl: 'https://creafigenius.com/contracts/subject-to-addendum.pdf',               description: 'Addendum that structures taking title subject to the seller’s existing mortgage.' },
-  { id: 'cf-selleracks',title: 'Seller Acknowledgements',                category: 'Creative Finance (Sub-To / Wrap)', fileUrl: 'https://creafigenius.com/contracts/seller-acknowledgements.pdf',             description: 'Seller sign-off acknowledging how a subject-to / creative sale works and protects them.' },
-  { id: 'cf-novation',  title: 'Novation and Indemnification Agreement', category: 'Novation & Assignment',           fileUrl: 'https://creafigenius.com/contracts/novation-and-indemnification-agreement.pdf', description: 'Replaces the original buyer on the contract and indemnifies the parties — for novation deals.' },
+  // Purchase & Assignment
+  { id: 'cf-purchase',   title: 'Purchase Contract (Creative Financing)', category: 'Purchase & Assignment',           fileUrl: C + 'purchase-contract-creative-financing.pdf', description: 'The main purchase & escrow-instructions contract for creative deals — cash, subject-to, or seller finance.' },
+  { id: 'cf-wholesale',  title: 'Wholesale Purchase Contract',            category: 'Purchase & Assignment',           fileUrl: C + 'wholesale-purchase-contract.docx',        description: 'Clean wholesale purchase agreement to lock up a property you plan to assign.' },
+  { id: 'cf-assignment', title: 'Assignment of Purchase Contract',        category: 'Purchase & Assignment',           fileUrl: C + 'assignment-of-purchase-contract.pdf',     description: 'Assign your purchase contract to an end buyer for your assignment fee.' },
+  // Creative Finance (Sub-To / Wrap)
+  { id: 'cf-subto',      title: 'Subject-To Addendum',                    category: 'Creative Finance (Sub-To / Wrap)', fileUrl: C + 'subject-to-addendum.pdf',                 description: 'Addendum that structures taking title subject to the seller’s existing mortgage.' },
+  { id: 'cf-selleracks', title: 'Seller Acknowledgements',                category: 'Creative Finance (Sub-To / Wrap)', fileUrl: C + 'seller-acknowledgements.pdf',             description: 'Seller sign-off acknowledging how a subject-to / creative sale works and protects them.' },
+  { id: 'cf-subto-dispo',title: 'Purchase Contract (Subject-To — Disposition)', category: 'Creative Finance (Sub-To / Wrap)', fileUrl: C + 'purchase-contract-subject-to-disposition.docx', description: 'Purchase contract for selling (disposing) a subject-to deal to your buyer.' },
+  { id: 'cf-subto-add-d',title: 'Subject-To Addendum (Dispositions)',     category: 'Creative Finance (Sub-To / Wrap)', fileUrl: C + 'subject-to-addendum-dispositions.docx',   description: 'Subject-to addendum for the disposition side of the deal.' },
+  { id: 'cf-packet',     title: 'Subto Closing Packet',                   category: 'Creative Finance (Sub-To / Wrap)', fileUrl: C + 'subto-closing-packet.pdf',               description: 'The full packet of closing documents for a subject-to transaction.' },
+  // Novation & Assignment
+  { id: 'cf-novation',   title: 'Novation and Indemnification Agreement', category: 'Novation & Assignment',           fileUrl: C + 'novation-and-indemnification-agreement.pdf', description: 'Replaces the original buyer on the contract and indemnifies the parties — for novation deals.' },
+  // Addendums & Affidavits
+  { id: 'cf-dos',        title: 'Due-on-Sale Clause Addendum (Optional)', category: 'Addendums & Affidavits',          fileUrl: C + 'due-on-sale-clause-addendum.docx',        description: 'Optional addendum disclosing the due-on-sale clause on a subject-to deal.' },
+  { id: 'cf-blankadd',   title: 'Blank Addendum',                         category: 'Addendums & Affidavits',          fileUrl: C + 'blank-addendum.pdf',                     description: 'A blank addendum to add any custom terms to a contract.' },
+  { id: 'cf-affidavit',  title: 'Non-English Speaking Affidavit',         category: 'Addendums & Affidavits',          fileUrl: C + 'non-english-speaking-affidavit.pdf',      description: 'Affidavit for a seller whose first language isn’t English — confirms the terms were understood.' },
+  // Resources
+  { id: 'cf-cheat',      title: 'Contract Cheat Sheet',                   category: 'Other',                           fileUrl: C + 'contract-cheat-sheet.pdf',               description: 'Quick reference for which contract and addendum to use on each type of deal.' },
 ]
 
-const CATEGORY_ORDER = ['Purchase & Assignment', 'Creative Finance (Sub-To / Wrap)', 'Novation & Assignment', 'Seller Finance & Notes', 'Entity & Operating Agreements', 'Leases', 'Deeds & Transfers', 'Other']
+const CATEGORY_ORDER = ['Purchase & Assignment', 'Creative Finance (Sub-To / Wrap)', 'Novation & Assignment', 'Addendums & Affidavits', 'Seller Finance & Notes', 'Entity & Operating Agreements', 'Leases', 'Deeds & Transfers', 'Other']
 const CATEGORIES = CATEGORY_ORDER
 
 function ContractModal({ item, community, onSave, onClose }) {
