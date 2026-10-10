@@ -22,11 +22,17 @@ const CREAFI_DEFAULTS = [
   { id: 'cf-dos',        title: 'Due-on-Sale Clause Addendum (Optional)', category: 'Addendums & Affidavits',          fileUrl: C + 'due-on-sale-clause-addendum.docx',        description: 'Optional addendum disclosing the due-on-sale clause on a subject-to deal.' },
   { id: 'cf-blankadd',   title: 'Blank Addendum',                         category: 'Addendums & Affidavits',          fileUrl: C + 'blank-addendum.pdf',                     description: 'A blank addendum to add any custom terms to a contract.' },
   { id: 'cf-affidavit',  title: 'Non-English Speaking Affidavit',         category: 'Addendums & Affidavits',          fileUrl: C + 'non-english-speaking-affidavit.pdf',      description: 'Affidavit for a seller whose first language isn’t English — confirms the terms were understood.' },
+  // Stack Method
+  { id: 'cf-stk-jv-simple', title: 'JV / Referral Agreement (Simple)',           category: 'Stack Method', fileUrl: C + 'jv-referral-agreement.docx',                     description: 'Simple one-page agreement to pay or split a fee with a partner on a deal.' },
+  { id: 'cf-stk-jv-pcf',    title: 'Joint Venture Agreement (Profit & Cash Flow)', category: 'Stack Method', fileUrl: C + 'joint-venture-agreement-profit-cashflow.docx',    description: 'Partner agreement to acquire, hold, rent, or sell a property together and split the profit and monthly cash flow.' },
+  { id: 'cf-stk-jv-loan',   title: 'Loan Sponsorship JV Agreement',               category: 'Stack Method', fileUrl: C + 'loan-sponsorship-jv-agreement.docx',             description: 'Agreement for a money partner who sponsors the loan in exchange for a share of the profit.' },
+  { id: 'cf-stk-escrow',    title: 'Escrow Instructions (Holdback)',              category: 'Stack Method', fileUrl: C + 'escrow-instructions-holdback.docx',              description: 'Instructs the title company or closing attorney to hold back funds from the seller’s proceeds at closing.' },
+  { id: 'cf-stk-escrow-rel',title: 'Escrow Instructions (Release of Holdback)',    category: 'Stack Method', fileUrl: C + 'escrow-instructions-release-holdback.docx',      description: 'Releases the held-back funds to the seller, lender, or buyer after closing.' },
   // Resources
   { id: 'cf-cheat',      title: 'Contract Cheat Sheet',                   category: 'Other',                           fileUrl: C + 'contract-cheat-sheet.pdf',               description: 'Quick reference for which contract and addendum to use on each type of deal.' },
 ]
 
-const CATEGORY_ORDER = ['Purchase & Assignment', 'Creative Finance (Sub-To / Wrap)', 'Novation & Assignment', 'Addendums & Affidavits', 'Seller Finance & Notes', 'Entity & Operating Agreements', 'Leases', 'Deeds & Transfers', 'Other']
+const CATEGORY_ORDER = ['Purchase & Assignment', 'Creative Finance (Sub-To / Wrap)', 'Novation & Assignment', 'Addendums & Affidavits', 'Seller Finance & Notes', 'Entity & Operating Agreements', 'Leases', 'Deeds & Transfers', 'Stack Method', 'Other']
 const CATEGORIES = CATEGORY_ORDER
 
 function ContractModal({ item, community, onSave, onClose }) {
