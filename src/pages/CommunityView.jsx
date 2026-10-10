@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
-  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag,
+  DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag, FileText,
   User, Camera, MessageCircle, LayoutDashboard, BarChart2, KeyRound, LogOut } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
@@ -14,6 +14,7 @@ import { occursOn, upcomingOccurrences, timeLabel, RECUR_LABEL } from '../lib/ev
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
 import CoursesTab from '../components/CoursesTab'
 import ReplaysTab from '../components/ReplaysTab'
+import ContractsTab from '../components/ContractsTab'
 import RosterTab from '../components/RosterTab'
 import PaymentsTab from '../components/PaymentsTab'
 import MerchTab, { MerchLocked } from '../components/MerchTab'
@@ -1040,6 +1041,7 @@ const TABS = [
   { id: 'leaderboard',label: 'Champions',      icon: Trophy },
   { id: 'content',    label: 'Capsules',       icon: BookOpen },
   { id: 'replays',    label: 'The Lab',        icon: Video },
+  { id: 'contracts',  label: 'Contracts',      icon: FileText },
   { id: 'roster',     label: 'Roster',         icon: Shield },
   { id: 'payments',   label: 'Payments',       icon: DollarSign },
   { id: 'affiliates', label: 'Affiliates',     icon: Link },
@@ -1168,6 +1170,7 @@ export default function CommunityView() {
         {activeTab === 'leaderboard'&& <LeaderboardTab communityId={id} community={community} />}
         {activeTab === 'content'    && <CoursesTab     communityId={id} community={community} />}
         {activeTab === 'replays'    && <ReplaysTab     communityId={id} community={community} />}
+        {activeTab === 'contracts'  && <ContractsTab   communityId={id} community={community} />}
         {activeTab === 'roster'     && isAdmin && <RosterTab      communityId={id} community={community} />}
         {activeTab === 'payments'   && isAdmin && <PaymentsTab    communityId={id} community={community} />}
         {activeTab === 'affiliates' && isAdmin && <AffiliatesTab  communityId={id} community={community} />}

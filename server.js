@@ -64,8 +64,8 @@ async function initDb() {
   }
 }
 
-const SHARED_KEYS = ['communities','members','events','posts','plans','modules','lessons','enrollments','educators','educatorPlan','messages','notifications','sequences','courses','replays','progress','merch']
-const ADMIN_KEYS  = new Set(['communities','plans','modules','lessons','educators','educatorPlan','sequences','events','courses','replays','merch'])
+const SHARED_KEYS = ['communities','members','events','posts','plans','modules','lessons','enrollments','educators','educatorPlan','messages','notifications','sequences','courses','replays','progress','merch','contracts']
+const ADMIN_KEYS  = new Set(['communities','plans','modules','lessons','educators','educatorPlan','sequences','events','courses','replays','merch','contracts'])
 const MERGE_KEYS  = new Set(['members','posts','messages','notifications','enrollments','progress'])
 const isAdmin = (u) => u && (u.role === 'platform_admin' || u.role === 'admin' || u.role === 'owner')
 
