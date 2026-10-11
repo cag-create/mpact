@@ -217,7 +217,7 @@ function AppProvider({ children }) {
       .filter(l => targetBySeedId[l.moduleId])
       .map(l => { const t = targetBySeedId[l.moduleId]; return { ...l, moduleId: t.id, courseId: t.courseId || l.courseId } })
     // Additive + self-healing, but never overwrite an existing lesson the admin may have edited:
-    const SEED_RE = /^les-m\d+z?-/                                          // only our own seeded lesson ids
+    const SEED_RE = /^(les-m\d+z?-|cf-)/                                    // only our own seeded lesson ids
     const desiredIds = new Set(desired.map(d => d.id))
     const haveIds = new Set(lessons.map(l => l.id))
     const missing = desired.filter(d => !haveIds.has(d.id))                 // new content to add
