@@ -25,16 +25,20 @@ export default function LessonRecorder({ onClose }) {
     setError(''); setBlobUrl(null); setElapsed(0)
     try {
       let s
+      const micOpts = { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 48000, channelCount: 2 }
       if (which === 'screen') {
-        s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true })
-        try { const mic = await navigator.mediaDevices.getUserMedia({ audio: true }); mic.getAudioTracks().forEach(t => s.addTrack(t)) } catch {}
+        s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30 }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: true })
+        try { const mic = await navigator.mediaDevices.getUserMedia({ audio: micOpts }); mic.getAudioTracks().forEach(t => s.addTrack(t)) } catch {}
       } else {
-        s = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true })
+        s = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }, audio: micOpts })
       }
       stream.current = s
       if (live.current) { live.current.srcObject = s; live.current.muted = true; live.current.play().catch(() => {}) }
       chunks.current = []
-      const rec = new MediaRecorder(s, pickMime() ? { mimeType: pickMime() } : undefined)
+      // Master-quality recording: high video + audio bitrate (near-lossless for slides/talking head).
+      const opts = { videoBitsPerSecond: 10_000_000, audioBitsPerSecond: 192_000 }
+      const mime = pickMime(); if (mime) opts.mimeType = mime
+      const rec = new MediaRecorder(s, opts)
       rec.ondataavailable = e => { if (e.data && e.data.size) chunks.current.push(e.data) }
       rec.onstop = () => {
         const blob = new Blob(chunks.current, { type: chunks.current[0]?.type || 'video/webm' })
@@ -43,7 +47,7 @@ export default function LessonRecorder({ onClose }) {
         clearInterval(timer.current)
       }
       mr.current = rec
-      rec.start()
+      rec.start(3000)   // flush a chunk every 3s so a long master recording survives a tab hiccup
       setMode(which); setRecording(true)
       timer.current = setInterval(() => setElapsed(e => e + 1), 1000)
       const vt = s.getVideoTracks()[0]; if (vt) vt.onended = () => stop()   // user clicked "Stop sharing"
@@ -59,7 +63,7 @@ export default function LessonRecorder({ onClose }) {
     <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900 flex items-center gap-2"><Circle size={10} className="text-red-500 fill-red-500" /> Record a lesson video</h3>
+          <h3 className="font-bold text-gray-900 flex items-center gap-2"><Circle size={10} className="text-red-500 fill-red-500" /> Record a lesson video <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">MASTER · 1080p</span></h3>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400"><X size={18} /></button>
         </div>
 
@@ -93,7 +97,7 @@ export default function LessonRecorder({ onClose }) {
           {blobUrl && (
             <div className="space-y-3">
               <div className="flex gap-3">
-                <a href={blobUrl} download={`creafi-lesson-${Date.now()}.webm`} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800"><Download size={15} /> Download clip</a>
+                <a href={blobUrl} download={`creafi-master-${new Date().toISOString().slice(0,10)}-${Date.now().toString().slice(-5)}.webm`} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800"><Download size={15} /> Download master file</a>
                 <button onClick={reset} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50"><RotateCcw size={15} /> Record again</button>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl p-3">
