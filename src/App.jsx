@@ -196,33 +196,38 @@ function AppProvider({ children }) {
     if (!hydrated || !currentUser) return
     if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
     const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const OLD_DUP = ['mod-creafi-1', 'mod-creafi-2', 'mod-creafi-3', 'mod-creafi-7']  // retired bad-seed module ids
     const creafiMods = modules.filter(m => m.communityId === 'creafi')
-    // target = the existing (non-seed) module each content group belongs in, matched by title
     const existingByName = {}
     for (const m of creafiMods) {
-      if (String(m.id).startsWith('mod-creafi-')) continue  // skip our own earlier duplicates
+      if (OLD_DUP.includes(m.id)) continue
       const k = norm(m.title)
       if (!(k in existingByName)) existingByName[k] = m
     }
-    const targetBySeedId = {}
+    const liveCourseId = (creafiMods.find(m => m.courseId) || {}).courseId || null
+    // Each seed module either fills a matching existing shell or is created as a new module.
+    const targetBySeedId = {}   // seedId -> { id, courseId }
+    const toCreate = []
     for (const sm of CREAFI_COURSE.modules) {
       const ex = existingByName[norm(sm.title)]
-      if (ex) targetBySeedId[sm.id] = ex
+      if (ex) targetBySeedId[sm.id] = { id: ex.id, courseId: ex.courseId }
+      else { targetBySeedId[sm.id] = { id: sm.id, courseId: liveCourseId }; toCreate.push({ ...sm, courseId: liveCourseId || sm.courseId }) }
     }
-    if (Object.keys(targetBySeedId).length < CREAFI_COURSE.modules.length) return  // no home found; don't pollute
     const desired = CREAFI_COURSE.lessons
       .filter(l => targetBySeedId[l.moduleId])
-      .map(l => { const ex = targetBySeedId[l.moduleId]; return { ...l, moduleId: ex.id, courseId: ex.courseId || l.courseId } })
+      .map(l => { const t = targetBySeedId[l.moduleId]; return { ...l, moduleId: t.id, courseId: t.courseId || l.courseId } })
     // Additive + self-healing, but never overwrite an existing lesson the admin may have edited:
     const SEED_RE = /^les-m\d+z?-/                                          // only our own seeded lesson ids
     const desiredIds = new Set(desired.map(d => d.id))
     const haveIds = new Set(lessons.map(l => l.id))
     const missing = desired.filter(d => !haveIds.has(d.id))                 // new content to add
-    const strayIds = new Set(lessons.filter(l => String(l.moduleId).startsWith('mod-creafi-')).map(l => l.id)) // left over from an earlier bad seed
+    const strayIds = new Set(lessons.filter(l => OLD_DUP.includes(l.moduleId)).map(l => l.id)) // left over from an earlier bad seed
     const staleIds = new Set(lessons.filter(l => SEED_RE.test(l.id) && !desiredIds.has(l.id)).map(l => l.id)) // retired seed lessons we replaced
-    const dupModules = modules.some(m => String(m.id).startsWith('mod-creafi-'))
+    const haveMod = new Set(modules.map(m => m.id))
+    const newMods = toCreate.filter(m => !haveMod.has(m.id))
+    const dupModules = modules.some(m => OLD_DUP.includes(m.id))
     const dupCourse = courses.some(c => c.id === 'creafi-way')
-    if (missing.length === 0 && strayIds.size === 0 && staleIds.size === 0 && !dupModules && !dupCourse) return  // nothing to do
+    if (missing.length === 0 && strayIds.size === 0 && staleIds.size === 0 && newMods.length === 0 && !dupModules && !dupCourse) return  // nothing to do
     const now = Date.now()
     setLessons(ls => {
       const rehomed = ls.filter(l => !staleIds.has(l.id)).map(l => {
@@ -233,7 +238,11 @@ function AppProvider({ children }) {
       const now2 = new Set(rehomed.map(l => l.id))
       return [...rehomed, ...missing.filter(m => !now2.has(m.id)).map(d => ({ ...d, createdAt: now }))]
     })
-    if (dupModules) setModules(ms => ms.filter(m => !String(m.id).startsWith('mod-creafi-')))
+    if (newMods.length || dupModules) setModules(ms => {
+      const cleaned = dupModules ? ms.filter(m => !OLD_DUP.includes(m.id)) : ms
+      const have = new Set(cleaned.map(m => m.id))
+      return [...cleaned, ...newMods.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))]
+    })
     if (dupCourse) setCourses(cs => cs.filter(c => c.id !== 'creafi-way'))
   }, [hydrated, currentUser?.id, modules, lessons, courses])
 

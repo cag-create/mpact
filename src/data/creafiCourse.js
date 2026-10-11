@@ -59,6 +59,16 @@ export const CREAFI_COURSE = {
       "order": 5,
       "isPublished": true,
       "released": true
+    },
+    {
+      "id": "cf-bonus-birddog",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Bonus: Bird Dogging",
+      "description": "The lowest-barrier way into creative real estate — connect wholesaler deals to your buyers and get paid.",
+      "order": 10,
+      "isPublished": true,
+      "released": true
     }
   ],
   "lessons": [
@@ -943,6 +953,76 @@ export const CREAFI_COURSE = {
       "isFreePreview": false,
       "isPublished": true,
       "order": 7
+    },
+    {
+      "id": "cf-bonus-birddog-01",
+      "moduleId": "cf-bonus-birddog",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Why It's Called Bird Dogging",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"A bird dog is the hunting dog that sniffs out the game and points the hunter straight to it. It doesn't pull the trigger — it finds and points. That's exactly what you do here: you find the deals and point the buyer to them. You don't have to close it, fund it, or own it to get paid.\"}, {\"t\": \"callout\", \"title\": \"Be the GSP\", \"text\": \"The German Shorthaired Pointer is one of the best bird dogs there is — high energy, versatile, works any terrain, points and retrieves all day. That's the bird dog you want to be in this business: high-energy, versatile, working every channel, and always bringing deals back.\"}, {\"t\": \"h\", \"text\": \"Why it's the easiest way in\"}, {\"t\": \"ul\", \"items\": [\"No money and no license needed to find a deal and connect it to a buyer.\", \"You're the connector: deals on one side, buyers on the other, you in the middle getting paid.\", \"It teaches you the whole game — numbers, buyers, contracts — while you earn.\"]}]}",
+      "summary": "A bird dog finds the deal and points the buyer to it. Be the GSP — high energy, versatile, works every channel.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 1
+    },
+    {
+      "id": "cf-bonus-birddog-02",
+      "moduleId": "cf-bonus-birddog",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "The Many Ways to Bird Dog",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"There's no one way to bird dog. Here are the plays — run the ones that fit you and stack them.\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Underwrite wholesaler deals\", \"v\": \"Wholesalers blast deals all day. Be the one who can quickly run the numbers and know which ones are actually real. That skill alone makes you valuable to buyers.\"}, {\"k\": \"Middleman with a fee on top\", \"v\": \"Take a wholesaler's deal straight to your end buyer and add your fee on top of theirs. You didn't find the house — you connected the dots and got paid.\"}, {\"k\": \"Landing page as a buyer\", \"v\": \"Put up a simple page advertising yourself as a buyer. Wholesalers find you and send you deals, and you connect them to the end buyers in your pipeline.\"}, {\"k\": \"Build your buyer pipeline\", \"v\": \"Same muscle as the Dispositions course — the bigger your qualified buyers list, the more wholesaler deals you can place.\"}, {\"k\": \"Google “we buy houses”\", \"v\": \"Those sites are wholesalers. Reach out — they've got deals and they need buyers. You're the buyer (or the connector to one).\"}, {\"k\": \"Local meetups\", \"v\": \"Show up where investors gather. Wholesalers are in the room looking for buyers — be the one they remember.\"}, {\"k\": \"Facebook groups\", \"v\": \"Investor and wholesale groups are full of wholesalers posting deals. Be the buyer in the group and the deals come to you.\"}]}]}",
+      "summary": "Underwrite deals, middleman with a fee, landing page, buyer pipeline, 'we buy houses', meetups, and FB groups.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 2
+    },
+    {
+      "id": "cf-bonus-birddog-03",
+      "moduleId": "cf-bonus-birddog",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Protect Your Spot: Contracts & Double Close",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Here's the trap: you connect a wholesaler to your buyer, they shake hands behind your back, cut you out of the fee — and then stop sending you deals because they've got your buyer now. Don't let that happen.\"}, {\"t\": \"ul\", \"items\": [\"Use a JV agreement or an assignment contract so your fee is locked in writing before you introduce anybody.\", \"When it matters, double close so the wholesaler never meets or sees your end buyer — they can't cut you out of a relationship they don't have.\", \"Your buyer list is your value, just like the wholesaler's deal flow is theirs. Protect it.\"]}, {\"t\": \"callout\", \"title\": \"The rule\", \"text\": \"Paper first, introductions second. Never put a wholesaler and your buyer in the same room without your fee already in a signed JV or assignment contract.\"}]}",
+      "summary": "Lock your fee in a JV/assignment contract and double close so the wholesaler can't cut you out.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 3
+    },
+    {
+      "id": "cf-bonus-birddog-04",
+      "moduleId": "cf-bonus-birddog",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Small Wins Add Up",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Everybody chases the $10k+ assignment and waits around for the home run. The bird dog gets paid on volume — a few thousand per deal, over and over, beats one big swing you might strike out on.\"}, {\"t\": \"ul\", \"items\": [\"You don't need the fat fee every time. $2–3k per connection, done consistently, stacks up fast.\", \"A smaller fee is an easier yes — deals move faster when your cut is reasonable, so you do more of them.\", \"Every clean, quick deal makes the wholesaler and the buyer want to run the next one through you.\"]}, {\"t\": \"callout\", \"title\": \"Do the math\", \"text\": \"Ten $3k connections in a month is $30,000 — and you never had to find a single deal or buy a single house. Small wins add up.\"}]}",
+      "summary": "Volume of small wins ($2–3k) beats waiting on one big assignment — easier yes, faster deals, repeat business.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 4
+    },
+    {
+      "id": "cf-bonus-birddog-quiz",
+      "moduleId": "cf-bonus-birddog",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Bonus Quiz: Bird Dogging",
+      "type": "quiz",
+      "content": "{\"v\": 1, \"quiz\": {\"title\": \"Bonus Quiz: Bird Dogging\", \"passPct\": 70, \"questions\": [{\"q\": \"Why is it called “bird dogging”?\", \"choices\": [\"Because you have to own a dog\", \"A bird dog finds the game and points the hunter to it — you find deals and point buyers to them\", \"Because it's done outdoors\", \"Because it's slow and patient work\"], \"answer\": 1}, {\"q\": \"What makes the GSP the model bird dog (and the model for you)?\", \"choices\": [\"It's the cheapest dog\", \"High energy and versatility — it works every type of terrain\", \"It only hunts one thing\", \"It waits for the hunter to do the work\"], \"answer\": 1}, {\"q\": \"The middleman play is to…\", \"choices\": [\"Buy the house yourself first\", \"Take a wholesaler's deal to your end buyer and add your fee on top of theirs\", \"Only sell deals you sourced\", \"Wait for a retail agent\"], \"answer\": 1}, {\"q\": \"Where do you find wholesalers to get deals from?\", \"choices\": [\"Only by knocking doors\", \"Google “we buy houses,” local meetups, and Facebook investor groups\", \"The MLS only\", \"You can't — they find you\"], \"answer\": 1}, {\"q\": \"Why use a JV/assignment contract and double close?\", \"choices\": [\"To raise your fee to $10k\", \"So the wholesaler can't cut you out and your fee is locked before introductions\", \"Because it's legally required everywhere\", \"To slow the deal down\"], \"answer\": 1}, {\"q\": \"What's the bird dog's edge on fees?\", \"choices\": [\"Always holding out for $10k+\", \"Volume of small wins ($2–3k) that add up fast\", \"Charging the buyer and the seller twice\", \"Never taking a fee\"], \"answer\": 1}, {\"q\": \"Before you introduce a wholesaler to your buyer, you should…\", \"choices\": [\"Hope they're honest\", \"Have your fee locked in a signed JV or assignment contract\", \"Give them your buyer's number first\", \"Tell them your buyer's max price\"], \"answer\": 1}, {\"q\": \"Your bird-dog buyer pipeline is built the same way as in which course?\", \"choices\": [\"Mindset\", \"Dispositions\", \"Wholesaling underwriting\", \"Sales training\"], \"answer\": 1}]}}",
+      "summary": "8 questions · pass 70%+",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 5
     }
   ]
 }
