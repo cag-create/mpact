@@ -37,7 +37,7 @@ export default function Quiz({ quiz, onComplete }) {
               {passed ? 'Passed!' : 'Not quite yet'} — {correctCount}/{questions.length} ({pct}%)
             </p>
             <p className="text-sm text-gray-600" style={READING}>
-              {passed ? 'Nice work. Review anything you missed below.' : `You need ${passPct}% to pass. Review the answers below and try again.`}
+              {passed ? 'Nice work. ' : `You need ${passPct}% to pass. `}The correct answers are highlighted in green below.
             </p>
           </div>
         </div>
@@ -58,8 +58,8 @@ export default function Quiz({ quiz, onComplete }) {
                   let cls = 'border-gray-200 hover:border-gray-300 text-gray-700'
                   let mark = null
                   if (submitted) {
-                    if (isAnswer) { cls = 'border-green-300 bg-green-50 text-green-900'; mark = <Check size={15} className="text-green-600" /> }
-                    else if (isChosen) { cls = 'border-red-300 bg-red-50 text-red-900'; mark = <X size={15} className="text-red-500" /> }
+                    if (isAnswer) { cls = 'border-green-400 bg-green-50 text-green-900'; mark = <span className="flex items-center gap-1 text-[11px] font-grotesk font-bold uppercase tracking-wide text-green-600 flex-shrink-0">Correct<Check size={15} /></span> }
+                    else if (isChosen) { cls = 'border-red-300 bg-red-50 text-red-900'; mark = <span className="flex items-center gap-1 text-[11px] font-grotesk font-bold uppercase tracking-wide text-red-500 flex-shrink-0">Your pick<X size={15} /></span> }
                     else cls = 'border-gray-200 text-gray-400'
                   } else if (isChosen) {
                     cls = 'border-gray-900 bg-gray-50 text-gray-900'

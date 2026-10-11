@@ -1,4 +1,4 @@
-// AUTO-GENERATED Crea'fi starter course content. Lesson.content is a JSON string.
+// AUTO-GENERATED Crea'fi starter course content.
 export const CREAFI_COURSE = {
   "course": {
     "id": "creafi-way",
@@ -47,6 +47,16 @@ export const CREAFI_COURSE = {
       "title": "High-Level Sales Training",
       "description": "The Crea'fi seven-step sales method — 18 lessons + final test",
       "order": 4,
+      "isPublished": true,
+      "released": true
+    },
+    {
+      "id": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Dispositions & Building a Dispo Business",
+      "description": "Package deals, build a buyers list, match the exit to the buyer, and build a business moving deals.",
+      "order": 5,
       "isPublished": true,
       "released": true
     }
@@ -835,6 +845,104 @@ export const CREAFI_COURSE = {
       "isFreePreview": false,
       "isPublished": true,
       "order": 18
+    },
+    {
+      "id": "mod-creafi-4-01",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "No Buyer, No Deal",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Acquisitions gets you the contract. Dispositions gets you paid. A deal isn't a deal until somebody with money and intent takes it off your hands — so build the buy side like your income depends on it, because it does.\"}, {\"t\": \"callout\", \"title\": \"The mindset\", \"text\": \"You're not “finding a buyer” the day a deal shows up. You're building a buyers list every single day, so the moment you lock a contract, it's already as good as sold.\"}, {\"t\": \"h\", \"text\": \"What dispositions actually is\"}, {\"t\": \"ul\", \"items\": [\"Turning a signed contract — cash or creative — into money in your pocket: assign it, sell it, or place the right buyer on it.\", \"Knowing which exit fits the deal before you ever market it.\", \"Moving it fast and clean, so buyers trust you and keep coming back.\"]}, {\"t\": \"h\", \"text\": \"The three ways you get paid\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Wholesale\", \"v\": \"Assign the contract to another buyer for a fee.\"}, {\"k\": \"Wholetail / flip\", \"v\": \"Clean it up (or renovate), sell retail, keep the spread.\"}, {\"k\": \"Creative placement\", \"v\": \"Put a wrap buyer, tenant-buyer, or rental buyer on your terms deal — collect up front and cash flow.\"}]}]}",
+      "summary": "Dispositions is how you actually get paid — build the buy side every day, not when a deal lands.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 1
+    },
+    {
+      "id": "mod-creafi-4-02",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Build a Buyers List That Actually Buys",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Most people's “buyers list” is a spreadsheet of tire-kickers. You want a short list of people who close — the ones who wire earnest money without a 20-minute pep talk.\"}, {\"t\": \"h\", \"text\": \"Where the real buyers are\"}, {\"t\": \"ul\", \"items\": [\"Cash buyers who already bought nearby — pull recent cash sales in the zip.\", \"The flippers pulling permits and the landlords who already own in the area.\", \"Terms buyers who want cash flow, not a bank — wrap and lease-option buyers.\", \"Your closing attorney's and title company's rolodex — they know who closes.\", \"Local investor groups and REIA meetups — show up, collect buy boxes.\"]}, {\"t\": \"callout\", \"title\": \"The move\", \"text\": \"Every buyer you talk to, ask one thing: “What's your buy box?” — area, price, condition, strategy, and how fast you can close. Log it. Now you're matching deals to buyers, not blasting a list and hoping.\"}, {\"t\": \"h\", \"text\": \"Qualify before you fall in love\"}, {\"t\": \"ul\", \"items\": [\"Proof of funds or a real lender — not “I've got a guy.”\", \"A track record: how many did you actually close this year?\", \"Earnest money that goes hard — non-refundable once they're in.\", \"The decision-maker on the phone, not a partner they have to “check with.”\"]}]}",
+      "summary": "A short list of buyers who close beats a giant list of tire-kickers — collect buy boxes and qualify hard.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 2
+    },
+    {
+      "id": "mod-creafi-4-03",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Match the Exit to the Buyer",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"The deal tells you who the buyer is. Force the wrong exit and it sits. Match it and it's gone in 48 hours.\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Cash wholesale\", \"v\": \"Fix & flippers and buy & hold landlords.\"}, {\"k\": \"Wholetail\", \"v\": \"Retail buyers — light cleanup, keep the loan in place where you can.\"}, {\"k\": \"Flip\", \"v\": \"The end homeowner, after you renovate.\"}, {\"k\": \"Rental / subtail\", \"v\": \"Landlords who want cash flow or a turnkey rental.\"}, {\"k\": \"Wrap\", \"v\": \"A buyer who wants the house now, can't use a bank, and has a real down payment.\"}, {\"k\": \"Lease option\", \"v\": \"A tenant-buyer working their way toward qualifying.\"}, {\"k\": \"Seller finance / group homes\", \"v\": \"Operators who want terms and in-place income.\"}]}, {\"t\": \"callout\", \"title\": \"Rule of thumb\", \"text\": \"Sell the terms, not just the price. A creative deal pitched to a cash wholesaler looks ugly. The exact same deal pitched to a terms buyer looks like a gift. Know who you're talking to before you quote a number.\"}]}",
+      "summary": "The deal picks the buyer — match wholesale, wholetail, wrap, lease-option, or terms to the right exit.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 3
+    },
+    {
+      "id": "mod-creafi-4-04",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Package It So It Sells Itself",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"A good deal with a lazy package sits. An okay deal with a clean package moves. Your job is to make the buyer's decision easy.\"}, {\"t\": \"h\", \"text\": \"What goes in the packet\"}, {\"t\": \"ul\", \"items\": [\"The address and the numbers: purchase, ARV, repair estimate, and your fee.\", \"The exit math — what THEY make, not just what you make.\", \"Terms if it's creative: down, rate, payment, balance, balloon.\", \"Real photos, including the ugly ones. No surprises at the walkthrough.\", \"Comps that back your ARV, and a clear timeline to close.\"]}, {\"t\": \"callout\", \"title\": \"Don't hide the hair\", \"text\": \"Tell them what's wrong up front — the roof, the tenant, the title cloud. Buyers who find surprises never come back. Buyers who trust your numbers pay faster and bid higher.\"}]}",
+      "summary": "Make the buyer's decision easy: clean numbers, the buyer's exit math, real photos, and no hidden surprises.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 4
+    },
+    {
+      "id": "mod-creafi-4-05",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Move It Fast — Qualify, Don't Chase",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Speed is leverage. The longer a deal sits, the more the price drifts down and the more your seller sweats. The first serious buyer with money wins — not the loudest one.\"}, {\"t\": \"ul\", \"items\": [\"Set a deadline to review offers and actually hold it.\", \"Earnest money goes to the title company or closing attorney — never your personal account.\", \"First come, first served — to a qualified buyer, not a maybe.\", \"Don't renegotiate with a buyer who waffles. Go to the next one.\", \"Keep your seller updated so they don't get cold feet — that's post-sell on the buy side too.\"]}, {\"t\": \"callout\", \"title\": \"The move\", \"text\": \"A “maybe” from a buyer is a no until there's non-refundable money at the title company. Stop chasing maybes — it's the fastest way to lose a seller and a deal.\"}]}",
+      "summary": "Speed wins: deadlines, earnest money at title, first qualified buyer takes it, and stop chasing maybes.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 5
+    },
+    {
+      "id": "mod-creafi-4-06",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Build a Dispo Business",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Here's the level-up: you don't even need to find deals to make money in this game. Other investors lock up contracts they can't move. You become the person who moves them — for a cut.\"}, {\"t\": \"h\", \"text\": \"How it works\"}, {\"t\": \"ul\", \"items\": [\"Build the biggest, best-qualified buyers list in your market.\", \"Partner with wholesalers and investors who have contracts but no buyers.\", \"Move their deals with your list and split the fee.\", \"Become the go-to dispo partner so deals come to YOU.\"]}, {\"t\": \"callout\", \"title\": \"Why it's powerful\", \"text\": \"Acquisitions is a grind — marketing, calls, negotiation. Dispositions scales on relationships. Own the buy side of your market and you stop trading hours for one deal at a time.\"}]}",
+      "summary": "The scale play: own the buyers list, move other investors' deals for a split, and become the market's go-to dispo partner.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 6
+    },
+    {
+      "id": "mod-creafi-4-quiz",
+      "moduleId": "mod-creafi-4",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Module 4 Quiz: Dispositions",
+      "type": "quiz",
+      "content": "{\"v\": 1, \"quiz\": {\"title\": \"Module 4 Quiz: Dispositions\", \"passPct\": 70, \"questions\": [{\"q\": \"When is a deal actually a deal?\", \"choices\": [\"The second you sign the seller\", \"When a qualified buyer with money takes it off your hands\", \"When you post it online\", \"When your mentor approves it\"], \"answer\": 1}, {\"q\": \"When should you be building your buyers list?\", \"choices\": [\"Only after you lock a contract\", \"Every day, before you ever lock a deal\", \"Once a quarter\", \"Never — buyers find you\"], \"answer\": 1}, {\"q\": \"Fastest way to kill a buyer's trust?\", \"choices\": [\"Give them the exit math\", \"Hide the problems with the property\", \"Send real photos\", \"Set a deadline\"], \"answer\": 1}, {\"q\": \"A creative / terms deal sells best to…\", \"choices\": [\"A cash wholesaler\", \"A terms buyer who wants cash flow or can't use a bank\", \"Anyone with a pulse\", \"The listing agent\"], \"answer\": 1}, {\"q\": \"A “maybe” from a buyer should be treated as…\", \"choices\": [\"A yes — start the paperwork\", \"A no until there's non-refundable earnest money at the title company\", \"A reason to drop your fee\", \"A reason to call them ten more times\"], \"answer\": 1}, {\"q\": \"Where does the buyer's earnest money go?\", \"choices\": [\"Your personal account\", \"The title company or closing attorney\", \"Cash in hand\", \"A payment app\"], \"answer\": 1}, {\"q\": \"Why sell the terms, not just the price, on a creative deal?\", \"choices\": [\"Price never matters\", \"The same deal looks ugly to a cash buyer but great to a terms buyer\", \"Terms are illegal to discuss\", \"Buyers only care about price\"], \"answer\": 1}, {\"q\": \"The dispo-business play is to…\", \"choices\": [\"Only sell your own deals\", \"Move other investors' deals with your buyers list for a split of the fee\", \"Stop building a list\", \"Quit acquisitions entirely\"], \"answer\": 1}]}}",
+      "summary": "8 questions · pass 70%+",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 7
     }
   ]
 }
