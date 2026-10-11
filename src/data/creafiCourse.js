@@ -89,6 +89,16 @@ export const CREAFI_COURSE = {
       "order": 0.5,
       "isPublished": true,
       "released": true
+    },
+    {
+      "id": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Business Structures & Your Role",
+      "description": "Hold what you build: the holding-company structure, LLCs vs corporations, Delaware, and your role on the team.",
+      "order": 6,
+      "isPublished": true,
+      "released": true
     }
   ],
   "lessons": [
@@ -1337,6 +1347,104 @@ export const CREAFI_COURSE = {
       "isFreePreview": false,
       "isPublished": true,
       "order": 8.8
+    },
+    {
+      "id": "cf-biz-structures-01",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Why Structure Matters",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Once you start making real money, how you HOLD your businesses matters almost as much as how you make it. The right structure protects what you build, keeps the IRS happy, and keeps one bad day from taking everything down with it.\"}, {\"t\": \"h\", \"text\": \"What a good structure does for you\"}, {\"t\": \"ul\", \"items\": [\"Liability protection: a lawsuit on one property or one business can't reach the others — or your personal stuff.\", \"Organization: every business line gets its own box, its own books, and its own bank account.\", \"Taxes: the right setup saves real money — this is where a good CPA pays for themselves ten times over.\", \"Privacy & credibility: a clean structure makes you look and operate like a real company, not a hobby.\"]}, {\"t\": \"callout\", \"title\": \"This is education, not legal or tax advice\", \"text\": \"This module shows you how creative-finance operators commonly structure their businesses. It is not a substitute for your own attorney and CPA. Set yours up with a pro who knows your state and your situation — the few hundred bucks up front saves you from five-figure mistakes later.\"}]}",
+      "summary": "How you hold your businesses protects what you build. Liability, organization, taxes, and credibility — set up with a pro.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 1
+    },
+    {
+      "id": "cf-biz-structures-02",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Corporations vs LLCs — What Most Operators Use",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"You'll hear C-corp, S-corp, and LLC thrown around like everyone's supposed to already know the difference. Here's the plain-English version — and what most real estate and creative-finance operators actually use.\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"LLC (Limited Liability Company)\", \"v\": \"The workhorse. Liability protection, pass-through taxes, and total flexibility. Most of your boxes will be LLCs.\"}, {\"k\": \"S-Corp\", \"v\": \"Not really a separate entity — it's a tax election an LLC can make. On active-income businesses like wholesaling, it can cut your self-employment tax once you're profitable. Ask your CPA when the numbers justify it.\"}, {\"k\": \"C-Corp\", \"v\": \"A separate taxpayer with its own return. There's double taxation, but it's useful for certain software and scaling plays, or when you're raising outside money. Less common on the real estate side.\"}]}, {\"t\": \"callout\", \"title\": \"Bottom line\", \"text\": \"Most of your entities will be LLCs. Layer an S-corp election on the active-income ones (like wholesaling) when your CPA says the income justifies it.\"}]}",
+      "summary": "LLC is the workhorse (most of your boxes); S-corp is a tax election for active income; C-corp for software/scaling. CPA decides the election.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 2
+    },
+    {
+      "id": "cf-biz-structures-03",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "The Holding Company Structure",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Here's the move that ties everything together: a holding company. Instead of running every business out of one entity — where a single lawsuit can wipe out everything — you put a holding company at the top and a separate LLC under it for each business line.\"}, {\"t\": \"h\", \"text\": \"How it works\"}, {\"t\": \"ul\", \"items\": [\"The holding company sits at the top and owns the others. You own the holding company.\", \"Each business line gets its own LLC underneath — its own liability box, its own books, its own bank account.\", \"A problem in one box (a lawsuit, a bad deal, a creditor) stays in that box. The other businesses, and your personal assets, stay protected.\"]}, {\"t\": \"callout\", \"title\": \"The mental model\", \"text\": \"Think of the holding company as the house and each LLC as a sealed room. A fire in one room doesn't burn down the house. That's the whole point — contain the risk.\"}]}",
+      "summary": "A parent holding company owns a separate LLC for each business line — so a problem in one box can't reach the others or you.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 3
+    },
+    {
+      "id": "cf-biz-structures-04",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Why Delaware",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Where you form your entities matters. For your holding company and your businesses, Delaware is the gold standard — it's why so many of the biggest companies in the country are registered there.\"}, {\"t\": \"ul\", \"items\": [\"Business-friendly law and specialized courts that actually understand companies.\", \"Strong privacy and asset protection — including charging-order protection on LLCs.\", \"Flexible, well-tested rules that attorneys, partners, and lenders are already comfortable with.\"]}, {\"t\": \"h\", \"text\": \"The real-estate nuance\"}, {\"t\": \"p\", \"text\": \"One thing to know going in: the LLC that actually owns a specific property usually has to be registered in the state where that property sits, because owning and operating real estate there counts as doing business. The common setup is a Delaware holding company that owns property LLCs registered in the property's state. Your attorney structures it right for wherever you're buying.\"}, {\"t\": \"callout\", \"title\": \"Set it up with a pro\", \"text\": \"Delaware for the holding company and your other businesses is a great default. Confirm the exact setup with an attorney and CPA who know the states you operate in.\"}]}",
+      "summary": "Delaware is the top state for your holding company and businesses (law, privacy, protection). Property LLCs often register in the property's state.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 4
+    },
+    {
+      "id": "cf-biz-structures-05",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "A Real Structure — How It Looks",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Theory is nice. Here's what an actual operator's structure looks like — the way several different businesses stack neatly under one roof.\"}, {\"t\": \"h\", \"text\": \"The setup\"}, {\"t\": \"ul\", \"items\": [\"At the top: a holding company (Delaware). You own this — it owns everything else.\", \"A buy-and-hold company (LLC) — holds the rental properties for long-term wealth.\", \"A wholesale LLC — runs the wholesaling and assignment business.\", \"A software LLC — holds the software and tech business.\", \"A Crea'fi LLC — the education and community business.\"]}, {\"t\": \"callout\", \"title\": \"Why split them\", \"text\": \"Rentals, wholesaling, software, and education are completely different risk profiles. Keep each in its own box and a problem in one never touches the others — and each business stays clean to sell, finance, or bring a partner into on its own.\"}]}",
+      "summary": "The model: a Delaware holding company at the top owning separate LLCs — buy-and-hold, wholesale, software, and Crea'fi.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 5
+    },
+    {
+      "id": "cf-biz-structures-06",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Your Role on the Team",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"You don't have to do every part of a deal to get paid. The smartest operators know exactly where they add value and build documented partnerships for the rest.\"}, {\"t\": \"ul\", \"items\": [\"Buyer relationships: own the buy side — your buyers are your leverage (that's the Dispositions playbook).\", \"Dispositions: move deals to the right buyer for a fee.\", \"Transaction coordination: run the paperwork and deadlines so deals close clean.\", \"Documented partnerships / JVs: team up with people who handle seller outreach and negotiation while you bring buyers, capital relationships, or coordination.\"]}, {\"t\": \"callout\", \"title\": \"Get it in writing\", \"text\": \"Every partnership runs on a written JV or operating agreement — roles, splits, and who does what. Handshakes end friendships and blow up deals. Paper protects everybody.\"}]}",
+      "summary": "You don't have to do it all — contribute through buyers, dispositions, coordination, and documented partnerships. Always get it in writing.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 6
+    },
+    {
+      "id": "cf-biz-structures-quiz",
+      "moduleId": "cf-biz-structures",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Module Quiz: Business Structures",
+      "type": "quiz",
+      "content": "{\"v\": 1, \"quiz\": {\"title\": \"Module Quiz: Business Structures\", \"passPct\": 70, \"questions\": [{\"q\": \"What does a holding company structure actually do for you?\", \"choices\": [\"Doubles your taxes\", \"Puts each business in its own LLC under a parent company so one lawsuit can't reach the others\", \"Replaces your CPA\", \"Makes you a licensed agent\"], \"answer\": 1}, {\"q\": \"Most of your entities will be…\", \"choices\": [\"C-corps\", \"LLCs\", \"Sole proprietorships\", \"Partnerships with no paperwork\"], \"answer\": 1}, {\"q\": \"An S-corp is best thought of as…\", \"choices\": [\"A separate building\", \"A tax election that can cut self-employment tax on active income like wholesaling\", \"Required for every rental\", \"A type of mortgage\"], \"answer\": 1}, {\"q\": \"Why is Delaware a top choice for your holding company?\", \"choices\": [\"It's the cheapest\", \"Business-friendly law, privacy, and strong asset protection\", \"It has no real estate\", \"It's required by the IRS\"], \"answer\": 1}, {\"q\": \"The LLC that owns a specific property usually has to be registered…\", \"choices\": [\"Only in Delaware\", \"In the state where the property sits\", \"Nowhere\", \"In every state\"], \"answer\": 1}, {\"q\": \"Why keep rentals, wholesale, software, and education in separate LLCs?\", \"choices\": [\"To confuse the IRS\", \"Different risk profiles — a problem in one box can't touch the others, and each is clean to sell or finance\", \"It's cheaper to run one entity\", \"There's no reason to\"], \"answer\": 1}, {\"q\": \"Every partnership should run on…\", \"choices\": [\"A handshake\", \"A written JV or operating agreement with roles and splits\", \"A verbal promise\", \"Nothing until the deal closes\"], \"answer\": 1}, {\"q\": \"This module is…\", \"choices\": [\"Formal legal advice\", \"Education — set up your actual structure with an attorney and CPA\", \"A guarantee of asset protection\", \"Only for licensed attorneys\"], \"answer\": 1}]}}",
+      "summary": "8 questions · pass 70%+",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 7
     }
   ]
 }
