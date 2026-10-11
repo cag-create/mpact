@@ -19,7 +19,7 @@ export function MediaRow({ thumb, fallback, title, description, meta, progress =
         {thumb
           ? <img src={thumb} alt="" className="w-full h-full object-cover" draggable={false} />
           : fallback
-            ? <img src={fallback} alt="" className="w-full h-full object-contain bg-zinc-900 p-3" draggable={false} />
+            ? <img src={fallback} alt="" className="w-full h-full object-cover" draggable={false} />
             : <ImageIcon size={26} className="text-gray-300" />}
         {badge && <span className="absolute bottom-1.5 left-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-black/70 text-white">{badge}</span>}
         {locked
