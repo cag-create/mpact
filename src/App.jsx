@@ -214,15 +214,18 @@ function AppProvider({ children }) {
       .filter(l => targetBySeedId[l.moduleId])
       .map(l => { const ex = targetBySeedId[l.moduleId]; return { ...l, moduleId: ex.id, courseId: ex.courseId || l.courseId } })
     // Additive + self-healing, but never overwrite an existing lesson the admin may have edited:
+    const SEED_RE = /^les-m\d+z?-/                                          // only our own seeded lesson ids
+    const desiredIds = new Set(desired.map(d => d.id))
     const haveIds = new Set(lessons.map(l => l.id))
     const missing = desired.filter(d => !haveIds.has(d.id))                 // new content to add
     const strayIds = new Set(lessons.filter(l => String(l.moduleId).startsWith('mod-creafi-')).map(l => l.id)) // left over from an earlier bad seed
+    const staleIds = new Set(lessons.filter(l => SEED_RE.test(l.id) && !desiredIds.has(l.id)).map(l => l.id)) // retired seed lessons we replaced
     const dupModules = modules.some(m => String(m.id).startsWith('mod-creafi-'))
     const dupCourse = courses.some(c => c.id === 'creafi-way')
-    if (missing.length === 0 && strayIds.size === 0 && !dupModules && !dupCourse) return  // nothing to do
+    if (missing.length === 0 && strayIds.size === 0 && staleIds.size === 0 && !dupModules && !dupCourse) return  // nothing to do
     const now = Date.now()
     setLessons(ls => {
-      const rehomed = ls.map(l => {
+      const rehomed = ls.filter(l => !staleIds.has(l.id)).map(l => {
         if (!strayIds.has(l.id)) return l
         const d = desired.find(x => x.id === l.id)
         return d ? { ...l, moduleId: d.moduleId, courseId: d.courseId } : l

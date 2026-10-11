@@ -1,9 +1,12 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react'
-import { ArrowLeft, ChevronLeft, ChevronRight, Check, File, Link as LinkIcon, Lock } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Check, File, Link as LinkIcon, Lock, Play, ListChecks, BookOpen } from 'lucide-react'
 import { useApp } from '../App'
 import { VideoEmbed, getYouTubeThumbnail } from '../lib/video.jsx'
 import { moduleUnlocked } from '../lib/release'
+import { moduleGradient } from '../lib/courseTheme'
 import { MediaRow, Pager, PAGE_SIZE } from './MediaList'
+
+const TYPE_ICON = { video: Play, quiz: ListChecks, pdf: File, link: LinkIcon, text: BookOpen }
 import LessonBody from './LessonBody'
 import Quiz from './Quiz'
 
@@ -174,7 +177,8 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
               <MediaRow
                 key={l.id}
                 thumb={l.type === 'video' ? getYouTubeThumbnail(l.content) : null}
-                fallback="/creafi-course-thumb.webp"
+                gradient={moduleGradient(courseModules.find(m => m.id === l.moduleId))}
+                icon={TYPE_ICON[l.type] || BookOpen}
                 badge={l.type === 'video' ? l.duration : null}
                 title={l.title}
                 description={desc}

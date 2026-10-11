@@ -5,7 +5,9 @@ import { Image as ImageIcon, ChevronLeft, ChevronRight, Lock, Check, Play } from
 // middle, and a thin progress line on the right. Used for lessons inside a Capsule
 // module and for replays in The Lab.
 
-export function MediaRow({ thumb, fallback, title, description, meta, progress = null, locked = false, badge, accent = '#2563eb', onClick }) {
+const DOTS = 'radial-gradient(rgba(255,255,255,0.22) 1.4px, transparent 1.5px)'
+
+export function MediaRow({ thumb, gradient, icon: Icon, title, description, meta, progress = null, locked = false, badge, accent = '#2563eb', onClick }) {
   const clickable = !!onClick && !locked
   return (
     <button
@@ -15,11 +17,14 @@ export function MediaRow({ thumb, fallback, title, description, meta, progress =
       className={`w-full text-left grid grid-cols-[120px_1fr] sm:grid-cols-[232px_1fr_180px] gap-4 sm:gap-6 items-center py-5 px-2 sm:px-3 rounded-2xl transition-colors ${clickable ? 'hover:bg-gray-50 cursor-pointer' : 'cursor-default'} ${locked ? 'opacity-60' : ''}`}
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
+      <div className="relative aspect-video rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center" style={!thumb && gradient ? { backgroundImage: gradient } : undefined}>
         {thumb
           ? <img src={thumb} alt="" className="w-full h-full object-cover" draggable={false} />
-          : fallback
-            ? <img src={fallback} alt="" className="w-full h-full object-cover" draggable={false} />
+          : gradient
+            ? <>
+                <span className="absolute inset-0" style={{ backgroundImage: DOTS, backgroundSize: '13px 13px' }} />
+                {Icon && <Icon size={30} strokeWidth={1.75} className="relative text-white/95 drop-shadow" />}
+              </>
             : <ImageIcon size={26} className="text-gray-300" />}
         {badge && <span className="absolute bottom-1.5 left-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-black/70 text-white">{badge}</span>}
         {locked

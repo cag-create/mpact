@@ -77,6 +77,27 @@ function Block({ b }) {
     }
     case 'dialogue':
       return <Dialogue turns={b.turns} />
+    case 'table':
+      return (
+        <div className="my-5 overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
+          <table className="w-full text-[14.5px] border-collapse" style={READING}>
+            {Array.isArray(b.headers) && b.headers.length > 0 && (
+              <thead>
+                <tr className="bg-zinc-900 text-white">
+                  {b.headers.map((h, i) => <th key={i} className={`px-4 py-2.5 font-grotesk font-semibold text-[12px] uppercase tracking-wide ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>)}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {(b.rows || []).map((row, ri) => (
+                <tr key={ri} className={ri % 2 ? 'bg-gray-50/60' : 'bg-white'}>
+                  {row.map((cell, ci) => <td key={ci} className={`px-4 py-2.5 text-gray-700 ${ci === 0 ? 'text-left font-medium text-gray-900' : 'text-right tabular-nums'}`}>{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
     default:
       return null
   }
