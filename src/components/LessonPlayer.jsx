@@ -4,10 +4,19 @@ import { useApp } from '../App'
 import { VideoEmbed, getYouTubeThumbnail } from '../lib/video.jsx'
 import { moduleUnlocked } from '../lib/release'
 import { MediaRow, Pager, PAGE_SIZE } from './MediaList'
+import LessonBody from './LessonBody'
+import Quiz from './Quiz'
 
 const INTRO_URL = 'https://creafigenius.com/assets/creafi-intro.mp4'  // branded pre-roll before every lesson video
 
-const TYPE_LABEL = { video: 'Video', text: 'Lesson', pdf: 'PDF', link: 'Resource' }
+const TYPE_LABEL = { video: 'Video', text: 'Lesson', pdf: 'PDF', link: 'Resource', quiz: 'Quiz' }
+
+// Rich lessons store their body as a JSON string: { blocks:[...] } or { quiz:{...} }.
+// Plain-text lessons store a plain string. parseRich returns the object or null.
+function parseRich(s) {
+  if (typeof s !== 'string' || s.charAt(0) !== '{') return null
+  try { const o = JSON.parse(s); return (o && (o.blocks || o.quiz)) ? o : null } catch { return null }
+}
 
 // Member-facing course player.
 // Default view = the lessons inside the module as a clean list (thumbnail + title +
@@ -77,6 +86,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
 
   // ── Player view (one lesson open) ────────────────────────────────────────────
   if (current) {
+    const rich = parseRich(current.content)
     return (
       <div>
         <button onClick={() => setPlayingId(null)} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-3"><ArrowLeft size={13} /> All lessons</button>
@@ -89,10 +99,15 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
           ) : (
             <VideoEmbed url={current.content} title={current.title} className="rounded-none" autoPlay={!canEdit} />
           ))}
-          <div className="p-6">
-            <p className="text-xs font-display uppercase tracking-wider text-fuchsia-600 mb-1">{courseModules.find(m => m.id === current.moduleId)?.title}</p>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">{current.title}</h3>
-            {current.type === 'text' && <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">{current.content}</div>}
+          <div className="p-6 sm:p-8">
+            <p className="text-[11px] font-grotesk font-bold uppercase tracking-widest text-fuchsia-600 mb-1.5">{courseModules.find(m => m.id === current.moduleId)?.title}</p>
+            <h3 className="text-2xl font-grotesk font-bold tracking-tight text-gray-900 mb-5">{current.title}</h3>
+            {current.type === 'quiz' && rich?.quiz && (
+              <Quiz quiz={rich.quiz} onComplete={(passed) => { if (passed) markDone(true) }} />
+            )}
+            {current.type === 'text' && (rich?.blocks
+              ? <LessonBody blocks={rich.blocks} />
+              : <div className="max-w-2xl text-gray-700 whitespace-pre-wrap leading-relaxed" style={{ fontFamily: "'Nunito', system-ui, sans-serif" }}>{current.content}</div>)}
             {current.type === 'pdf' && (
               <a href={current.content} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm font-medium hover:bg-amber-100"><File size={15} /> Open the PDF</a>
             )}
@@ -105,6 +120,8 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
               <button disabled={idx <= 0} onClick={() => goto(idx - 1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-30"><ChevronLeft size={16} /> Previous</button>
               {doneIds.has(current.id) ? (
                 <button onClick={() => markDone(false)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 text-green-700 border border-green-200 text-sm font-semibold"><Check size={15} /> Completed</button>
+              ) : current.type === 'quiz' ? (
+                <span className="text-xs text-gray-400">Pass the quiz to complete</span>
               ) : (
                 <button onClick={() => markDone(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800"><Check size={15} /> Mark complete</button>
               )}
@@ -151,7 +168,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 px-2 sm:px-4 py-2 mt-2">
           {pageLessons.map(l => {
             const done = doneIds.has(l.id)
-            const desc = l.type === 'text' ? (l.content || '').slice(0, 180) : (l.notes || '')
+            const desc = l.summary || (l.type === 'text' && !parseRich(l.content) ? (l.content || '').slice(0, 180) : (l.notes || ''))
             const metaBits = [TYPE_LABEL[l.type] || 'Lesson', l.duration].filter(Boolean)
             return (
               <MediaRow

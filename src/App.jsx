@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import WelcomeLanding from './pages/WelcomeLanding'
 import MessagesPage from './pages/MessagesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import { CREAFI_COURSE } from './data/creafiCourse'
 
 // ─── Schema v8 — clears stale localStorage ────────────────────────────────────
 const SCHEMA_VERSION = 'v10-server'
@@ -185,6 +186,20 @@ function AppProvider({ children }) {
   useEffect(() => sync('contracts', contracts), [contracts])
   useEffect(() => sync('replays', replays), [replays])
   useEffect(() => sync('progress', progress), [progress])
+
+  // ── One-time seed of the Crea'fi starter course (admin only, idempotent) ──
+  // Injects the course/modules/lessons as real, editable records so an admin can
+  // rearrange, edit, or delete them in the Build UI. Re-seeds only if the whole
+  // course was deleted (guarded by the fixed course id).
+  useEffect(() => {
+    if (!hydrated || !currentUser) return
+    if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    if (courses.some(c => c.id === CREAFI_COURSE.course.id)) return
+    const now = Date.now()
+    setLessons(ls => { const have = new Set(ls.map(l => l.id)); return [...ls, ...CREAFI_COURSE.lessons.filter(l => !have.has(l.id)).map(l => ({ ...l, createdAt: now }))] })
+    setModules(ms => { const have = new Set(ms.map(m => m.id)); return [...ms, ...CREAFI_COURSE.modules.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))] })
+    setCourses(cs => cs.some(c => c.id === CREAFI_COURSE.course.id) ? cs : [...cs, { ...CREAFI_COURSE.course, createdAt: now }])
+  }, [hydrated, currentUser?.id, courses])
 
   // ── Auth (server-backed) ──────────────────────────────────────────────────
   const login = async (email, password) => {
