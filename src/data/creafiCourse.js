@@ -65,7 +65,7 @@ export const CREAFI_COURSE = {
       "communityId": "creafi",
       "courseId": "creafi-way",
       "title": "Bonus: Bird Dogging",
-      "description": "The lowest-barrier way into creative real estate — connect wholesaler deals to your buyers and get paid.",
+      "description": "The lowest-barrier way to get your first deal done and learn the business — connect wholesaler deals to your buyers and get paid.",
       "order": 10,
       "isPublished": true,
       "released": true

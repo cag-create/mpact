@@ -259,6 +259,17 @@ function AppProvider({ children }) {
       ? { ...m, alwaysOpen: false, released: false, _releaseInit: true } : m))
   }, [hydrated, currentUser?.id, modules])
 
+  // ── One-time copy fix: Bird Dogging is the low-barrier way to get a deal & learn,
+  // not "creative finance only." Self-terminating once the old wording is gone. ──
+  useEffect(() => {
+    if (!hydrated || !currentUser) return
+    if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    if (!modules.some(m => m.communityId === 'creafi' && /into creative real estate/i.test(m.description || ''))) return
+    const NEW_DESC = 'The lowest-barrier way to get your first deal done and learn the business — connect wholesaler deals to your buyers and get paid.'
+    setModules(ms => ms.map(m => (m.communityId === 'creafi' && /into creative real estate/i.test(m.description || ''))
+      ? { ...m, description: NEW_DESC } : m))
+  }, [hydrated, currentUser?.id, modules])
+
   // ── Auth (server-backed) ──────────────────────────────────────────────────
   const login = async (email, password) => {
     try {
