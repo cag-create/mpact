@@ -1211,6 +1211,34 @@ export const CREAFI_COURSE = {
       "isFreePreview": true,
       "isPublished": true,
       "order": 4
+    },
+    {
+      "id": "cf-ao-09",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Set Your Week — Scheduling the Work",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Consistency beats intensity. The investors who win aren't the smartest in the room — they're the ones who do the reps every single week without fail. Block your calendar so the work actually happens instead of hoping you'll get to it.\"}, {\"t\": \"h\", \"text\": \"A simple weekly rhythm\"}, {\"t\": \"ul\", \"items\": [\"Daily MLS pull: new matches — as-is, price cuts, high days-on-market, expired — then fire your offers and answer every agent and seller message fast.\", \"Agent outreach block: a set time to reach new investor-friendly agents and follow up with the ones you already have.\", \"Comping block: comp the deals worth comping. Don't comp junk, and don't skip comping a real one.\", \"Follow-up block: hit every open offer and every “maybe.” The money is in the follow-up.\", \"Weekly review: what went out, what came back, what's next — and your numbers.\"]}, {\"t\": \"callout\", \"title\": \"The move\", \"text\": \"Treat offers like a muscle — reps every day. A pipeline of offers going out consistently is what turns into deals. Miss a week and the whole pipeline goes cold on you.\"}]}",
+      "summary": "Block your calendar so the reps happen: daily MLS pulls, outreach, comping, and follow-up — consistency wins.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 8.3
+    },
+    {
+      "id": "cf-ao-10",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "The Full Deal Process — Start to Close",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Here's the whole thing on one page — the run of show from “I want deals” to “I got paid.” Every lesson and module you've gone through plugs into one of these steps. This is the system; run it on repeat.\"}, {\"t\": \"h\", \"text\": \"1. Set your foundation\"}, {\"t\": \"p\", \"text\": \"Pick your market, build your cash-buyers list, line up hard money, and lock in an investor-friendly title company. Show up ready and agents take you seriously.\"}, {\"t\": \"h\", \"text\": \"2. Pick your channel split\"}, {\"t\": \"p\", \"text\": \"60/40 or 70/30, MLS vs agent outreach — weighted to your market's inventory. Big metro leans MLS; thin market leans agent outreach.\"}, {\"t\": \"h\", \"text\": \"3. Find the deals\"}, {\"t\": \"ul\", \"items\": [\"MLS sniper: hunt as-is, price cuts, high days-on-market, and expired/vacant — then offer on your numbers.\", \"Agent attraction: build relationships so investor-friendly agents bring you off-market deals first.\"]}, {\"t\": \"h\", \"text\": \"4. Comp it\"}, {\"t\": \"p\", \"text\": \"Pull sold comps and nail your ARV and repair number before you ever send a price.\"}, {\"t\": \"h\", \"text\": \"5. Make the offer\"}, {\"t\": \"p\", \"text\": \"Ready paperwork, clean terms, and a response time on every offer. “My offer today is not my offer tomorrow.”\"}, {\"t\": \"h\", \"text\": \"6. Negotiate\"}, {\"t\": \"p\", \"text\": \"Hold your number, trade on terms before price, and keep the posture: “I want the deal, I don't need the deal.”\"}, {\"t\": \"h\", \"text\": \"7. Get the deal — then protect it\"}, {\"t\": \"ul\", \"items\": [\"Straight to title, set your inspection and due diligence, and know the timeline cold.\", \"Keep the agent and seller updated so cold feet never set in.\"]}, {\"t\": \"h\", \"text\": \"8. Line up your buyer\"}, {\"t\": \"p\", \"text\": \"Qualify a buyer from your list and package the deal so it sells itself. (That's the Dispositions playbook.)\"}, {\"t\": \"h\", \"text\": \"9. Exit\"}, {\"t\": \"p\", \"text\": \"Assignment or double close — collect your fee or your spread, and bank the relationship for the next one.\"}, {\"t\": \"callout\", \"title\": \"The whole game\", \"text\": \"Deals without a marketing budget, run like a system, every week: foundation → channel → find → comp → offer → negotiate → lock → buyer → exit. Rinse and repeat.\"}]}",
+      "summary": "The entire pipeline on one page: foundation → channel → find → comp → offer → negotiate → lock → buyer → exit.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 8.6
     }
   ]
 }
