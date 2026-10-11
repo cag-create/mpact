@@ -246,6 +246,19 @@ function AppProvider({ children }) {
     if (dupCourse) setCourses(cs => cs.filter(c => c.id !== 'creafi-way'))
   }, [hydrated, currentUser?.id, modules, lessons, courses])
 
+  // ── One-time: lock every Crea'fi module from members until recordings go up ──
+  // Admins still see everything (canEdit bypasses locks). Runs once per module
+  // (marked with _releaseInit) and never re-locks one the admin later releases, so
+  // the admin can flip "Release" on a module as soon as its videos are recorded.
+  useEffect(() => {
+    if (!hydrated || !currentUser) return
+    if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    const needInit = modules.some(m => m.communityId === 'creafi' && !m._releaseInit)
+    if (!needInit) return
+    setModules(ms => ms.map(m => (m.communityId === 'creafi' && !m._releaseInit)
+      ? { ...m, alwaysOpen: false, released: false, _releaseInit: true } : m))
+  }, [hydrated, currentUser?.id, modules])
+
   // ── Auth (server-backed) ──────────────────────────────────────────────────
   const login = async (email, password) => {
     try {
