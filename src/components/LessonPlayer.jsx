@@ -10,7 +10,7 @@ const TYPE_ICON = { video: Play, quiz: ListChecks, pdf: File, link: LinkIcon, te
 import LessonBody from './LessonBody'
 import Quiz from './Quiz'
 
-const INTRO_URL = 'https://creafigenius.com/assets/creafi-intro.mp4'  // branded pre-roll before every lesson video
+const INTRO_URL = '/creafi-intro.mp4'  // branded disclaimer intro, served same-origin from the app's public/ dir
 
 const TYPE_LABEL = { video: 'Video', text: 'Lesson', pdf: 'PDF', link: 'Resource', quiz: 'Quiz' }
 
@@ -69,11 +69,19 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
     try { return sessionStorage.getItem(introKey) !== '1' } catch { return true }  // once per module per session (everyone)
   })
   const [introSkippable, setIntroSkippable] = useState(false)
+  const [introMuted, setIntroMuted] = useState(false)  // true only if the browser blocked sound and we fell back to muted
   const dismissIntro = () => { try { sessionStorage.setItem(introKey, '1') } catch {}; setShowIntro(false) }
+  const unmuteIntro = () => { const v = introRef.current; if (!v) return; v.muted = false; setIntroMuted(false); v.play().catch(() => {}) }
   useEffect(() => {
     if (!showIntro) return
     const t = setTimeout(() => setIntroSkippable(true), 5000)
-    if (introRef.current) introRef.current.play().catch(() => {})
+    const v = introRef.current
+    if (v) {
+      v.muted = false
+      // Try to play with sound. If the browser blocks audio autoplay, fall back to muted so the video still runs,
+      // and surface a "tap for sound" button so the voiceover can be turned on with one click.
+      v.play().catch(() => { v.muted = true; setIntroMuted(true); v.play().catch(() => {}) })
+    }
     return () => clearTimeout(t)
   }, [showIntro])
 
@@ -89,7 +97,8 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
       <div>
         <button onClick={onBack} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-3"><ArrowLeft size={13} /> All capsules</button>
         <div className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden bg-black shadow-sm">
-          <video ref={introRef} src={INTRO_URL} autoPlay playsInline onEnded={dismissIntro} onClick={e => e.currentTarget.paused && e.currentTarget.play()} className="w-full h-full object-contain bg-black cursor-pointer" />
+          <video ref={introRef} src={INTRO_URL} autoPlay playsInline preload="auto" onEnded={dismissIntro} onClick={introMuted ? unmuteIntro : (e => e.currentTarget.paused && e.currentTarget.play())} className="w-full h-full object-contain bg-black cursor-pointer" />
+          {introMuted && <button onClick={unmuteIntro} className="absolute inset-x-0 top-4 mx-auto w-max px-4 py-2 rounded-full bg-white/20 hover:bg-white/35 text-white text-sm font-semibold backdrop-blur-sm transition-colors animate-pulse">🔊 Tap for sound</button>}
           {introSkippable && <button onClick={dismissIntro} className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-colors">Skip ▸</button>}
         </div>
       </div>
