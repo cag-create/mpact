@@ -67,13 +67,13 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const [introDone, setIntroDone] = useState(false)
   const [showSkip, setShowSkip] = useState(false)
   useEffect(() => {
-    if (current && !canEdit && current.type === 'video') {
+    if (current && !canEdit && (current.type === 'video' || current.videoUrl)) {
       setIntroDone(false); setShowSkip(false)
       const t = setTimeout(() => setShowSkip(true), 4000)
       return () => clearTimeout(t)
     }
     setIntroDone(true)
-  }, [current?.id, current?.type, canEdit])
+  }, [current?.id, current?.type, current?.videoUrl, canEdit])
   useEffect(() => {
     if (current && !introDone && introRef.current) {
       const v = introRef.current
@@ -90,17 +90,18 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   // ── Player view (one lesson open) ────────────────────────────────────────────
   if (current) {
     const rich = parseRich(current.content)
+    const videoSrc = current.type === 'video' ? current.content : current.videoUrl  // any lesson can carry a video (Loom/YouTube/…)
     return (
       <div>
         <button onClick={() => setPlayingId(null)} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-3"><ArrowLeft size={13} /> All lessons</button>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-4xl">
-          {current.type === 'video' && (!introDone ? (
+          {videoSrc && (!introDone ? (
             <div className="relative w-full aspect-video bg-black">
               <video ref={introRef} src={INTRO_URL} autoPlay playsInline onEnded={() => setIntroDone(true)} className="w-full h-full object-contain bg-black" />
               {showSkip && <button onClick={() => setIntroDone(true)} className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-colors">Skip intro ▸</button>}
             </div>
           ) : (
-            <VideoEmbed url={current.content} title={current.title} className="rounded-none" autoPlay={!canEdit} />
+            <VideoEmbed url={videoSrc} title={current.title} className="rounded-none" autoPlay={!canEdit} />
           ))}
           <div className="p-6 sm:p-8">
             <p className="text-[11px] font-grotesk font-bold uppercase tracking-widest text-fuchsia-600 mb-1.5">{courseModules.find(m => m.id === current.moduleId)?.title}</p>
@@ -176,10 +177,10 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
             return (
               <MediaRow
                 key={l.id}
-                thumb={l.type === 'video' ? getYouTubeThumbnail(l.content) : null}
+                thumb={getYouTubeThumbnail(l.type === 'video' ? l.content : l.videoUrl)}
                 gradient={moduleGradient(courseModules.find(m => m.id === l.moduleId))}
-                icon={TYPE_ICON[l.type] || BookOpen}
-                badge={l.type === 'video' ? l.duration : null}
+                icon={(l.type === 'video' || l.videoUrl) ? Play : (TYPE_ICON[l.type] || BookOpen)}
+                badge={l.duration || null}
                 title={l.title}
                 description={desc}
                 meta={metaBits.join(' · ')}

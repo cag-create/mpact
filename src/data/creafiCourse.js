@@ -99,6 +99,16 @@ export const CREAFI_COURSE = {
       "order": 6,
       "isPublished": true,
       "released": true
+    },
+    {
+      "id": "cf-bonus-zooms",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Bonus Zooms",
+      "description": "Bonus live sessions and deep-dives — added over time.",
+      "order": 9,
+      "isPublished": true,
+      "released": true
     }
   ],
   "lessons": [
@@ -1457,6 +1467,20 @@ export const CREAFI_COURSE = {
       "summary": "Crea'fi isn't creative finance only — start with the low-barrier way to get a deal and learn (agents, MLS, wholesale, bird dogging), then create finance to scale.",
       "duration": "",
       "isFreePreview": true,
+      "isPublished": true,
+      "order": 1
+    },
+    {
+      "id": "cf-bonuszoom-01",
+      "moduleId": "cf-bonus-zooms",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Welcome to Bonus Zooms",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"This is where the bonus gold lands — replays of live coaching calls, Q&A sessions, deal breakdowns, and special trainings.\"}, {\"t\": \"ul\", \"items\": [\"New recordings get dropped in here as they happen — check back often.\", \"Watch a session, then take the one action it gives you. Replays only pay off if you run the play.\", \"Got a question you want covered on the next live? Post it in the community feed.\"]}, {\"t\": \"callout\", \"title\": \"How to use this\", \"text\": \"These are real, unscripted sessions — messy, honest, and full of the stuff that doesn't make it into a polished lesson. That's the point. Steal what works.\"}]}",
+      "summary": "Replays of live coaching calls, Q&As, and deep-dives — new drops land here as they happen.",
+      "duration": "",
+      "isFreePreview": false,
       "isPublished": true,
       "order": 1
     }

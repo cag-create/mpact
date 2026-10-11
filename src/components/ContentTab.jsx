@@ -2,10 +2,11 @@ import React, { useState } from 'react'
 import {
   BookOpen, Play, FileText, File, Link as LinkIcon, Plus, Trash2,
   ChevronDown, ChevronRight, Eye, EyeOff, ArrowUp, ArrowDown,
-  Edit3, Check, X, Video, Lock, Unlock, Youtube, Users, ListChecks
+  Edit3, Check, X, Video, Lock, Unlock, Youtube, Users, ListChecks, Circle, Monitor
 } from 'lucide-react'
 import { useApp } from '../App'
 import { getYouTubeId, getYouTubeThumbnail, VideoEmbed } from '../lib/video.jsx'
+import LessonRecorder from './LessonRecorder'
 
 // ─── Release-to-members modal (per-participant drip) ───────────────────────────
 function ReleaseMembersModal({ module, communityId, onClose }) {
@@ -75,10 +76,12 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
     title:         lesson?.title         || '',
     type:          lesson?.type          || 'video',
     content:       lesson?.content       || '',
+    videoUrl:      lesson?.videoUrl      || '',
     duration:      lesson?.duration      || '',
     isFreePreview: lesson?.isFreePreview || false,
     isPublished:   lesson?.isPublished   || false,
   })
+  const [showRecorder, setShowRecorder] = useState(false)
 
 
   const canSave = form.title.trim()
@@ -207,6 +210,25 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
             </div>
           )}
 
+          {/* Lesson video (Loom / demo / voiceover) — for non-video lessons it plays above the content */}
+          {form.type !== 'video' && (
+            <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5">
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Lesson video <span className="font-normal text-gray-400">(optional — Loom, YouTube, Vimeo, or Drive)</span></label>
+              <input
+                value={form.videoUrl}
+                onChange={e => setForm(p => ({ ...p, videoUrl: e.target.value }))}
+                placeholder="https://www.loom.com/share/..."
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <div className="flex flex-wrap gap-2 mt-2">
+                <a href="https://www.loom.com/record" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#625df5] text-white text-xs font-semibold hover:opacity-90"><Video size={13} /> Record in Loom ↗</a>
+                <button type="button" onClick={() => setShowRecorder(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-white"><Circle size={9} className="text-red-500 fill-red-500" /> Record in browser</button>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Add a video to talk through this lesson, show a live demo, or record a voiceover — it plays above the written content for members.</p>
+              {form.videoUrl && <div className="mt-2.5 rounded-lg overflow-hidden"><VideoEmbed url={form.videoUrl} title="Preview" /></div>}
+            </div>
+          )}
+
           {/* Toggles */}
           <div className="flex gap-3">
             <button
@@ -241,6 +263,7 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
           </button>
         </div>
       </div>
+      {showRecorder && <div onClick={e => e.stopPropagation()}><LessonRecorder onClose={() => setShowRecorder(false)} /></div>}
     </div>
   )
 }
