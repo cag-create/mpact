@@ -79,6 +79,16 @@ export const CREAFI_COURSE = {
       "order": 7,
       "isPublished": true,
       "released": true
+    },
+    {
+      "id": "cf-genius-intro",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Crea'fi Genius",
+      "description": "Start here — what Crea'fi is, how the program works, and the language of the game.",
+      "order": 0.5,
+      "isPublished": true,
+      "released": true
     }
   ],
   "lessons": [
@@ -1159,6 +1169,48 @@ export const CREAFI_COURSE = {
       "isFreePreview": false,
       "isPublished": true,
       "order": 9
+    },
+    {
+      "id": "cf-vocab-01",
+      "moduleId": "cf-genius-intro",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Vocabulary — The Basics, Money & Paperwork",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Before you can play the game, you've got to speak the language. These are the words you'll hear on every call, in every contract, and at every closing. Know them cold and you'll never feel lost in a conversation with a seller, an agent, or a title company.\"}, {\"t\": \"h\", \"text\": \"People & the market\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"MLS\", \"v\": \"The Multiple Listing Service — the database agents use to list and share properties for sale. Your biggest free source of on-market deals.\"}, {\"k\": \"Broker vs Agent\", \"v\": \"An agent is licensed to sell real estate but works under a broker. A broker has more training, can run their own shop, and supervises agents. Both can bring you deals.\"}, {\"k\": \"Pocket Listing\", \"v\": \"A property an agent has for sale but hasn't put on the MLS yet. Get in with the right agents and you see these before anyone else does.\"}, {\"k\": \"Transaction Coordinator (TC)\", \"v\": \"The person who herds all the paperwork and deadlines from contract to close so nothing slips through the cracks.\"}]}, {\"t\": \"h\", \"text\": \"The money\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"EMD (Earnest Money Deposit)\", \"v\": \"The “good faith” money you put down to show you're serious when you go under contract. It usually sits with the title company, not the seller.\"}, {\"k\": \"Escrow\", \"v\": \"A neutral third party (title company or attorney) that holds the money and documents until both sides do their part, then closes the deal.\"}, {\"k\": \"Close of Escrow (COE)\", \"v\": \"The finish line — when the deal officially records, money changes hands, and the property transfers.\"}, {\"k\": \"ROI (Return on Investment)\", \"v\": \"What you make back compared to what you put in. Put in $10k, make $3k, that's a 30% ROI.\"}, {\"k\": \"Settlement Sheet / HUD\", \"v\": \"The closing statement that lays out every dollar in the deal — price, payoffs, fees, credits, and what each side walks with.\"}, {\"k\": \"Blind HUD\", \"v\": \"A settlement statement where one side can't see the other's numbers — used in a double close so your end buyer doesn't see what you paid the seller (and vice versa).\"}]}, {\"t\": \"h\", \"text\": \"The paperwork\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Purchase Contract\", \"v\": \"The agreement that locks up the property — price, terms, timelines, and contingencies. This is what you're really selling when you assign a deal.\"}, {\"k\": \"Assignment Contract\", \"v\": \"The paperwork that transfers your rights under a purchase contract to another buyer for a fee. You're selling the contract, not the house.\"}, {\"k\": \"Inspection Period / Due Diligence (IP/DD)\", \"v\": \"Your window after going under contract to verify the property, the numbers, and the title — and to walk if it doesn't check out.\"}]}, {\"t\": \"h\", \"text\": \"The moves\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Double Close\", \"v\": \"Two back-to-back closings: you buy from the seller, then sell to your end buyer, usually the same day. Keeps your spread and your buyer private.\"}, {\"k\": \"Equitable Interest\", \"v\": \"The ownership-like interest you get the moment you go under contract — it's what gives you the right to assign or sell your position.\"}, {\"k\": \"The Double Dip\", \"v\": \"When an agent earns commission on both sides of a deal. Agents love it — offer it as your hook to get them working for you.\"}, {\"k\": \"Lease Back vs Hold Back\", \"v\": \"Lease back = the seller stays and rents from you after closing. Hold back = money is held in escrow after closing until something gets done (repairs, a move-out, a payoff).\"}]}]}",
+      "summary": "The words you'll hear on every call and at every closing — MLS, escrow, EMD, contracts, double close, and more.",
+      "duration": "",
+      "isFreePreview": true,
+      "isPublished": true,
+      "order": 2
+    },
+    {
+      "id": "cf-vocab-02",
+      "moduleId": "cf-genius-intro",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Vocabulary — Creative Finance",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Now the creative-finance words — the ones that separate a Crea'fi operator from a regular wholesaler. These show up all over Modules 2 and 3. Know them so the strategies actually make sense.\"}, {\"t\": \"h\", \"text\": \"The numbers\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"ARV (After-Repair Value)\", \"v\": \"What the property is worth fixed up and sold retail. Every deal starts here — you work backward from ARV.\"}, {\"k\": \"Comps\", \"v\": \"Recently sold properties like yours (same area, size, condition) that prove the value. No comps, no number.\"}, {\"k\": \"Assignment Fee\", \"v\": \"Your paycheck on a wholesale — the fee you charge to hand your contract to the end buyer.\"}, {\"k\": \"Hard Money\", \"v\": \"Short-term, asset-based loans from private lenders. Fast and flexible, higher cost — used to fund flips and quick closes.\"}, {\"k\": \"DSCR\", \"v\": \"Debt-Service Coverage Ratio — a rental loan that qualifies on the property's income, not your personal income.\"}]}, {\"t\": \"h\", \"text\": \"The structures\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Subject-To\", \"v\": \"Buying a property and leaving the seller's existing loan in place — you take title and make the payments.\"}, {\"k\": \"Seller Financing\", \"v\": \"The seller becomes the bank and carries a note — you pay them over time instead of a lender.\"}, {\"k\": \"Hybrid\", \"v\": \"A mix — cash for the seller's equity plus taking over (or creating) financing for the rest.\"}, {\"k\": \"Novation\", \"v\": \"You partner with the seller to fix and sell retail, swapping the original contract for a new one so you can reach retail (FHA/VA) buyers.\"}, {\"k\": \"Lease Option\", \"v\": \"A lease plus the right to buy later — control without owning yet.\"}, {\"k\": \"Wraparound (Wrap)\", \"v\": \"You sell on a new note that “wraps around” the existing loan — the buyer pays you, you pay the underlying loan, you keep the spread.\"}]}, {\"t\": \"h\", \"text\": \"The exits & the fine print\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"Wholesale\", \"v\": \"Lock up a deal and assign the contract to another buyer for a fee. No rehab, no holding.\"}, {\"k\": \"Wholetail\", \"v\": \"Light cleanup, then list on the MLS for retail — more than a wholesale, less than a full flip.\"}, {\"k\": \"Due-on-Sale Clause\", \"v\": \"A clause in most mortgages that lets the lender call the loan due if the property transfers. The risk you manage on a subject-to.\"}, {\"k\": \"Power of Attorney (POA)\", \"v\": \"A document authorizing you to act on someone's behalf in a limited way — to manage a loan or signing. It does not transfer ownership or release the borrower.\"}]}]}",
+      "summary": "The creative-finance terms behind the strategies: ARV, subject-to, seller finance, wraps, novation, DSCR, due-on-sale, and more.",
+      "duration": "",
+      "isFreePreview": true,
+      "isPublished": true,
+      "order": 3
+    },
+    {
+      "id": "cf-vocab-quiz",
+      "moduleId": "cf-genius-intro",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Vocabulary Quiz",
+      "type": "quiz",
+      "content": "{\"v\": 1, \"quiz\": {\"title\": \"Vocabulary Quiz\", \"passPct\": 70, \"questions\": [{\"q\": \"What is the MLS?\", \"choices\": [\"A type of loan\", \"The database agents use to list and share properties for sale\", \"A closing document\", \"A creative finance structure\"], \"answer\": 1}, {\"q\": \"EMD stands for…\", \"choices\": [\"Early Mortgage Default\", \"Earnest Money Deposit\", \"Equity Market Discount\", \"Estimated Monthly Debt\"], \"answer\": 1}, {\"q\": \"An assignment contract transfers…\", \"choices\": [\"The house itself\", \"Your rights under a purchase contract to another buyer for a fee\", \"The seller's mortgage\", \"The agent's commission\"], \"answer\": 1}, {\"q\": \"What is ARV?\", \"choices\": [\"The price the seller is asking\", \"What the property is worth fixed up and sold retail\", \"Your assignment fee\", \"The loan balance\"], \"answer\": 1}, {\"q\": \"Subject-To means…\", \"choices\": [\"The seller carries a new note\", \"Buying and leaving the seller's existing loan in place while you take title\", \"Paying all cash\", \"A lease with an option to buy\"], \"answer\": 1}, {\"q\": \"A double close is…\", \"choices\": [\"Closing two deals in different states\", \"Two back-to-back closings — you buy from the seller, then sell to your end buyer\", \"Closing twice on the same house by accident\", \"A type of inspection\"], \"answer\": 1}, {\"q\": \"The 'double dip' is when an agent…\", \"choices\": [\"Charges you twice\", \"Earns commission on both sides of a deal\", \"Lists a property twice\", \"Backs out of a deal\"], \"answer\": 1}, {\"q\": \"The due-on-sale clause is the main risk you manage on…\", \"choices\": [\"A wholesale\", \"A subject-to deal\", \"A cash purchase\", \"A lease option\"], \"answer\": 1}]}}",
+      "summary": "8 questions · pass 70%+",
+      "duration": "",
+      "isFreePreview": true,
+      "isPublished": true,
+      "order": 4
     }
   ]
 }
