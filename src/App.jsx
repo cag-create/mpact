@@ -187,19 +187,42 @@ function AppProvider({ children }) {
   useEffect(() => sync('replays', replays), [replays])
   useEffect(() => sync('progress', progress), [progress])
 
-  // ── One-time seed of the Crea'fi starter course (admin only, idempotent) ──
-  // Injects the course/modules/lessons as real, editable records so an admin can
-  // rearrange, edit, or delete them in the Build UI. Re-seeds only if the whole
-  // course was deleted (guarded by the fixed course id).
+  // ── Seed Crea'fi starter lessons into the EXISTING module shells (admin only) ──
+  // The course already has empty modules (Mindset, Creative Finance & Acquisitions,
+  // Wholesaling, High-Level Sales Training). We match our content to those modules by
+  // title and fill them with lessons, so the admin keeps one course and can rearrange
+  // freely. Idempotent, and self-cleans any earlier duplicate modules/course we made.
   useEffect(() => {
     if (!hydrated || !currentUser) return
     if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
-    if (courses.some(c => c.id === CREAFI_COURSE.course.id)) return
+    const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const creafiMods = modules.filter(m => m.communityId === 'creafi')
+    // target = the existing (non-seed) module each content group belongs in, matched by title
+    const existingByName = {}
+    for (const m of creafiMods) {
+      if (String(m.id).startsWith('mod-creafi-')) continue  // skip our own earlier duplicates
+      const k = norm(m.title)
+      if (!(k in existingByName)) existingByName[k] = m
+    }
+    const targetBySeedId = {}
+    for (const sm of CREAFI_COURSE.modules) {
+      const ex = existingByName[norm(sm.title)]
+      if (ex) targetBySeedId[sm.id] = ex
+    }
+    if (Object.keys(targetBySeedId).length < CREAFI_COURSE.modules.length) return  // no home found; don't pollute
+    const desired = CREAFI_COURSE.lessons
+      .filter(l => targetBySeedId[l.moduleId])
+      .map(l => { const ex = targetBySeedId[l.moduleId]; return { ...l, moduleId: ex.id, courseId: ex.courseId || l.courseId } })
+    const desiredIds = new Set(desired.map(d => d.id))
+    const placed = desired.every(d => lessons.some(l => l.id === d.id && l.moduleId === d.moduleId))
+    const dupModules = modules.some(m => String(m.id).startsWith('mod-creafi-'))
+    const dupCourse = courses.some(c => c.id === 'creafi-way')
+    if (placed && !dupModules && !dupCourse) return  // already correct — no-op
     const now = Date.now()
-    setLessons(ls => { const have = new Set(ls.map(l => l.id)); return [...ls, ...CREAFI_COURSE.lessons.filter(l => !have.has(l.id)).map(l => ({ ...l, createdAt: now }))] })
-    setModules(ms => { const have = new Set(ms.map(m => m.id)); return [...ms, ...CREAFI_COURSE.modules.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))] })
-    setCourses(cs => cs.some(c => c.id === CREAFI_COURSE.course.id) ? cs : [...cs, { ...CREAFI_COURSE.course, createdAt: now }])
-  }, [hydrated, currentUser?.id, courses])
+    setLessons(ls => [...ls.filter(l => !desiredIds.has(l.id)), ...desired.map(d => ({ ...d, createdAt: now }))])
+    if (dupModules) setModules(ms => ms.filter(m => !String(m.id).startsWith('mod-creafi-')))
+    if (dupCourse) setCourses(cs => cs.filter(c => c.id !== 'creafi-way'))
+  }, [hydrated, currentUser?.id, modules, lessons, courses])
 
   // ── Auth (server-backed) ──────────────────────────────────────────────────
   const login = async (email, password) => {
