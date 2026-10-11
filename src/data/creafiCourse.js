@@ -69,6 +69,16 @@ export const CREAFI_COURSE = {
       "order": 10,
       "isPublished": true,
       "released": true
+    },
+    {
+      "id": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Agent Outreach & Marketing",
+      "description": "Get investment deals off the MLS and through agents — with no paid marketing.",
+      "order": 7,
+      "isPublished": true,
+      "released": true
     }
   ],
   "lessons": [
@@ -1023,6 +1033,104 @@ export const CREAFI_COURSE = {
       "isFreePreview": false,
       "isPublished": true,
       "order": 5
+    },
+    {
+      "id": "cf-agent-outreach-01",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Deals Without a Marketing Budget",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Most investors burn thousands on mailers and PPC just to find one deal. You don't have to. The deals are already sitting on the MLS and in the back pocket of every agent in your market — you just have to pull them out, for the cost of a phone call.\"}, {\"t\": \"callout\", \"title\": \"The big idea\", \"text\": \"Agents touch more deals than any marketing channel on earth. Some are listed and overpriced — your job is to make them work. Some never hit the market — your job is to be the buyer the agent calls first. Own both and you never pay for a lead again.\"}, {\"t\": \"h\", \"text\": \"Two channels, one goal\"}, {\"t\": \"kv\", \"items\": [{\"k\": \"The MLS (sniper)\", \"v\": \"On-market, listed properties. You submit smart offers through the listing agent. Fast, high volume, you control the pace.\"}, {\"k\": \"Agent outreach (attraction)\", \"v\": \"Off-market and pocket listings. You build relationships so investor-friendly agents bring YOU the deal before anyone else sees it.\"}]}, {\"t\": \"callout\", \"title\": \"Pick your split\", \"text\": \"Don't go 50/50 and spread yourself thin. Run 60/40 or 70/30 — one primary channel you hammer every day, and a secondary you keep warm. Consistency on one beats dabbling in both.\"}]}",
+      "summary": "Skip the marketing spend — pull deals off the MLS and out of agents' pockets. Two channels, one goal.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 1
+    },
+    {
+      "id": "cf-agent-outreach-02",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Set Your Foundation First",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Before you make a single offer, line up the pieces so you can actually close — and so agents take you seriously from the first call.\"}, {\"t\": \"ul\", \"items\": [\"Pick your market: start where you live or a nearby metro. Familiar area, easy to network, easy to drive by. It's your starting point, not a marriage.\", \"Build a cash-buyers list (that's the Dispositions playbook) so you know who takes the deal before you lock it.\", \"Line up hard money or a lender so you can prove funds and close fast.\", \"Pick an investor-friendly title company or closing attorney — one that does assignments and double closes without blinking.\"]}, {\"t\": \"callout\", \"title\": \"Why it matters\", \"text\": \"An agent can smell a tire-kicker from the first sentence. Show up with buyers, funding, and a title company ready to go and you're not “some wholesaler” — you're a buyer who closes. That reputation is the whole game.\"}]}",
+      "summary": "Line up your market, buyers, funding, and title company first — so agents take you seriously and you can close.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 2
+    },
+    {
+      "id": "cf-agent-outreach-03",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Attract Investor-Friendly Agents",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"You don't need every agent in town. You need the handful who already work with investors and want a buyer who performs. Find them, make their life easy, and they'll feed you deals for years.\"}, {\"t\": \"h\", \"text\": \"Where to find them\"}, {\"t\": \"ul\", \"items\": [\"The listing agents on flips, and on “sold as-is” / “cash only” / “needs TLC” listings.\", \"The agents showing up at your local REIA and investor meetups.\", \"Facebook investor groups — the agents in there are hunting for buyers like you.\"]}, {\"t\": \"h\", \"text\": \"Lead with what's in it for them\"}, {\"t\": \"ul\", \"items\": [\"Both sides of the commission — they represent you and the seller.\", \"A fast, clean close with no retrading.\", \"Repeat business — you're not a one-off, you're a buyer they can bring deals to every month.\"]}, {\"t\": \"callout\", \"title\": \"The pitch, in plain words\", \"text\": \"“I'm a local cash buyer. I close fast, I don't retrade, and I'll let you keep both sides. If you've got anything that needs to move — as-is, tired landlord, expired, whatever — send it my way first.” Then follow up every week. Most investors ghost; the one who stays in front becomes the one they call.\"}]}",
+      "summary": "Target the few agents who work with investors, make them money and their job easy, and follow up weekly.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 3
+    },
+    {
+      "id": "cf-agent-outreach-04",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Work the MLS Like a Sniper",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"The MLS isn't just for retail buyers. Listed deals go stale, prices drop, and sellers get motivated. Your job is to spot them fast and make an offer that works for YOU — not the list price.\"}, {\"t\": \"h\", \"text\": \"Hunt the signals\"}, {\"t\": \"ul\", \"items\": [\"High days-on-market and price cuts — the seller is tired.\", \"“As-is,” “cash only,” “needs TLC,” “investor special.”\", \"Expired and relisted, or vacant — motivation is building.\"]}, {\"t\": \"h\", \"text\": \"Comp it before you offer\"}, {\"t\": \"ul\", \"items\": [\"Pull recent sold comps in the same area, size, and condition.\", \"Know your ARV and your repair number cold before you send a number.\", \"Make the offer fit your math — low is fine, you're playing volume.\"]}, {\"t\": \"callout\", \"title\": \"Volume beats perfection\", \"text\": \"You're not trying to win every one. Fire off offers that work for your numbers and let the motivated sellers circle back. Ten no's and one yes is a deal — that's a great day.\"}]}",
+      "summary": "Spot stale/as-is/price-cut listings, comp them fast, and offer on your numbers — volume, not perfection.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 4
+    },
+    {
+      "id": "cf-agent-outreach-05",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Make Offers at Volume",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"One offer is a lottery ticket. A pipeline of offers is a business. Systematize it so you can send a lot, fast, without burning out.\"}, {\"t\": \"ul\", \"items\": [\"Keep your paperwork ready: a purchase contract with assignability and an inspection period baked in.\", \"Clean offer terms: realistic earnest money, a due-diligence window, and a close date that lets you assign or double close.\", \"Submit through the listing agent, respond fast, and be flat-out easy to work with.\", \"Track every offer — property, agent, offer, response, next step — and follow up on every single no.\"]}, {\"t\": \"callout\", \"title\": \"The move\", \"text\": \"Make the agent's job easy and your offer easy to say yes to. Reputation is everything in this game — agents talk, and the easy buyer gets the next call.\"}]}",
+      "summary": "Systematize offers: ready paperwork, clean terms, submit fast, track everything, follow up on every no.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 5
+    },
+    {
+      "id": "cf-agent-outreach-06",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Negotiate, Lock It, and Close",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"A counter is a good sign — it means they're playing. Don't flinch and don't overpay. Negotiate on terms and numbers, lock it up, and take it to your exit.\"}, {\"t\": \"ul\", \"items\": [\"Counteroffers: hold your number and trade on terms — close date, earnest money, as-is — before you ever move on price.\", \"When you get a deal: get it to title, set your inspection and due diligence, and line up your buyer (Dispositions).\", \"Know the timeline cold so nothing surprises you or the seller.\", \"Exit with an assignment or a double close — same playbook as wholesaling.\"]}, {\"t\": \"callout\", \"title\": \"Protect the deal\", \"text\": \"Once it's locked, manage it to the finish line. Keep the agent and the seller updated so cold feet never get a chance to set in.\"}]}",
+      "summary": "Hold your number, trade on terms, lock it to title, line up your buyer, and close via assignment or double close.",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 6
+    },
+    {
+      "id": "cf-agent-outreach-quiz",
+      "moduleId": "cf-agent-outreach",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Module Quiz: Agent Outreach & Marketing",
+      "type": "quiz",
+      "content": "{\"v\": 1, \"quiz\": {\"title\": \"Module Quiz: Agent Outreach & Marketing\", \"passPct\": 70, \"questions\": [{\"q\": \"What's the whole point of the agent-investor method?\", \"choices\": [\"Spend big on mailers and ads\", \"Get deals without paying for marketing\", \"Only buy off the MLS at list price\", \"Become a licensed agent first\"], \"answer\": 1}, {\"q\": \"What are the two channels?\", \"choices\": [\"Facebook ads and Google ads\", \"The MLS (sniper) and agent outreach (attraction)\", \"Door knocking and cold calling only\", \"Auctions and tax sales\"], \"answer\": 1}, {\"q\": \"How should you split your focus between channels?\", \"choices\": [\"50/50, evenly\", \"60/40 or 70/30 — a primary and a secondary\", \"100% on whichever is trendy\", \"Switch randomly each week\"], \"answer\": 1}, {\"q\": \"Why do investor-friendly agents want to work with you?\", \"choices\": [\"You pay above asking every time\", \"A fast, clean close, repeat business, and often both sides of the commission\", \"You never actually close\", \"You take months to decide\"], \"answer\": 1}, {\"q\": \"Which MLS signals point to a motivated seller?\", \"choices\": [\"Brand-new listing at full price\", \"High days-on-market, price cuts, 'as-is' / 'cash only', expired or vacant\", \"Luxury homes in a hot zip\", \"Homes with bidding wars\"], \"answer\": 1}, {\"q\": \"Before you send an offer, you should…\", \"choices\": [\"Guess the value\", \"Comp it and know your ARV and repair number\", \"Offer the list price\", \"Wait for the agent to tell you what to pay\"], \"answer\": 1}, {\"q\": \"What's the right mindset on offer volume?\", \"choices\": [\"Make one perfect offer and wait\", \"Fire off offers that work for your numbers — you don't need to win every one\", \"Only offer on the nicest houses\", \"Never offer below list\"], \"answer\": 1}, {\"q\": \"When you get a counteroffer, you should…\", \"choices\": [\"Immediately pay what they ask\", \"Hold your number and trade on terms before moving on price\", \"Walk away instantly\", \"Double your offer\"], \"answer\": 1}]}}",
+      "summary": "8 questions · pass 70%+",
+      "duration": "",
+      "isFreePreview": false,
+      "isPublished": true,
+      "order": 7
     }
   ]
 }
