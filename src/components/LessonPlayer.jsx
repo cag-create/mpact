@@ -174,6 +174,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
               <MediaRow
                 key={l.id}
                 thumb={l.type === 'video' ? getYouTubeThumbnail(l.content) : null}
+                fallback="/creafi-course-thumb.webp"
                 badge={l.type === 'video' ? l.duration : null}
                 title={l.title}
                 description={desc}

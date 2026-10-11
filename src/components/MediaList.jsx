@@ -5,7 +5,7 @@ import { Image as ImageIcon, ChevronLeft, ChevronRight, Lock, Check, Play } from
 // middle, and a thin progress line on the right. Used for lessons inside a Capsule
 // module and for replays in The Lab.
 
-export function MediaRow({ thumb, title, description, meta, progress = null, locked = false, badge, accent = '#2563eb', onClick }) {
+export function MediaRow({ thumb, fallback, title, description, meta, progress = null, locked = false, badge, accent = '#2563eb', onClick }) {
   const clickable = !!onClick && !locked
   return (
     <button
@@ -18,7 +18,9 @@ export function MediaRow({ thumb, title, description, meta, progress = null, loc
       <div className="relative aspect-video rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
         {thumb
           ? <img src={thumb} alt="" className="w-full h-full object-cover" draggable={false} />
-          : <ImageIcon size={26} className="text-gray-300" />}
+          : fallback
+            ? <img src={fallback} alt="" className="w-full h-full object-contain bg-zinc-900 p-3" draggable={false} />
+            : <ImageIcon size={26} className="text-gray-300" />}
         {badge && <span className="absolute bottom-1.5 left-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-black/70 text-white">{badge}</span>}
         {locked
           ? <span className="absolute inset-0 bg-black/30 flex items-center justify-center"><Lock size={20} className="text-white" /></span>
