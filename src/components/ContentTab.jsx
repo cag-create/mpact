@@ -213,7 +213,7 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
           {/* Lesson video (Loom / demo / voiceover) — for non-video lessons it plays above the content */}
           {form.type !== 'video' && (
             <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5">
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Lesson video <span className="font-normal text-gray-400">(optional — Loom, YouTube, Vimeo, or Drive)</span></label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Lesson video <span className="font-normal text-gray-400">(optional — YouTube unlisted recommended; also Vimeo, Loom, Drive)</span></label>
               <input
                 value={form.videoUrl}
                 onChange={e => setForm(p => ({ ...p, videoUrl: e.target.value }))}
@@ -225,6 +225,7 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
                 <button type="button" onClick={() => setShowRecorder(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-white"><Circle size={9} className="text-red-500 fill-red-500" /> Record in browser</button>
               </div>
               <p className="text-xs text-gray-400 mt-2">Add a video to talk through this lesson, show a live demo, or record a voiceover — it plays above the written content for members.</p>
+              <p className="text-[11px] text-gray-500 mt-1.5 flex items-start gap-1"><span>🔒</span><span>To never lose a lesson: upload to <span className="font-semibold">YouTube as Unlisted</span> (on an account you control) and <span className="font-semibold">keep your original file</span>. A Loom can be deleted or lose access — a link alone is not a backup.</span></p>
               {form.videoUrl && <div className="mt-2.5 rounded-lg overflow-hidden"><VideoEmbed url={form.videoUrl} title="Preview" /></div>}
             </div>
           )}

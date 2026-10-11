@@ -97,12 +97,12 @@ export default function LessonRecorder({ onClose }) {
                 <button onClick={reset} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50"><RotateCcw size={15} /> Record again</button>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed bg-gray-50 border border-gray-100 rounded-xl p-3">
-                Next: upload this clip to <span className="font-semibold">Loom, YouTube (unlisted), or Google Drive</span>, copy the share link, and paste it into the lesson's <span className="font-semibold">Video link</span> field. That hosts it so it plays fast for members.
+                Next: upload this clip to <span className="font-semibold">YouTube as Unlisted</span> (recommended — on an account you control), copy the share link, and paste it into the lesson's <span className="font-semibold">Video link</span> field. Keep this original file as your backup, so you never lose the lesson if a link breaks.
               </p>
             </div>
           )}
 
-          <p className="text-[11px] text-gray-400 mt-4">Tip: For the smoothest record-and-share, use the <span className="font-semibold">Record in Loom</span> button on the lesson — it records your screen + camera and gives you a link in one step.</p>
+          <p className="text-[11px] text-gray-400 mt-4">Tip: Loom is handy for quick capture, but don't let a Loom link be your only copy — it can be deleted or lose access. Host the final cut on <span className="font-semibold">YouTube (Unlisted)</span> and keep your original file.</p>
         </div>
       </div>
     </div>
