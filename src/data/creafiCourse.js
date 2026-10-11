@@ -1445,6 +1445,20 @@ export const CREAFI_COURSE = {
       "isFreePreview": false,
       "isPublished": true,
       "order": 7
+    },
+    {
+      "id": "cf-welcome",
+      "moduleId": "cf-genius-intro",
+      "communityId": "creafi",
+      "courseId": "creafi-way",
+      "title": "Start Here — What Crea'fi Is & How This Works",
+      "type": "text",
+      "content": "{\"v\": 1, \"blocks\": [{\"t\": \"lead\", \"text\": \"Welcome to Crea'fi. First thing to get straight: this is not “creative finance only.” Crea'fi means Create Finance — creating income in real estate — and the fastest way to do that is to start with the lowest-barrier way to get a deal done, then layer in the creative stuff as you grow.\"}, {\"t\": \"h\", \"text\": \"Start with the low-barrier on-ramp\"}, {\"t\": \"p\", \"text\": \"You do not need money, a license, or a marketing budget to get your first deal. The lowest-barrier path is working agents and the MLS, wholesaling, and bird dogging — connecting deals to buyers for a fee. That's how you get a deal done AND learn the whole business at the same time, with almost nothing at risk.\"}, {\"t\": \"ul\", \"items\": [\"Bird dogging & reverse wholesaling — connect deals to buyers and get paid on volume, no money needed.\", \"Agent outreach & the MLS — pull deals off-market and on-market without paying for marketing.\", \"Wholesaling — lock up a deal and assign it for a fee.\"]}, {\"t\": \"h\", \"text\": \"Then you create finance\"}, {\"t\": \"p\", \"text\": \"Once you can find and move a deal, you level up. Creative finance — subject-to, seller financing, wraps, novation, lease options — is how you do bigger, better deals that straight cash buyers can't touch. That's where the name lives: Create Finance.\"}, {\"t\": \"h\", \"text\": \"How this program works\"}, {\"t\": \"ul\", \"items\": [\"Learn the Vocabulary first so you speak the language on every call.\", \"Lock in the Mindset, then learn to find and structure deals (Creative Finance & Acquisitions, Wholesaling).\", \"Get deals the low-barrier way (Agent Outreach, Bird Dogging) and learn to move them (Dispositions).\", \"Level up your sales (High-Level Sales Training) and set your business up right (Business Structures).\"]}, {\"t\": \"callout\", \"title\": \"The path\", \"text\": \"Get a deal done the low-barrier way first — that's how you learn and earn with almost no risk. Then create finance to scale into bigger deals. You don't have to master it all at once. Just take the next step.\"}]}",
+      "summary": "Crea'fi isn't creative finance only — start with the low-barrier way to get a deal and learn (agents, MLS, wholesale, bird dogging), then create finance to scale.",
+      "duration": "",
+      "isFreePreview": true,
+      "isPublished": true,
+      "order": 1
     }
   ]
 }
