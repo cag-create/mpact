@@ -62,30 +62,40 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const pages = Math.max(1, Math.ceil(flat.length / PAGE_SIZE))
   useEffect(() => { setPage(1) }, [moduleId, course.id])
 
-  // Branded intro pre-roll: plays before a video lesson (members), then rolls the lesson video.
+  // Branded disclaimer intro: plays once when a member opens a module, then opens the course.
   const introRef = useRef(null)
-  const [introDone, setIntroDone] = useState(false)
-  const [showSkip, setShowSkip] = useState(false)
+  const introKey = 'creafi_intro_' + (moduleId || course.id)
+  const [showIntro, setShowIntro] = useState(() => {
+    if (canEdit) return false                               // admins skip it (use "Preview as member" to see it)
+    try { return sessionStorage.getItem(introKey) !== '1' } catch { return true }
+  })
+  const [introSkippable, setIntroSkippable] = useState(false)
+  const dismissIntro = () => { try { sessionStorage.setItem(introKey, '1') } catch {}; setShowIntro(false) }
   useEffect(() => {
-    if (current && !canEdit && (current.type === 'video' || current.videoUrl)) {
-      setIntroDone(false); setShowSkip(false)
-      const t = setTimeout(() => setShowSkip(true), 4000)
-      return () => clearTimeout(t)
-    }
-    setIntroDone(true)
-  }, [current?.id, current?.type, current?.videoUrl, canEdit])
-  useEffect(() => {
-    if (current && !introDone && introRef.current) {
-      const v = introRef.current
-      v.play().catch(() => { v.muted = true; v.play().catch(() => {}) })
-    }
-  }, [introDone, current?.id])
+    if (!showIntro) return
+    const t = setTimeout(() => setIntroSkippable(true), 5000)
+    if (introRef.current) introRef.current.play().catch(() => {})
+    return () => clearTimeout(t)
+  }, [showIntro])
 
   const markDone = (done) => { if (current && memberId) setLessonComplete(memberId, current, done) }
   const goto = (i) => { if (flat[i]) { setPlayingId(flat[i].id); window.scrollTo({ top: 0, behavior: 'smooth' }) } }
 
   const totalPct = flat.length ? Math.round((flat.filter(l => doneIds.has(l.id)).length / flat.length) * 100) : 0
   const accent = '#2563eb'
+
+  // ── Disclaimer intro (members): plays once when you open a module, then opens the course ──
+  if (showIntro && flat.length > 0) {
+    return (
+      <div>
+        <button onClick={onBack} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-3"><ArrowLeft size={13} /> All capsules</button>
+        <div className="relative w-full max-w-4xl aspect-video rounded-2xl overflow-hidden bg-black shadow-sm">
+          <video ref={introRef} src={INTRO_URL} autoPlay playsInline onEnded={dismissIntro} onClick={e => e.currentTarget.paused && e.currentTarget.play()} className="w-full h-full object-contain bg-black cursor-pointer" />
+          {introSkippable && <button onClick={dismissIntro} className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-colors">Skip ▸</button>}
+        </div>
+      </div>
+    )
+  }
 
   // ── Player view (one lesson open) ────────────────────────────────────────────
   if (current) {
@@ -95,14 +105,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
       <div>
         <button onClick={() => setPlayingId(null)} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-3"><ArrowLeft size={13} /> All lessons</button>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-w-4xl">
-          {videoSrc && (!introDone ? (
-            <div className="relative w-full aspect-video bg-black">
-              <video ref={introRef} src={INTRO_URL} autoPlay playsInline onEnded={() => setIntroDone(true)} className="w-full h-full object-contain bg-black" />
-              {showSkip && <button onClick={() => setIntroDone(true)} className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition-colors">Skip intro ▸</button>}
-            </div>
-          ) : (
-            <VideoEmbed url={videoSrc} title={current.title} className="rounded-none" autoPlay={!canEdit} />
-          ))}
+          {videoSrc && <VideoEmbed url={videoSrc} title={current.title} className="rounded-none" autoPlay={!canEdit} />}
           <div className="p-6 sm:p-8">
             <p className="text-[11px] font-grotesk font-bold uppercase tracking-widest text-fuchsia-600 mb-1.5">{courseModules.find(m => m.id === current.moduleId)?.title}</p>
             <h3 className="text-2xl font-grotesk font-bold tracking-tight text-gray-900 mb-5">{current.title}</h3>
