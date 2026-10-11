@@ -66,8 +66,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const introRef = useRef(null)
   const introKey = 'creafi_intro_' + (moduleId || course.id)
   const [showIntro, setShowIntro] = useState(() => {
-    if (canEdit) return false                               // admins skip it (use "Preview as member" to see it)
-    try { return sessionStorage.getItem(introKey) !== '1' } catch { return true }
+    try { return sessionStorage.getItem(introKey) !== '1' } catch { return true }  // once per module per session (everyone)
   })
   const [introSkippable, setIntroSkippable] = useState(false)
   const dismissIntro = () => { try { sessionStorage.setItem(introKey, '1') } catch {}; setShowIntro(false) }
