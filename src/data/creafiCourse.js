@@ -64,9 +64,9 @@ export const CREAFI_COURSE = {
       "id": "cf-bonus-birddog",
       "communityId": "creafi",
       "courseId": "creafi-way",
-      "title": "Bonus: Bird Dogging",
+      "title": "Bird Dogging",
       "description": "The lowest-barrier way to get your first deal done and learn the business — connect wholesaler deals to your buyers and get paid.",
-      "order": 10,
+      "order": 9,
       "isPublished": true,
       "released": true
     },
@@ -106,7 +106,7 @@ export const CREAFI_COURSE = {
       "courseId": "creafi-way",
       "title": "Bonus Zooms",
       "description": "Bonus live sessions and deep-dives — added over time.",
-      "order": 9,
+      "order": 10,
       "isPublished": true,
       "released": true
     }
