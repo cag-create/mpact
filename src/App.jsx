@@ -196,7 +196,11 @@ function AppProvider({ children }) {
     if (!hydrated || !currentUser) return
     if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
     const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '')
-    const OLD_DUP = ['mod-creafi-1', 'mod-creafi-2', 'mod-creafi-3', 'mod-creafi-7']  // retired bad-seed module ids
+    // NOTE: mod-creafi-1/2/3/7 are the CANONICAL ids for Mindset / Creative Finance /
+    // Wholesaling / High-Level Sales in CREAFI_COURSE — they must NOT be treated as dups.
+    // Listing them here previously made the seed delete those modules on every admin load,
+    // orphaning 59 lessons. Keep this empty unless genuinely duplicate ids reappear.
+    const OLD_DUP = []  // retired bad-seed module ids to purge (none currently)
     const creafiMods = modules.filter(m => m.communityId === 'creafi')
     const existingByName = {}
     for (const m of creafiMods) {

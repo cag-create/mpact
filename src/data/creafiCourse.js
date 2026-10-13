@@ -16,7 +16,7 @@ export const CREAFI_COURSE = {
       "courseId": "creafi-way",
       "title": "Mindset",
       "description": "Rewire how you think before you ever talk terms",
-      "order": 1,
+      "order": 2,
       "isPublished": true,
       "released": true
     },
@@ -26,7 +26,7 @@ export const CREAFI_COURSE = {
       "courseId": "creafi-way",
       "title": "Creative Finance & Acquisitions",
       "description": "The strategies and paperwork to structure a deal",
-      "order": 2,
+      "order": 3,
       "isPublished": true,
       "released": true
     },
@@ -34,9 +34,9 @@ export const CREAFI_COURSE = {
       "id": "mod-creafi-3",
       "communityId": "creafi",
       "courseId": "creafi-way",
-      "title": "Wholesaling Cash & Creative",
+      "title": "Wholesaling — Cash & Creative",
       "description": "How to exit a deal for a profit",
-      "order": 3,
+      "order": 4,
       "isPublished": true,
       "released": true
     },
@@ -46,7 +46,7 @@ export const CREAFI_COURSE = {
       "courseId": "creafi-way",
       "title": "High-Level Sales Training",
       "description": "The Crea'fi seven-step sales method — 18 lessons + final test",
-      "order": 4,
+      "order": 8,
       "isPublished": true,
       "released": true
     },
