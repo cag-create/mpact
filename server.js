@@ -456,6 +456,34 @@ app.get('/api/waitlist', needDb, auth, async (req, res) => {
   res.json({ waitlist: ((await getState('waitlist')) || []).slice().reverse() })
 })
 
+// ─── Ask Chad (strategy coach) — proxy to the Crea'fi Ask-Chad backend ────────
+// A logged-in member asks a question; we forward it to the Ask-Chad backend with the shared key
+// (server-side only, never exposed to the client). Membership is proven by the JWT (auth middleware).
+app.post('/api/ask-chad', needDb, auth, async (req, res) => {
+  const { question, history, moduleContext } = req.body || {}
+  if (!question || typeof question !== 'string' || !question.trim()) return res.status(400).json({ error: 'A question is required' })
+  const base = process.env.ASK_CHAD_API_URL || 'https://pulsebyaim.com'
+  const key = process.env.ASK_CHAD_KEY
+  if (!key) return res.status(503).json({ error: 'Ask Chad is not configured yet' })
+  try {
+    const r = await fetch(`${base}/api/creafi/ask-chad`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-ask-chad-key': key },
+      body: JSON.stringify({
+        question: question.slice(0, 4000),
+        history: Array.isArray(history) ? history.slice(-10) : undefined,
+        moduleContext: typeof moduleContext === 'string' ? moduleContext.slice(0, 200) : undefined,
+        studentId: req.user?.email || String(req.user?.id || ''),
+      }),
+    })
+    const data = await r.json().catch(() => ({}))
+    if (!r.ok) return res.status(502).json({ error: data?.error || 'Ask Chad is unavailable right now. Try again in a moment.' })
+    return res.json({ answer: data.answer || '', flaggedForChad: !!data.flaggedForChad })
+  } catch {
+    return res.status(502).json({ error: 'Ask Chad is unavailable right now. Try again in a moment.' })
+  }
+})
+
 app.all('/api/*', (_req, res) => res.status(404).json({ error: 'Not found' }))
 
 // ─── Static app + subdomain injection ─────────────────────────────────────────

@@ -21,4 +21,7 @@ export const api = {
   adminResetPassword: (email) => call('/api/auth/admin-reset', { method: 'POST', body: { email } }),
   getState:       ()                => call('/api/state'),
   putState:       (key, value)      => call(`/api/state/${key}`, { method: 'PUT', body: { value } }),
+  // Ask Chad — the strategy-coach chat. Server proxies to the Crea'fi Ask-Chad backend with the
+  // shared key server-side; this call just needs the member's session (JWT, added by call()).
+  askChad:        (payload)         => call('/api/ask-chad', { method: 'POST', body: payload }),
 }

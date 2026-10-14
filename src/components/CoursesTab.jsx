@@ -3,6 +3,7 @@ import { BookOpen, Plus, Edit3, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, X, Play
 import { useApp } from '../App'
 import ContentTab from './ContentTab'
 import LessonPlayer from './LessonPlayer'
+import AskChad from './AskChad'
 import { CommunityLogo } from './CreafiLogo'
 import { moduleUnlocked } from '../lib/release'
 
@@ -75,6 +76,10 @@ export default function CoursesTab({ communityId, community }) {
   if (mode.view === 'build' && isAdmin) {
     const course = courses.find(c => c.id === mode.courseId)
     if (course) return <ContentTab communityId={communityId} community={community} course={course} onBack={() => setMode({ view: 'list' })} />
+  }
+  // The "Ask Chad" capsule opens the strategy-coach chat instead of a lesson player.
+  if (mode.view === 'play' && mode.moduleId === 'mod-ask-chad') {
+    return <AskChad onBack={() => setMode({ view: 'list' })} community={community} moduleContext="Ask Chad" />
   }
   if (mode.view === 'play') {
     const course = courses.find(c => c.id === mode.courseId)
