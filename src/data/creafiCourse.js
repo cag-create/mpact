@@ -86,7 +86,7 @@ export const CREAFI_COURSE = {
       "courseId": "creafi-way",
       "title": "Crea'fi Genius",
       "description": "Start here — what Crea'fi is, how the program works, and the language of the game.",
-      "order": 0.5,
+      "order": 1,
       "isPublished": true,
       "released": true
     },

@@ -250,18 +250,26 @@ function AppProvider({ children }) {
     if (dupCourse) setCourses(cs => cs.filter(c => c.id !== 'creafi-way'))
   }, [hydrated, currentUser?.id, modules, lessons, courses])
 
-  // ── One-time: lock every Crea'fi module from members until recordings go up ──
-  // Admins still see everything (canEdit bypasses locks). Runs once per module
-  // (marked with _releaseInit) and never re-locks one the admin later releases, so
-  // the admin can flip "Release" on a module as soon as its videos are recorded.
+  // ── Self-healing repair: keep every Crea'fi module on the real course, released, and in order ──
+  // Background: the hub_state sync is last-write-wins for modules/lessons, so a stale tab/device
+  // repeatedly overwrote the server — orphaning modules to a phantom "creafi-way" course,
+  // de-releasing them, and scrambling the order (capsules "disappeared"). A prior migration here
+  // also re-LOCKED any module missing its flag, which the overwrites kept stripping. This replaces
+  // that: whenever a Crea'fi module drifts off the live course, loses released, or lands out of the
+  // canonical order, snap it back. Idempotent — a no-op once everything is correct.
   useEffect(() => {
     if (!hydrated || !currentUser) return
     if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
-    const needInit = modules.some(m => m.communityId === 'creafi' && !m._releaseInit)
-    if (!needInit) return
-    setModules(ms => ms.map(m => (m.communityId === 'creafi' && !m._releaseInit)
-      ? { ...m, alwaysOpen: false, released: false, _releaseInit: true } : m))
-  }, [hydrated, currentUser?.id, modules])
+    const course = courses.find(c => c.communityId === 'creafi')
+    if (!course) return
+    const ORDER = { 'cf-genius-intro': 1, 'mod-creafi-1': 2, 'mod-creafi-2': 3, 'mod-creafi-3': 4, 'mod-creafi-4': 5, 'cf-biz-structures': 6, 'cf-agent-outreach': 7, 'mod-creafi-7': 8, 'cf-bonus-birddog': 9, 'cf-bonus-zooms': 10, 'mod-ask-chad': 11 }
+    const creafi = modules.filter(m => m.communityId === 'creafi')
+    const drift = creafi.some(m => m.courseId !== course.id || m.released !== true || (ORDER[m.id] != null && m.order !== ORDER[m.id]))
+    if (!drift) return
+    setModules(ms => ms.map(m => m.communityId === 'creafi'
+      ? { ...m, courseId: course.id, released: true, order: ORDER[m.id] != null ? ORDER[m.id] : m.order }
+      : m))
+  }, [hydrated, currentUser?.id, modules, courses])
 
   // ── One-time copy fix: Bird Dogging is the low-barrier way to get a deal & learn,
   // not "creative finance only." Self-terminating once the old wording is gone. ──
