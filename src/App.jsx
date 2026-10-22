@@ -282,6 +282,21 @@ function AppProvider({ children }) {
       ? { ...m, description: NEW_DESC } : m))
   }, [hydrated, currentUser?.id, modules])
 
+  // ── One-time rename: "Bonus Zooms" → "Bonus Courses" (the module + its welcome lesson).
+  // The seed never overwrites an existing module/lesson title, so flip the live records here.
+  // Self-terminating once the old wording is gone. ──
+  useEffect(() => {
+    if (!hydrated || !currentUser) return
+    if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    const modHit = modules.some(m => m.id === 'cf-bonus-zooms' && /bonus zooms/i.test(m.title || ''))
+    const lesHit = lessons.some(l => l.id === 'cf-bonuszoom-01' && /bonus zooms/i.test(l.title || ''))
+    if (!modHit && !lesHit) return
+    if (modHit) setModules(ms => ms.map(m => (m.id === 'cf-bonus-zooms' && /bonus zooms/i.test(m.title || ''))
+      ? { ...m, title: m.title.replace(/bonus zooms/ig, 'Bonus Courses') } : m))
+    if (lesHit) setLessons(ls => ls.map(l => (l.id === 'cf-bonuszoom-01' && /bonus zooms/i.test(l.title || ''))
+      ? { ...l, title: l.title.replace(/bonus zooms/ig, 'Bonus Courses') } : l))
+  }, [hydrated, currentUser?.id, modules, lessons])
+
   // ── Auth (server-backed) ──────────────────────────────────────────────────
   const login = async (email, password) => {
     try {
