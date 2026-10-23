@@ -85,10 +85,11 @@ const publicUser = (r) => ({ id: r.id, email: r.email, name: r.name, role: r.rol
 const signToken = (u) => jwt.sign({ uid: u.id, role: u.role }, JWT_SECRET, { expiresIn: '30d' })
 const AVATAR_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#14b8a6','#84cc16']
 
-async function createMemberAndUser({ communityId, name, email, password, title = '', bio = '', avatarUrl = null, intake = null, rulesSignedAt = null, contractId = null }) {
+async function createMemberAndUser({ communityId, name, email, password, title = '', bio = '', avatarUrl = null, intake = null, rulesSignedAt = null, contractId = null, planType = null, monthlyStartedAt = null }) {
   const memberId = `m${Date.now()}${Math.floor(Math.random()*1000)}`
   const member = { id: memberId, communityId, name, email, title, bio, avatarUrl, role: 'member', points: 0, badges: ['New Member'],
     color: AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)], joinedAt: new Date().toISOString().split('T')[0],
+    ...(planType ? { planType } : {}), ...(monthlyStartedAt ? { monthlyStartedAt } : {}),
     ...(intake ? { intake } : {}), ...(rulesSignedAt ? { rulesSignedAt } : {}), ...(contractId ? { contractId } : {}) }
   const members = (await getState('members')) || []
   await setState('members', [...members, member])
@@ -245,16 +246,23 @@ app.post('/api/members/provision', needDb, async (req, res) => {
   const intake = req.body.intake && typeof req.body.intake === 'object' ? req.body.intake : null
   const rulesSignedAt = req.body.rulesSignedAt || null
   const contractId = req.body.contractId || null
+  // Plan type drives the $47/month drip-release schedule (see src/lib/release.js). Monthly subs
+  // unlock modules over time from their start date; lifetime ($497) buyers are never dripped.
+  const isMonthly = planInfo.interval === 'month' || /month/i.test(String(planInfo.planName || ''))
+  const planType = isMonthly ? 'monthly' : 'lifetime'
+  const today = new Date().toISOString().split('T')[0]
   const password = crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 12)
   const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
   if (rows.length) {
     if (rows[0].role === 'platform_admin') return res.status(409).json({ error: 'That email belongs to the platform admin; sign in normally.' })
     await pool.query('UPDATE hub_users SET password_hash=? WHERE id=?', [await bcrypt.hash(password, 10), rows[0].id])
     await ensureEnrollment({ ...planInfo, memberId: rows[0].member_id })   // place existing members too
-    await updateMemberFields(rows[0].member_id, { ...(intake ? { intake } : {}), ...(rulesSignedAt ? { rulesSignedAt } : {}), ...(contractId ? { contractId } : {}) })
+    const existingMember = ((await getState('members')) || []).find(m => m.id === rows[0].member_id)
+    const startedAt = isMonthly ? (existingMember?.monthlyStartedAt || today) : null   // don't reset an existing monthly start
+    await updateMemberFields(rows[0].member_id, { planType, ...(startedAt ? { monthlyStartedAt: startedAt } : {}), ...(intake ? { intake } : {}), ...(rulesSignedAt ? { rulesSignedAt } : {}), ...(contractId ? { contractId } : {}) })
     return res.json({ existing: true, email, password, loginUrl: `${PUBLIC_URL}/login` })
   }
-  const { member } = await createMemberAndUser({ communityId, name, email, password, intake, rulesSignedAt, contractId })
+  const { member } = await createMemberAndUser({ communityId, name, email, password, intake, rulesSignedAt, contractId, planType, monthlyStartedAt: isMonthly ? today : null })
   await ensureEnrollment({ ...planInfo, memberId: member.id })
   res.json({ existing: false, email, password, loginUrl: `${PUBLIC_URL}/login` })
 })
