@@ -357,6 +357,11 @@ function AppProvider({ children }) {
   const setMemberAvatar = (memberId, avatarUrl) => {
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, avatarUrl } : m))
   }
+  // Admin: unlock/lock the contracts library for a member. Contracts stay locked until the
+  // member has a deal — Chad flips this on from the roster once they bring one in.
+  const setMemberContracts = (memberId, on) => {
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, contractsUnlocked: !!on, contractsUnlockedAt: on ? (m.contractsUnlockedAt || new Date().toISOString().split('T')[0]) : null } : m))
+  }
   // Admin: mark/unmark a member's community-rules agreement as signed (for the roster + offline signers).
   const setMemberRules = (memberId, signed) => {
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, rulesSignedAt: signed ? (m.rulesSignedAt || new Date().toISOString().split('T')[0]) : null } : m))
@@ -603,7 +608,7 @@ function AppProvider({ children }) {
       // Notifications
       pushNotification, markNotificationRead, markAllNotificationsRead, clearNotifications,
       // Points
-      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules, setMemberW9,
+      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules, setMemberW9, setMemberContracts,
       // Messages
       sendMessage, markMessageRead, markConversationRead,
       // Communities

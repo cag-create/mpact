@@ -9,7 +9,7 @@ const fmtDate = (d) => d ? new Date(d + (String(d).length === 10 ? 'T12:00:00' :
 
 // Admin roster: who joined, what they filled on the form, and who has signed the community rules.
 export default function RosterTab({ communityId, community }) {
-  const { members, enrollments, plans, currentUser, setMemberRules, setMemberW9 } = useApp()
+  const { members, enrollments, plans, currentUser, setMemberRules, setMemberW9, setMemberContracts } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState({})
@@ -154,6 +154,15 @@ export default function RosterTab({ communityId, community }) {
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1">
+                            {m.contractsUnlocked ? (
+                              <button onClick={() => setMemberContracts(m.id, false)} title={`Contracts unlocked${m.contractsUnlockedAt ? ` ${fmtDate(m.contractsUnlockedAt)}` : ''} — click to re-lock`} className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1 hover:bg-emerald-100">
+                                <FileCheck2 size={13} /> Contracts on
+                              </button>
+                            ) : (
+                              <button onClick={() => setMemberContracts(m.id, true)} title="Unlock the contract library — they have a deal" className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1 hover:bg-gray-100">
+                                <Lock size={13} /> Contracts locked
+                              </button>
+                            )}
                             <button onClick={() => resetShow(m)} disabled={pw[m.id]?.loading} className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-60" title="Reset the password and show it so you can give it to them directly">
                               {pw[m.id]?.loading ? <Loader2 size={13} className="animate-spin" /> : <Lock size={13} />} Set password
                             </button>

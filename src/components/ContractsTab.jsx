@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FileText, Download, Plus, Edit3, Trash2, X, Eye, EyeOff } from 'lucide-react'
+import { FileText, Download, Plus, Edit3, Trash2, X, Eye, EyeOff, Lock } from 'lucide-react'
 import { useApp } from '../App'
 
 // Crea'fi's starter contract library (hosted on the site). Always available for the Crea'fi
@@ -69,10 +69,28 @@ function ContractModal({ item, community, onSave, onClose }) {
 }
 
 export default function ContractsTab({ communityId, community }) {
-  const { contracts, currentUser, addContract, updateContract, deleteContract } = useApp()
+  const { contracts, currentUser, members, addContract, updateContract, deleteContract } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState(null)
+
+  // Contracts stay locked until the member has a deal — an admin unlocks them from the roster.
+  const me = members.find(m => m.id === currentUser?.memberId)
+  const contractsUnlocked = isAdmin || me?.contractsUnlocked === true
+  if (!contractsUnlocked) {
+    return (
+      <div className="max-w-xl mx-auto text-center py-16 px-6">
+        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-5">
+          <Lock size={24} className="text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Your contract library unlocks with your first deal</h2>
+        <p className="text-gray-500 leading-relaxed">
+          The full set of purchase, assignment, subject-to, and novation contracts opens up the moment you have a deal under contract.
+          When you've got one going, bring it to Chad or post it in the community — we'll switch your contracts on.
+        </p>
+      </div>
+    )
+  }
 
   const defaults = communityId === 'creafi' ? CREAFI_DEFAULTS.map(d => ({ ...d, _default: true })) : []
   const custom = contracts.filter(c => c.communityId === communityId && (isAdmin || c.isPublished !== false))
