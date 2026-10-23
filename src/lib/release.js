@@ -10,22 +10,21 @@
 // $47/month drip schedule — module id -> the number of months after signup when it unlocks.
 // 0 = available immediately. Lifetime ($497) members are NOT gated by this; they use the
 // global `released` flag and get everything the moment it's released.
-//   Months 0-2 : Crea'fi Genius, Mindset            (also alwaysOpen)
-//   Month 3    : Creative Finance, Wholesaling, Dispositions, Business Structures, Agent Outreach
-//   Month 6    : Sales Training, Bird Dogging
-//   Month 9    : Bonus Courses, Ask Chad (everything remaining)
+//   First  (now)    : Crea'fi Genius, Mindset, Creative Finance & Acquisitions
+//   Second (month 3): Wholesaling, Dispositions, Business Structures
+//   Last   (month 6): Agent Outreach, Sales Training, Bird Dogging, Bonus Courses, Ask Chad
 export const MONTHLY_DRIP = {
   'cf-genius-intro': 0,
   'mod-creafi-1': 0,
-  'mod-creafi-2': 3,
+  'mod-creafi-2': 0,
   'mod-creafi-3': 3,
   'mod-creafi-4': 3,
   'cf-biz-structures': 3,
-  'cf-agent-outreach': 3,
+  'cf-agent-outreach': 6,
   'mod-creafi-7': 6,
   'cf-bonus-birddog': 6,
-  'cf-bonus-zooms': 9,
-  'mod-ask-chad': 9,
+  'cf-bonus-zooms': 6,
+  'mod-ask-chad': 6,
 }
 
 // Whole calendar months elapsed since a yyyy-mm-dd start date (0 before the first monthly anniversary).
