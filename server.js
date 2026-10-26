@@ -15,7 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('he
 const PUBLIC_URL = (process.env.PUBLIC_URL || 'https://mpact-production.up.railway.app').replace(/\/$/, '')
 // Where a paused member updates their card to restore access (Crea'fi Stripe billing portal).
 const BILLING_URL = process.env.BILLING_PORTAL_URL || 'https://billing.stripe.com/p/login/3cIbJ0gR2bJF2f10Cy97G00'
-const PAUSED_MSG = "Your membership is paused — a payment didn't go through. Update your card to restore access, then sign in again."
+const PAUSED_MSG = "Your membership is paused — a payment didn't go through. Update your card to restore access, or email support@creafigenius.com if you need help."
 
 // ─── Database (Railway MySQL via DATABASE_URL) ─────────────────────────────────
 // All shared app state lives in hub_state (one JSON blob per collection) and
