@@ -4,7 +4,7 @@ import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
   DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag, FileText,
-  User, Camera, MessageCircle, LayoutDashboard, BarChart2, KeyRound, LogOut } from 'lucide-react'
+  User, Camera, MessageCircle, LayoutDashboard, BarChart2, KeyRound, LogOut, MapPin, Target } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
@@ -569,7 +569,23 @@ function MemberCard({ member, joinedAt }) {
           <p className="text-xs text-gray-300 mt-0.5">Joined {new Date(joinedAt + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>
         </div>
       </div>
-      {member.bio && <p className="text-sm text-gray-500 leading-relaxed">{member.bio}</p>}
+      {member.bio && <p className="text-sm text-gray-500 leading-relaxed mb-2">{member.bio}</p>}
+      {(member.intake?.cityStateZip || member.intake?.markets) && (
+        <div className="space-y-1.5 border-t border-gray-100 pt-2.5 mt-1">
+          {member.intake?.cityStateZip && (
+            <p className="text-xs text-gray-600 flex items-center gap-1.5">
+              <MapPin size={12} className="text-gray-400 flex-shrink-0" />
+              {member.intake.cityStateZip.replace(/\s+\d{5}(-\d{4})?\s*$/, '')}
+            </p>
+          )}
+          {member.intake?.markets && (
+            <p className="text-xs text-gray-600 flex items-start gap-1.5">
+              <Target size={12} className="text-gray-400 flex-shrink-0 mt-0.5" />
+              <span className="leading-snug">{member.intake.markets}</span>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -585,13 +601,20 @@ function MembersTab({ communityId, community }) {
 
   const communityMembers = members
     .filter(m => m.communityId === communityId)
-    .filter(m => !search || m.name.toLowerCase().includes(search.toLowerCase()) || (m.title||'').toLowerCase().includes(search.toLowerCase()))
+    .filter(m => {
+      if (!search) return true
+      const q = search.toLowerCase()
+      return m.name.toLowerCase().includes(q)
+        || (m.title || '').toLowerCase().includes(q)
+        || (m.intake?.markets || '').toLowerCase().includes(q)
+        || (m.intake?.cityStateZip || '').toLowerCase().includes(q)
+    })
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <input type="text" placeholder="Search members…" value={search} onChange={e => setSearch(e.target.value)}
-          className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white w-64" />
+        <input type="text" placeholder="Search by name, market, or city…" value={search} onChange={e => setSearch(e.target.value)}
+          className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white w-64 max-w-full" />
         {isPlatformAdmin && (
           <button onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors hover:opacity-90"
@@ -615,7 +638,7 @@ function MembersTab({ communityId, community }) {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {communityMembers.map(member => (
             <div key={member.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <MemberCard member={member} joinedAt={member.joinedAt} />
