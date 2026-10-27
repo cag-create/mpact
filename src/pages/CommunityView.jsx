@@ -4,7 +4,7 @@ import {
   Users, Calendar, MessageSquare, Heart, ChevronLeft, ChevronRight,
   Plus, Trash2, Clock, ArrowLeft, CreditCard, Check, Loader2, BookOpen,
   DollarSign, Lock, Eye, EyeOff, Link, Copy, CheckCheck, Pencil, Trophy, Shield, Video, ShoppingBag, FileText,
-  User, Camera, MessageCircle, LayoutDashboard, BarChart2, KeyRound, LogOut, MapPin, Target } from 'lucide-react'
+  User, Camera, MessageCircle, LayoutDashboard, BarChart2, KeyRound, LogOut, MapPin, Target, Mail, Phone } from 'lucide-react'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval,
   addMonths, subMonths, isSameDay, getDay, isToday
@@ -570,13 +570,19 @@ function MemberCard({ member, joinedAt }) {
         </div>
       </div>
       {member.bio && <p className="text-sm text-gray-500 leading-relaxed mb-2">{member.bio}</p>}
-      {(member.intake?.cityStateZip || member.intake?.markets) && (
+      {(member.email || member.intake?.phone || member.intake?.markets) && (
         <div className="space-y-1.5 border-t border-gray-100 pt-2.5 mt-1">
-          {member.intake?.cityStateZip && (
-            <p className="text-xs text-gray-600 flex items-center gap-1.5">
-              <MapPin size={12} className="text-gray-400 flex-shrink-0" />
-              {member.intake.cityStateZip.replace(/\s+\d{5}(-\d{4})?\s*$/, '')}
-            </p>
+          {member.email && (
+            <a href={`mailto:${member.email}`} className="text-xs text-gray-600 hover:text-indigo-600 flex items-center gap-1.5 break-all">
+              <Mail size={12} className="text-gray-400 flex-shrink-0" />
+              {member.email}
+            </a>
+          )}
+          {member.intake?.phone && (
+            <a href={`tel:${member.intake.phone.replace(/[^\d+]/g, '')}`} className="text-xs text-gray-600 hover:text-indigo-600 flex items-center gap-1.5">
+              <Phone size={12} className="text-gray-400 flex-shrink-0" />
+              {member.intake.phone}
+            </a>
           )}
           {member.intake?.markets && (
             <p className="text-xs text-gray-600 flex items-start gap-1.5">
@@ -606,6 +612,8 @@ function MembersTab({ communityId, community }) {
       const q = search.toLowerCase()
       return m.name.toLowerCase().includes(q)
         || (m.title || '').toLowerCase().includes(q)
+        || (m.email || '').toLowerCase().includes(q)
+        || (m.intake?.phone || '').toLowerCase().includes(q)
         || (m.intake?.markets || '').toLowerCase().includes(q)
         || (m.intake?.cityStateZip || '').toLowerCase().includes(q)
     })
@@ -613,7 +621,7 @@ function MembersTab({ communityId, community }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <input type="text" placeholder="Search by name, market, or city…" value={search} onChange={e => setSearch(e.target.value)}
+        <input type="text" placeholder="Search by name, email, phone, or market…" value={search} onChange={e => setSearch(e.target.value)}
           className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white w-64 max-w-full" />
         {isPlatformAdmin && (
           <button onClick={() => setShowAdd(true)}
