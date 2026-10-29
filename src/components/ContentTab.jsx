@@ -78,6 +78,7 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
     content:       lesson?.content       || '',
     videoUrl:      lesson?.videoUrl      || '',
     duration:      lesson?.duration      || '',
+    section:       lesson?.section       || '',
     isFreePreview: lesson?.isFreePreview || false,
     isPublished:   lesson?.isPublished   || false,
   })
@@ -105,6 +106,18 @@ function LessonModal({ lesson, moduleId, communityId, onSave, onClose }) {
               placeholder="e.g. Introduction to SEO"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
+          </div>
+
+          {/* Section (optional) — groups lessons into a sub-level inside the capsule */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Section <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input
+              value={form.section}
+              onChange={e => setForm(p => ({ ...p, section: e.target.value }))}
+              placeholder="e.g. Door-Knocking"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
+            <p className="text-xs text-gray-400 mt-1.5">Lessons that share a section are grouped under it inside the capsule — members pick the section, then see its lessons. Leave blank for a normal lesson.</p>
           </div>
 
           {/* Type */}

@@ -57,10 +57,10 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const current = flat.find(l => l.id === playingId) || null
   const idx = flat.findIndex(l => l.id === current?.id)
 
-  // Pagination for the lesson list (single module usually, but supports more).
+  // Pagination for the lesson list + optional section grouping inside a module.
   const [page, setPage] = useState(1)
-  const pages = Math.max(1, Math.ceil(flat.length / PAGE_SIZE))
-  useEffect(() => { setPage(1) }, [moduleId, course.id])
+  const [activeSection, setActiveSection] = useState(null)  // when a module groups lessons into named sections, which one is open
+  useEffect(() => { setPage(1); setActiveSection(null) }, [moduleId, course.id])
 
   // Branded disclaimer intro: plays once when a member opens a module, then opens the course.
   const introRef = useRef(null)
@@ -148,17 +148,53 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
     )
   }
 
-  // ── List view (lessons inside the module) ────────────────────────────────────
+  // ── List view (lessons inside the module, optionally grouped into sections) ──
   const soleModule = courseModules.length === 1 ? courseModules[0] : null
-  const pageLessons = flat.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const moduleLessons = soleModule ? (lessonsByModule[soleModule.id] || []) : flat
+
+  // A lesson may carry an optional `section` string. When a (single) module uses sections,
+  // we show those sections as cards first; opening one reveals its lessons. Lessons with no
+  // section (e.g. a welcome/intro) stay visible at the top. Any module without sections keeps
+  // the original flat list.
+  const sectionNames = soleModule ? [...new Set(moduleLessons.filter(l => l.section).map(l => l.section))] : []
+  const hasSections = sectionNames.length > 0
+  const sectionless = moduleLessons.filter(l => !l.section)
+
+  const listLessons = (hasSections && activeSection)
+    ? moduleLessons.filter(l => l.section === activeSection)
+    : (hasSections ? sectionless : flat)
+  const pages = Math.max(1, Math.ceil(listLessons.length / PAGE_SIZE))
+  const pageLessons = listLessons.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const headerTitle = (hasSections && activeSection) ? activeSection : (soleModule ? soleModule.title : course.title)
+
+  const lessonRow = (l) => {
+    const done = doneIds.has(l.id)
+    const desc = l.summary || (l.type === 'text' && !parseRich(l.content) ? (l.content || '').slice(0, 180) : (l.notes || ''))
+    const metaBits = [TYPE_LABEL[l.type] || 'Lesson', l.duration].filter(Boolean)
+    return (
+      <MediaRow
+        key={l.id}
+        thumb={getYouTubeThumbnail(l.type === 'video' ? l.content : l.videoUrl)}
+        gradient={moduleGradient(courseModules.find(m => m.id === l.moduleId))}
+        icon={(l.type === 'video' || l.videoUrl) ? Play : (TYPE_ICON[l.type] || BookOpen)}
+        badge={l.duration || null}
+        title={l.title}
+        description={desc}
+        meta={metaBits.join(' · ')}
+        progress={done ? 100 : 0}
+        accent={accent}
+        onClick={() => { setPlayingId(l.id); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+      />
+    )
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between gap-4 mb-5">
         <div className="min-w-0">
-          <button onClick={onBack} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-1"><ArrowLeft size={13} /> All capsules</button>
-          <h2 className="text-xl font-bold text-gray-900 truncate">{soleModule ? soleModule.title : course.title}</h2>
-          {soleModule?.description && <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{soleModule.description}</p>}
+          <button onClick={() => (hasSections && activeSection) ? setActiveSection(null) : onBack()} className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 mb-1"><ArrowLeft size={13} /> {(hasSections && activeSection) ? (soleModule ? soleModule.title : 'Back') : 'All capsules'}</button>
+          <h2 className="text-xl font-bold text-gray-900 truncate">{headerTitle}</h2>
+          {!activeSection && soleModule?.description && <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{soleModule.description}</p>}
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-2xl font-bold text-gray-900">{flat.length}</p>
@@ -181,27 +217,25 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 px-2 sm:px-4 py-2 mt-2">
-          {pageLessons.map(l => {
-            const done = doneIds.has(l.id)
-            const desc = l.summary || (l.type === 'text' && !parseRich(l.content) ? (l.content || '').slice(0, 180) : (l.notes || ''))
-            const metaBits = [TYPE_LABEL[l.type] || 'Lesson', l.duration].filter(Boolean)
+          {pageLessons.map(lessonRow)}
+          {hasSections && !activeSection && sectionNames.map(sec => {
+            const secLessons = moduleLessons.filter(l => l.section === sec)
+            const secDone = secLessons.filter(l => doneIds.has(l.id)).length
             return (
               <MediaRow
-                key={l.id}
-                thumb={getYouTubeThumbnail(l.type === 'video' ? l.content : l.videoUrl)}
-                gradient={moduleGradient(courseModules.find(m => m.id === l.moduleId))}
-                icon={(l.type === 'video' || l.videoUrl) ? Play : (TYPE_ICON[l.type] || BookOpen)}
-                badge={l.duration || null}
-                title={l.title}
-                description={desc}
-                meta={metaBits.join(' · ')}
-                progress={done ? 100 : 0}
+                key={'section-' + sec}
+                gradient={moduleGradient(soleModule)}
+                icon={BookOpen}
+                title={sec}
+                description={`${secLessons.length} lesson${secLessons.length !== 1 ? 's' : ''}`}
+                meta={secDone === secLessons.length && secLessons.length ? 'Completed' : `${secDone}/${secLessons.length} done`}
+                progress={secLessons.length ? Math.round(secDone / secLessons.length * 100) : 0}
                 accent={accent}
-                onClick={() => { setPlayingId(l.id); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                onClick={() => { setActiveSection(sec); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               />
             )
           })}
-          <Pager page={page} pages={pages} onPage={setPage} />
+          {(!hasSections || activeSection) && <Pager page={page} pages={pages} onPage={setPage} />}
         </div>
       )}
     </div>
