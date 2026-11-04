@@ -1,14 +1,18 @@
-// Crea'fi Genius Lite — the condensed entry track.
-// A SEPARATE, standalone community + course (communityId 'creafi-lite'),
-// distilled from the full Crea'fi course's Creative Finance (mod-creafi-2) and
-// Wholesaling (mod-creafi-3) modules. Sold as a lower-tier $27/mo product.
+// Crea'fi Genius Lite — the condensed entry track ($27/mo, communityId 'creafi-lite').
 //
-// This is intentionally isolated from CREAFI_COURSE: the main course's seed and
-// self-healing effects are all scoped to communityId === 'creafi', so nothing
-// here can bleed into the full course and vice-versa.
+// A SEPARATE, standalone community distilled from the full Crea'fi course. It holds
+// TWO courses, both inside the 'creafi-lite' community:
+//   1. "Creative Finance"  (course id 'creafi-lite-course')     — subject-to, seller
+//      financing, hybrid, novation, the Stack Method, + a deal calculator.
+//   2. "Wholesaling"       (course id 'creafi-lite-wholesale')  — find deals, ARV/MAO,
+//      buyers list, proof of funds/hard money, assignment vs double close, get paid.
 //
-// Lessons use the shared LessonBody block renderer. Beyond the text blocks, the
-// Lite track embeds the interactive { t: 'calc' } block (see DealCalc.jsx):
+// Intentionally isolated from CREAFI_COURSE: the main course's seed and self-healing
+// effects are all scoped to communityId === 'creafi', so nothing here can bleed into
+// the full course and vice-versa.
+//
+// Lessons use the shared LessonBody block renderer. Beyond the text blocks, the Lite
+// track embeds the interactive { t: 'calc' } block (see DealCalc.jsx):
 //   tab 'offer'  → max offer / seller contract ceiling
 //   tab 'note'   → seller-note payment + balloon
 //   tab 'rental' → monthly cash flow & cash-on-cash
@@ -20,7 +24,7 @@ export const CREAFI_LITE = {
     id: 'creafi-lite',
     slug: 'creafi-lite',
     name: "Crea'fi Genius Lite",
-    description: "The condensed entry track — wholesale and creative-finance fundamentals, distilled to the essentials.",
+    description: "The condensed entry track — creative finance and wholesaling fundamentals, distilled to the essentials.",
     color: '#0f766e',
     emoji: '⚡',
     memberCount: 0,
@@ -40,33 +44,55 @@ export const CREAFI_LITE = {
     interval: 'month',
     description: 'The condensed entry track, billed monthly',
     features: [
-      'Wholesale fundamentals: map the deal, find the number, run the math',
-      'The five creative-finance structures: subject-to, seller financing, hybrid, novation, and the Stack Method',
+      'Two tracks: Creative Finance and Wholesaling',
+      'The five creative structures: subject-to, seller financing, hybrid, novation, the Stack Method',
+      'The wholesale pipeline: find deals, build a buyers list, assignment vs double close, get paid',
       'An interactive deal calculator: max offer, seller note & balloon, rental cash flow',
-      'How to package a deal and get paid on the assignment',
       'Talk-to-the-seller scripts in plain language',
-      'A self-check quiz to lock in the essentials',
+      'A self-check quiz at the end of each track',
     ],
     isActive: true,
   },
 
-  course: {
-    id: 'creafi-lite-course',
-    communityId: 'creafi-lite',
-    title: "Crea'fi Genius Lite",
-    description: "Wholesale and creative finance, condensed to the essentials a beginner needs to do a first deal.",
-    coverUrl: '',
-    order: 0,
-    isPublished: true,
-  },
+  courses: [
+    {
+      id: 'creafi-lite-course',
+      communityId: 'creafi-lite',
+      title: 'Creative Finance',
+      description: "The creative structures a beginner needs — subject-to, seller financing, hybrid, novation, and the Stack Method — plus a working deal calculator.",
+      coverUrl: '',
+      order: 1,
+      isPublished: true,
+    },
+    {
+      id: 'creafi-lite-wholesale',
+      communityId: 'creafi-lite',
+      title: 'Wholesaling',
+      description: "The wholesale pipeline: find deals, set ARV and your max offer, build a buyers list, qualify the money, assign or double close, and get paid.",
+      coverUrl: '',
+      order: 2,
+      isPublished: true,
+    },
+  ],
 
   modules: [
     {
       id: 'cl-mod-1',
       communityId: 'creafi-lite',
       courseId: 'creafi-lite-course',
-      title: "Crea'fi Genius Lite — Fundamentals",
+      title: 'Creative Finance — Fundamentals',
       description: "The deal, the number, the creative structures (subject-to, seller financing, hybrid, novation, the Stack Method), the exit, the seller conversation, and a working deal calculator.",
+      order: 1,
+      isPublished: true,
+      released: true,
+      alwaysOpen: true,
+    },
+    {
+      id: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Wholesaling — Fundamentals',
+      description: "Find deals four ways, set ARV and your max offer, build a buyers list, qualify proof of funds, choose assignment vs double close, and close to get paid.",
       order: 1,
       isPublished: true,
       released: true,
@@ -75,6 +101,7 @@ export const CREAFI_LITE = {
   ],
 
   lessons: [
+    // ─────────────────────────── Course 1: Creative Finance ───────────────────────────
     {
       id: 'cl-les-1',
       moduleId: 'cl-mod-1',
@@ -294,9 +321,9 @@ export const CREAFI_LITE = {
       moduleId: 'cl-mod-1',
       communityId: 'creafi-lite',
       courseId: 'creafi-lite-course',
-      title: 'Lite Final Check',
+      title: 'Creative Finance — Final Check',
       type: 'quiz',
-      content: j({ v: 1, quiz: { title: 'Crea’fi Genius Lite — Final Check', passPct: 80, questions: [
+      content: j({ v: 1, quiz: { title: 'Creative Finance — Final Check', passPct: 80, questions: [
         { q: 'When you assign a purchase contract, what are you transferring?', choices: [
           'The house itself to the buyer',
           'Your rights under the purchase contract',
@@ -363,6 +390,227 @@ export const CREAFI_LITE = {
       isFreePreview: false,
       isPublished: true,
       order: 9,
+    },
+
+    // ─────────────────────────── Course 2: Wholesaling ───────────────────────────
+    {
+      id: 'clw-les-1',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Lesson 1: Find deals — the 4 ways to lock one up',
+      type: 'text',
+      content: j({ v: 1, blocks: [
+        { t: 'callout', title: 'Objective', text: "Know the only four ways to get a deal under contract — and which one to start with." },
+        { t: 'lead', text: "Cut through the noise: there are only four ways to actually acquire a deal. Everything else people call a “strategy” — flip, wrap, rental, wholesale — is an EXIT, not a way to get the deal. Get these four straight and you always know which lever to pull." },
+        { t: 'kv', items: [
+          { k: 'Agent outreach', v: 'Build relationships with agents who bring you deals. Costs time, not money — one of the two best places to start.' },
+          { k: 'MLS offers', v: 'Submit smart offers on listed properties through the listing agent. Time over money — the other best starting point.' },
+          { k: 'Joint ventures', v: "Partner with someone who already has deals or buyers and split the fee. Leverage someone else's pipeline." },
+          { k: 'Direct to seller', v: 'Market straight to homeowners (mail, PPC, cold outreach). Powerful, but needs a real budget, strong sales skills, and steady follow-up.' },
+        ]},
+        { t: 'h', text: "Read the market you're working" },
+        { t: 'p', text: "Before you price anything, study the specific product that competes with your finished house — location, type, size, condition, price band. Track active inventory, closed sales, days-to-contract, price cuts, and concessions. “Months of supply” (active listings ÷ recent monthly closings) is a rough pace gauge, not a forecast. A countywide headline can hide a slow high-end segment or a hot entry-level street." },
+        { t: 'callout', title: 'Where to start', text: "No budget? Start with agent outreach and the MLS — they trade time for deals instead of cash. Pick ONE market, find your buyer first, and commit to ONE acquisition strategy for at least 90 days. Spreading across all four is how beginners stall." },
+        { t: 'callout', title: 'Checkpoint', text: "Can you name the four ways in, and say which one you'll run for the next 90 days?" },
+      ]}),
+      summary: "The only four ways to acquire a deal — agent outreach, MLS, JV, direct-to-seller — plus how to read your local market. Everything else is an exit, not a way in.",
+      duration: '',
+      isFreePreview: true,
+      isPublished: true,
+      order: 1,
+    },
+    {
+      id: 'clw-les-2',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Lesson 2: Set ARV and find your number (MAO)',
+      type: 'text',
+      content: j({ v: 1, blocks: [
+        { t: 'callout', title: 'Objective', text: "Support a value with comps, then work backward to your maximum offer and fee." },
+        { t: 'lead', text: "Two numbers decide a wholesale deal: what the finished house is worth (ARV), and the most you can tie it up for and still leave your buyer a profit (your MAO). Never guess either." },
+        { t: 'h', text: 'ARV from real comps' },
+        { t: 'p', text: "Pull recent closed sales that genuinely compete — similar area, size, layout, and condition — and use active listings as a reality check. State the date and the repair scope you're assuming. ARV is an estimate of value, not your offer." },
+        { t: 'h', text: 'Work backward to your max offer' },
+        { t: 'kv', items: [
+          { k: 'The formula', v: 'MAO (seller ceiling) = exit price − resale costs − repairs − contingency − acquisition − holding − buyer profit − your fee' },
+        ]},
+        { t: 'p', text: "Worked example: exit $300,000, resale 7% ($21,000), repairs $42,000, contingency $4,200, acquisition $4,000, holding $14,000, buyer profit $35,000, and a $12,000 fee leave a maximum seller contract of about $167,800. Change any input below and watch it move." },
+        { t: 'calc', tab: 'offer' },
+        { t: 'callout', title: 'About the “70% rule”', text: "It's a quick screen, not the math. It bundles several costs into one percentage — don't lean on it, and never fix a shortfall by quietly raising ARV." },
+        { t: 'callout', title: 'Checkpoint', text: "Given an exit price and the costs, can you state your MAO and your fee separately?" },
+      ]}),
+      summary: "Support ARV with comps, then subtract every cost and your buyer's profit to find your maximum offer (MAO) and fee. Includes the live max-offer calculator.",
+      duration: '',
+      isFreePreview: false,
+      isPublished: true,
+      order: 2,
+    },
+    {
+      id: 'clw-les-3',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Lesson 3: Build a buyers list & a buy box',
+      type: 'text',
+      content: j({ v: 1, blocks: [
+        { t: 'callout', title: 'Objective', text: "Collect real cash buyers and their criteria BEFORE you have a deal." },
+        { t: 'lead', text: "Rookies find a deal and then panic-search for a buyer. Pros do it backwards: build the buyers list first, so a signed contract already has a home. Find your buyer, then go get the deal." },
+        { t: 'h', text: 'Know who the buyers are' },
+        { t: 'ul', items: [
+          'Cash flippers — buy, renovate, resell; they care about ARV, repairs, and margin.',
+          'Rental buyers — buy and hold; they care about cash flow and the numbers after financing.',
+          'Wrap / creative buyers — take creative terms; they need the capital and process to own and resell.',
+        ]},
+        { t: 'h', text: 'Capture each buyer’s buy box' },
+        { t: 'p', text: "For every buyer, record their geography, property type and condition, price range, exit, target return, and how fast they can close. A buyer with a clear buy box is one you can match to a deal in minutes instead of days." },
+        { t: 'callout', title: 'Where buyers come from', text: "Other investors at meetups, the “we buy houses” signs and ads, cash sales on the MLS, and agents who work with investors. Add every real one to your list — before you need them." },
+        { t: 'callout', title: 'Checkpoint', text: "Could you name three buyers right now and the buy box of each?" },
+      ]}),
+      summary: "Build the buyers list first so a signed contract already has a home. Know the buyer types and capture each one's buy box — geography, condition, price, exit, return, speed.",
+      duration: '',
+      isFreePreview: false,
+      isPublished: true,
+      order: 3,
+    },
+    {
+      id: 'clw-les-4',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Lesson 4: Qualify the money — proof of funds & hard money',
+      type: 'text',
+      content: j({ v: 1, blocks: [
+        { t: 'callout', title: 'Objective', text: "Prove the money is real for THIS closing — and give yourself the tools to close." },
+        { t: 'lead', text: "Agents and sellers take you seriously only when you can actually close. Two tools make you look — and be — a real buyer: a proof-of-funds letter and a hard-money relationship." },
+        { t: 'kv', items: [
+          { k: 'Proof of Funds (POF)', v: "A letter showing you or your funding source can close. Many offers won't even get read without one — have it ready before you submit." },
+          { k: 'Hard money', v: "Short-term, asset-based loans from private lenders. Fast and flexible, higher cost — used to fund quick buys and flips when you're really closing." },
+          { k: 'Transactional funding', v: 'Very short-term money that funds the first leg of a double close, so you never use your own cash to buy before you sell.' },
+        ]},
+        { t: 'h', text: "Qualify your buyer's money too" },
+        { t: 'p', text: "When you're the one assigning, flip it around: confirm YOUR buyer's funds are real for this deal. A screenshot of a big balance is not funds committed to this closing, and a prequalification is not a funded commitment. Confirm the actual funding path before you rely on them." },
+        { t: 'callout', title: 'The move', text: "Line up a hard-money lender and a POF letter before you need them. When a deal is hot, the buyer who can prove funds and close fast wins — every time." },
+        { t: 'callout', title: 'Checkpoint', text: "Can you produce a POF today, and tell real committed funds from a claim?" },
+      ]}),
+      summary: "Proof of funds, hard money, and transactional funding make you a real buyer. And when you assign, qualify your buyer's funds the same way — committed for this closing, not just claimed.",
+      duration: '',
+      isFreePreview: false,
+      isPublished: true,
+      order: 4,
+    },
+    {
+      id: 'clw-les-5',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Lesson 5: Assignment vs. double close',
+      type: 'text',
+      content: j({ v: 1, blocks: [
+        { t: 'callout', title: 'Objective', text: "Choose the right cash exit, and stay on the right side of the licensing line." },
+        { t: 'lead', text: "There are two ways to get paid on a cash wholesale deal. They are different transactions — don't call them the same thing." },
+        { t: 'h', text: 'Assignment' },
+        { t: 'p', text: "You transfer your rights under the purchase contract to your buyer for a fee. The seller deeds straight to your buyer, and your fee shows on the settlement statement. It's the simplest and cheapest exit — but it reveals your spread, and some contracts or situations restrict it." },
+        { t: 'h', text: 'Double close' },
+        { t: 'p', text: "Two actual purchases and conveyances — you buy from the seller and sell to your buyer, often minutes apart, frequently funded by transactional money. It keeps your spread private and fits bigger margins or non-assignable contracts, but it costs two sets of closing fees and needs its own funding." },
+        { t: 'callout', title: 'Watch the title clause', text: "A deed into an investor-controlled LLC, a land contract, or a lease-option can still be a “transfer” that triggers a due-on-sale clause — leaving the recorded deed unchanged doesn't automatically avoid it. Have the closing professional analyze the actual loan." },
+        { t: 'h', text: 'The licensing line' },
+        { t: 'p', text: "You can wholesale as a licensed agent — just do it clean: disclose in writing that you're a licensed agent AND a principal, pick ONE way to get paid (commission, assignment fee, or spread) rather than stacking them undisclosed, and know your state's assignment and marketing rules. A “JV” or contract label alone doesn't settle the licensing question." },
+        { t: 'callout', title: 'Checkpoint', text: "Can you say when you'd assign vs. double close, and what a licensed agent must disclose?" },
+      ]}),
+      summary: "The two cash exits: assign your contract for a fee (simple, shows the spread) or double close (two sales, private spread, more cost). Mind the due-on-sale clause and the licensing rules.",
+      duration: '',
+      isFreePreview: false,
+      isPublished: true,
+      order: 5,
+    },
+    {
+      id: 'clw-les-6',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Lesson 6: Get paid — package, introduce, close',
+      type: 'text',
+      content: j({ v: 1, blocks: [
+        { t: 'callout', title: 'Objective', text: "Turn a signed contract into a closed deal and a paid fee." },
+        { t: 'lead', text: "A deal isn't done at contract — it's done when a qualified buyer closes and your fee is paid. Three steps." },
+        { t: 'h', text: '1. Package the deal' },
+        { t: 'p', text: "Give your buyer more than a headline: property facts, the contracting party, dated ARV support, competing listings, the repair scope, the base and downside math, the terms, your fee, total cash in, deadlines, and anything still unverified. Keep estimates, verified facts, and actual commitments visibly separate." },
+        { t: 'h', text: '2. Introduce the parties' },
+        { t: 'p', text: "Plan the introduction — don't surprise the seller at closing with a stranger. A short bridge call after the signed assignment and confirmed deposit, a few days before closing, confirms the plan, the contacts, the numbers, and any open items. Coordinate through the agents and the closing professional where needed." },
+        { t: 'h', text: '3. Close and collect' },
+        { t: 'p', text: "Before signing, reconcile the purchase contract, assignment, title work, payoff, and settlement statement so seller proceeds, your fee, and every figure tie out. Route funds through the agreed escrow. A signed assignment doesn't erase your obligations under the original contract — close it properly." },
+        { t: 'callout', title: 'Checkpoint', text: "Can you list what goes in a buyer package and what a bridge call must confirm?" },
+      ]}),
+      summary: "Package the real evidence, make a planned bridge-call introduction, then reconcile every figure and close through escrow to collect your fee.",
+      duration: '',
+      isFreePreview: false,
+      isPublished: true,
+      order: 6,
+    },
+    {
+      id: 'clw-les-quiz',
+      moduleId: 'cl-mod-w',
+      communityId: 'creafi-lite',
+      courseId: 'creafi-lite-wholesale',
+      title: 'Wholesaling — Final Check',
+      type: 'quiz',
+      content: j({ v: 1, quiz: { title: 'Wholesaling — Final Check', passPct: 80, questions: [
+        { q: 'Which of these is a way to ACQUIRE a deal (not an exit)?', choices: [
+          'Flip',
+          'Wrap',
+          'Agent outreach',
+          'Rental',
+        ], answer: 2 },
+        { q: 'With little or no budget, the best places to start are…', choices: [
+          'Direct-to-seller mail and PPC',
+          'Agent outreach and the MLS',
+          'Paid ads only',
+          'Buying a lead list',
+        ], answer: 1 },
+        { q: 'ARV is…', choices: [
+          'Your maximum offer',
+          'The estimated market value once the defined repairs are complete',
+          "The seller's asking price",
+          'The assignment fee',
+        ], answer: 1 },
+        { q: 'Your MAO (max offer) is found by…', choices: [
+          'Multiplying ARV by 70% and stopping',
+          'Starting from the exit price and subtracting resale costs, repairs, contingency, acquisition, holding, buyer profit, and your fee',
+          'Adding your fee to the asking price',
+          'Asking the buyer what they want',
+        ], answer: 1 },
+        { q: 'The smart order of operations in wholesaling is…', choices: [
+          'Find a deal, then scramble for a buyer',
+          'Build your buyers list first, then find deals that fit it',
+          "Skip the buyers list; any deal sells itself",
+          'Market to sellers before anything else',
+        ], answer: 1 },
+        { q: 'A proof-of-funds (POF) letter…', choices: [
+          'Guarantees the deal will close',
+          "Shows you or your funding source can close, and many offers won't be read without one",
+          'Is the same thing as hard money',
+          'Replaces the purchase contract',
+        ], answer: 1 },
+        { q: 'The difference between an assignment and a double close is…', choices: [
+          'There is no difference',
+          'An assignment transfers your contract rights for a fee; a double close is two actual purchases/sales, often funded by transactional money',
+          'A double close is illegal',
+          'An assignment requires two separate closings',
+        ], answer: 1 },
+        { q: 'A licensed agent wholesaling a deal must…', choices: [
+          "Hide that they're an agent",
+          'Disclose in writing that they are a licensed agent and a principal, and follow state rules',
+          'Always take a double commission',
+          'Avoid using the MLS',
+        ], answer: 1 },
+      ]}}),
+      summary: '8 questions · pass 80%+',
+      duration: '',
+      isFreePreview: false,
+      isPublished: true,
+      order: 7,
     },
   ],
 }

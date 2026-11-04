@@ -262,18 +262,20 @@ function AppProvider({ children }) {
   useEffect(() => {
     if (!hydrated || !currentUser) return
     if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    const liteCourses = CREAFI_LITE.courses || (CREAFI_LITE.course ? [CREAFI_LITE.course] : [])
     const needCommunity = !communities.some(c => c.id === CREAFI_LITE.community.id)
     const needPlan = !plans.some(p => p.id === CREAFI_LITE.plan.id)
-    const needCourse = !courses.some(c => c.id === CREAFI_LITE.course.id)
+    const haveCourse = new Set(courses.map(c => c.id))
+    const missingCourses = liteCourses.filter(c => !haveCourse.has(c.id))
     const haveMod = new Set(modules.map(m => m.id))
     const missingMods = CREAFI_LITE.modules.filter(m => !haveMod.has(m.id))
     const haveLes = new Set(lessons.map(l => l.id))
     const missingLes = CREAFI_LITE.lessons.filter(l => !haveLes.has(l.id))
-    if (!needCommunity && !needPlan && !needCourse && !missingMods.length && !missingLes.length) return
+    if (!needCommunity && !needPlan && !missingCourses.length && !missingMods.length && !missingLes.length) return
     const now = Date.now()
     if (needCommunity) setCommunities(cs => cs.some(c => c.id === CREAFI_LITE.community.id) ? cs : [...cs, CREAFI_LITE.community])
     if (needPlan) setPlans(ps => ps.some(p => p.id === CREAFI_LITE.plan.id) ? ps : [...ps, CREAFI_LITE.plan])
-    if (needCourse) setCourses(cs => cs.some(c => c.id === CREAFI_LITE.course.id) ? cs : [...cs, { ...CREAFI_LITE.course, createdAt: new Date().toISOString() }])
+    if (missingCourses.length) setCourses(cs => { const have = new Set(cs.map(c => c.id)); return [...cs, ...missingCourses.filter(c => !have.has(c.id)).map(c => ({ ...c, createdAt: new Date().toISOString() }))] })
     if (missingMods.length) setModules(ms => { const have = new Set(ms.map(m => m.id)); return [...ms, ...missingMods.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))] })
     if (missingLes.length) setLessons(ls => { const have = new Set(ls.map(l => l.id)); return [...ls, ...missingLes.filter(l => !have.has(l.id)).map(l => ({ ...l, createdAt: now }))] })
   }, [hydrated, currentUser?.id, communities, plans, courses, modules, lessons])
