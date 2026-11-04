@@ -427,13 +427,19 @@ app.post('/api/create-checkout-session', async (req, res) => {
 })
 
 app.post('/api/send-email-blast', async (req, res) => {
-  const { apiKey, senderName, senderEmail, subject, htmlContent, recipients } = req.body
-  if (!apiKey) return res.status(400).json({ error: 'Brevo API key required' })
-  if (!senderEmail) return res.status(400).json({ error: 'Sender email required' })
-  if (!recipients?.length) return res.status(400).json({ error: 'No recipients provided' })
+  const b = req.body || {}
+  // Prefer server-side Brevo creds from Railway env (key never leaves the server);
+  // fall back to client-provided settings (legacy). Sender defaults to the Crea'fi support inbox.
+  const apiKey      = process.env.BREVO_API_KEY || process.env.BREVO_KEY || process.env.SENDINBLUE_API_KEY || b.apiKey
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || b.senderEmail || 'support@creafigenius.com'
+  const senderName  = process.env.BREVO_SENDER_NAME  || b.senderName  || "Crea'fi Genius"
+  const { subject, htmlContent, recipients } = b
+  if (!apiKey)              return res.status(400).json({ error: 'Email is not configured yet — add BREVO_API_KEY in Railway.' })
+  if (!senderEmail)         return res.status(400).json({ error: 'Sender email required' })
+  if (!recipients?.length)  return res.status(400).json({ error: 'No recipients provided' })
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', { method: 'POST', headers: { accept: 'application/json', 'api-key': apiKey, 'content-type': 'application/json' },
-      body: JSON.stringify({ sender: { name: senderName || 'Mpact', email: senderEmail }, to: recipients.map(r => ({ email: r.email, name: r.name || r.email })), subject, htmlContent }) })
+      body: JSON.stringify({ sender: { name: senderName, email: senderEmail }, to: recipients.map(r => ({ email: r.email, name: r.name || r.email })), subject, htmlContent }) })
     if (!response.ok) { const err = await response.json(); return res.status(response.status).json({ error: err.message || 'Brevo error' }) }
     res.json({ success: true, messageId: (await response.json()).messageId })
   } catch (err) { res.status(500).json({ error: err.message }) }

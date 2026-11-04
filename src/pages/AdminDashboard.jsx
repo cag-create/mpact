@@ -163,7 +163,6 @@ function EmailBlastModal({ onClose, educators, communities, members, brevoSettin
               .map(m => ({ email: m.email, name: m.name }))
 
   const handleSend = async () => {
-    if (!brevoSettings.apiKey) { setError('Add your Brevo API key in Email Settings first.'); return }
     if (!subject.trim())       { setError('Subject is required.'); return }
     if (!body.trim())          { setError('Message body is required.'); return }
     if (recipients.length === 0) { setError('No recipients found with email addresses.'); return }
@@ -174,9 +173,10 @@ function EmailBlastModal({ onClose, educators, communities, members, brevoSettin
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          apiKey: brevoSettings.apiKey,
-          senderName: brevoSettings.senderName || 'Mpact',
-          senderEmail: brevoSettings.senderEmail,
+          // Brevo key + sender come from the server (Railway env); these are legacy fallbacks only.
+          apiKey: brevoSettings.apiKey || undefined,
+          senderName: brevoSettings.senderName || undefined,
+          senderEmail: brevoSettings.senderEmail || undefined,
           subject,
           htmlContent: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto"><p style="font-size:15px;line-height:1.6;color:#1f2937;">${body.replace(/\n/g, '<br/>')}</p><hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/><p style="font-size:12px;color:#9ca3af;">Sent via <a href="#" style="color:#8B2FE0">Mpact</a></p></div>`,
           recipients,
