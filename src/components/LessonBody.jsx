@@ -1,7 +1,8 @@
 import React from 'react'
+import DealCalc from './DealCalc'
 
 // Renders a Crea'fi rich lesson body from a block array.
-// Block types: lead | h | p | ul | kv | callout | dialogue | note
+// Block types: lead | h | p | ul | kv | callout | dialogue | note | table | calc
 // This is the revamped course "look": Space Grotesk headings, Nunito reading text,
 // styled callouts, definition rows, and chat-style dialogue.
 
@@ -77,6 +78,8 @@ function Block({ b }) {
     }
     case 'dialogue':
       return <Dialogue turns={b.turns} />
+    case 'calc':
+      return <DealCalc initialTab={b.tab} defaults={b.defaults} />
     case 'table':
       return (
         <div className="my-5 overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
