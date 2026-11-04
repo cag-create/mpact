@@ -361,6 +361,11 @@ function AppProvider({ children }) {
   const setMemberRules = (memberId, signed) => {
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, rulesSignedAt: signed ? (m.rulesSignedAt || new Date().toISOString().split('T')[0]) : null } : m))
   }
+  // Course disclaimer: record (once) that the member watched/acknowledged the branded disclaimer intro.
+  // After this the intro no longer auto-plays on every module; a written notice + replay link stays on each lesson.
+  const setMemberDisclaimerAck = (memberId) => {
+    setMembers(prev => prev.map(m => m.id === memberId && !m.disclaimerAckAt ? { ...m, disclaimerAckAt: new Date().toISOString() } : m))
+  }
   // Admin: track whether a member's W-9 is on file (and an optional link to where it's stored).
   const setMemberW9 = (memberId, onFile, url) => {
     setMembers(prev => prev.map(m => m.id === memberId ? { ...m, w9OnFile: !!onFile, w9At: onFile ? (m.w9At || new Date().toISOString().split('T')[0]) : null, ...(url !== undefined ? { w9Url: url } : {}) } : m))
@@ -603,7 +608,7 @@ function AppProvider({ children }) {
       // Notifications
       pushNotification, markNotificationRead, markAllNotificationsRead, clearNotifications,
       // Points
-      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules, setMemberW9,
+      awardPoints, updateMemberRole, setMemberModuleRelease, setMemberAvatar, setMemberRules, setMemberDisclaimerAck, setMemberW9,
       // Messages
       sendMessage, markMessageRead, markConversationRead,
       // Communities

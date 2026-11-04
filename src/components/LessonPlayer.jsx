@@ -25,7 +25,7 @@ function parseRich(s) {
 // Default view = the lessons inside the module as a clean list (thumbnail + title +
 // description + progress line). Clicking a lesson opens the player for it.
 export default function LessonPlayer({ course, communityId, onBack, canEdit = false, moduleId = null }) {
-  const { modules, lessons, progress, currentUser, members, setLessonComplete } = useApp()
+  const { modules, lessons, progress, currentUser, members, setLessonComplete, setMemberDisclaimerAck } = useApp()
   const memberId = currentUser?.memberId || currentUser?.id
   const member = members?.find(m => m.id === memberId)
 
@@ -62,15 +62,25 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const [activeSection, setActiveSection] = useState(null)  // when a module groups lessons into named sections, which one is open
   useEffect(() => { setPage(1); setActiveSection(null) }, [moduleId, course.id])
 
-  // Branded disclaimer intro: plays once when a member opens a module, then opens the course.
+  // Branded disclaimer intro. Plays in full the FIRST time a member opens any module; once they've watched or
+  // skipped it, that acknowledgment is saved on their member record (disclaimerAckAt) and it no longer
+  // auto-plays. Every module + lesson still shows the written disclaimer with a "Replay" link (DisclaimerNote).
   const introRef = useRef(null)
-  const introKey = 'creafi_intro_' + (moduleId || course.id)
-  const [showIntro, setShowIntro] = useState(() => {
-    try { return sessionStorage.getItem(introKey) !== '1' } catch { return true }  // once per module per session (everyone)
-  })
+  const ackLocalKey = 'creafi_disclaimer_ack_' + (memberId || 'anon')
+  const alreadyAcked = () => {
+    if (member?.disclaimerAckAt) return true
+    try { return localStorage.getItem(ackLocalKey) === '1' } catch { return false }
+  }
+  const [showIntro, setShowIntro] = useState(() => !alreadyAcked())
+  useEffect(() => { if (member?.disclaimerAckAt) setShowIntro(false) }, [member?.disclaimerAckAt])  // record loaded after first render
   const [introSkippable, setIntroSkippable] = useState(false)
   const [introMuted, setIntroMuted] = useState(false)  // true only if the browser blocked sound and we fell back to muted
-  const dismissIntro = () => { try { sessionStorage.setItem(introKey, '1') } catch {}; setShowIntro(false) }
+  const dismissIntro = () => {
+    try { localStorage.setItem(ackLocalKey, '1') } catch {}
+    if (memberId && setMemberDisclaimerAck) setMemberDisclaimerAck(memberId)
+    setShowIntro(false)
+  }
+  const replayIntro = () => { setIntroSkippable(false); setShowIntro(true); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const unmuteIntro = () => { const v = introRef.current; if (!v) return; v.muted = false; setIntroMuted(false); v.play().catch(() => {}) }
   useEffect(() => {
     if (!showIntro) return
@@ -91,7 +101,7 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
   const totalPct = flat.length ? Math.round((flat.filter(l => doneIds.has(l.id)).length / flat.length) * 100) : 0
   const accent = '#2563eb'
 
-  // ── Disclaimer intro (members): plays once when you open a module, then opens the course ──
+  // ── Disclaimer intro: plays the first time a member opens a module (or on Replay), then opens the course ──
   if (showIntro && flat.length > 0) {
     return (
       <div>
@@ -131,7 +141,8 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
             )}
             {current.type === 'video' && current.notes && <p className="text-sm text-gray-600 whitespace-pre-wrap mt-2">{current.notes}</p>}
 
-            <div className="flex items-center justify-between gap-3 mt-8 pt-5 border-t border-gray-100">
+            <DisclaimerNote onReplay={replayIntro} className="mt-8" />
+            <div className="flex items-center justify-between gap-3 mt-4 pt-5 border-t border-gray-100">
               <button disabled={idx <= 0} onClick={() => goto(idx - 1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 disabled:opacity-30"><ChevronLeft size={16} /> Previous</button>
               {doneIds.has(current.id) ? (
                 <button onClick={() => markDone(false)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 text-green-700 border border-green-200 text-sm font-semibold"><Check size={15} /> Completed</button>
@@ -238,6 +249,19 @@ export default function LessonPlayer({ course, communityId, onBack, canEdit = fa
           {(!hasSections || activeSection) && <Pager page={page} pages={pages} onPage={setPage} />}
         </div>
       )}
+      {flat.length > 0 && <DisclaimerNote onReplay={replayIntro} className="mt-4" />}
     </div>
+  )
+}
+
+// Written version of the branded disclaimer intro (same wording as the voiceover). Shown on every module list
+// and lesson so the notice is always visible after the member has watched the intro once.
+export const DISCLAIMER_TEXT = 'This content is for educational purposes only, not legal, financial, or tax advice. Every situation is different and results vary, so nothing here is a guarantee. Do your own due diligence and consult a licensed professional before making any legal, financial, or business decision.'
+function DisclaimerNote({ onReplay, className = '' }) {
+  return (
+    <p className={`max-w-4xl text-[11px] leading-relaxed text-gray-400 ${className}`}>
+      <span className="font-semibold text-gray-500">Disclaimer:</span> {DISCLAIMER_TEXT}{' '}
+      {onReplay && <button type="button" onClick={onReplay} className="font-semibold text-indigo-500 hover:text-indigo-700 underline-offset-2 hover:underline">Replay disclaimer ▸</button>}
+    </p>
   )
 }
