@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useApp } from '../App'
 import { api } from '../lib/api'
-import { CheckCircle2, Circle, Mail, ChevronDown, ChevronUp, Search, ShieldCheck, Clock, KeyRound, Loader2, FileText, FileCheck2, Lock, Copy } from 'lucide-react'
+import { CheckCircle2, Circle, Mail, ChevronDown, ChevronUp, Search, ShieldCheck, Clock, KeyRound, Loader2, FileText, FileCheck2, Lock, Copy, Send, X } from 'lucide-react'
 
 const FORGOT_URL = (typeof window !== 'undefined' && window.__MPACT_BRAND__?.forgotUrl) || 'https://creafigenius.com/api/forgot-password'
 const RULES_COPY_URL = (typeof window !== 'undefined' && window.__MPACT_BRAND__?.rulesUrl) || 'https://creafigenius.com/community-rules.pdf'
@@ -9,13 +9,14 @@ const fmtDate = (d) => d ? new Date(d + (String(d).length === 10 ? 'T12:00:00' :
 
 // Admin roster: who joined, what they filled on the form, and who has signed the community rules.
 export default function RosterTab({ communityId, community }) {
-  const { members, enrollments, plans, currentUser, setMemberRules, setMemberW9 } = useApp()
+  const { members, enrollments, plans, currentUser, setMemberRules, setMemberW9, brevoSettings } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState({})
   const [sending, setSending] = useState({})   // memberId -> 'sending' | 'sent'
   const [pw, setPw] = useState({})              // memberId -> { password } | { error }
   const [copied, setCopied] = useState(null)
+  const [emailFor, setEmailFor] = useState(null) // member being emailed a custom note
 
   const roster = useMemo(() => members
     .filter(m => m.communityId === communityId && !['owner', 'admin', 'platform_admin'].includes(m.role))
@@ -154,6 +155,9 @@ export default function RosterTab({ communityId, community }) {
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1">
+                            <button onClick={() => setEmailFor(m)} disabled={!m.email} className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700 hover:text-violet-800 px-2 py-1 rounded-lg hover:bg-violet-50 disabled:opacity-40" title="Send this member a custom email via Brevo">
+                              <Send size={13} /> Email
+                            </button>
                             <button onClick={() => resetShow(m)} disabled={pw[m.id]?.loading} className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100 disabled:opacity-60" title="Reset the password and show it so you can give it to them directly">
                               {pw[m.id]?.loading ? <Loader2 size={13} className="animate-spin" /> : <Lock size={13} />} Set password
                             </button>
@@ -218,6 +222,111 @@ export default function RosterTab({ communityId, community }) {
         </div>
       )}
       <p className="text-xs text-gray-400 mt-3">Passwords aren't stored for security — use <span className="font-medium text-gray-500">Resend login</span> to email a member a fresh one. "Rules" reflects the signed agreement; you can mark it manually for anyone who signed offline.</p>
+
+      {emailFor && <EmailMemberModal member={emailFor} brevoSettings={brevoSettings} onClose={() => setEmailFor(null)} />}
+    </div>
+  )
+}
+
+// Compose and send a single custom email to one member through the existing Brevo path.
+function EmailMemberModal({ member, brevoSettings, onClose }) {
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+  const firstName = (member.name || '').split(' ')[0] || 'there'
+
+  const send = async () => {
+    if (!brevoSettings?.apiKey || !brevoSettings?.senderEmail) { setError('Add your Brevo API key and sender email in Admin Panel → Email Settings first.'); return }
+    if (!subject.trim()) { setError('Subject is required.'); return }
+    if (!body.trim())    { setError('Message is required.'); return }
+    setError(''); setSending(true)
+    try {
+      const res = await fetch('/api/send-email-blast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          apiKey: brevoSettings.apiKey,
+          senderName: brevoSettings.senderName || 'Mpact',
+          senderEmail: brevoSettings.senderEmail,
+          subject,
+          htmlContent: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto"><p style="font-size:15px;line-height:1.6;color:#1f2937;">${body.replace(/\n/g, '<br/>')}</p><hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"/><p style="font-size:12px;color:#9ca3af;">Sent via <a href="#" style="color:#8B2FE0">Mpact</a></p></div>`,
+          recipients: [{ email: member.email, name: member.name }],
+        }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error || 'Send failed')
+      setSent(true)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <Send size={18} className="text-violet-600" />
+            <h2 className="font-bold text-gray-900">Email {member.name}</h2>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+        </div>
+
+        {sent ? (
+          <div className="px-6 py-12 text-center">
+            <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Email sent!</h3>
+            <p className="text-sm text-gray-500">Delivered to {member.email} via Brevo.</p>
+            <button onClick={onClose} className="mt-6 px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800">Done</button>
+          </div>
+        ) : (
+          <div className="px-6 py-5 space-y-4">
+            <div className="flex items-center gap-2 text-sm bg-violet-50 border border-violet-100 rounded-xl px-3 py-2.5">
+              <Mail size={15} className="text-violet-500 flex-shrink-0" />
+              <span className="text-gray-600">To</span>
+              <span className="font-semibold text-gray-800 truncate">{member.email}</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">Subject</label>
+              <input
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder="You're all set — Crea'fi Genius"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-violet-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">Message</label>
+              <textarea
+                value={body}
+                onChange={e => setBody(e.target.value)}
+                rows={7}
+                placeholder={`Hi ${firstName},\n\n...`}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-violet-400 resize-none"
+              />
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="flex items-center gap-3 pt-1">
+              <button onClick={onClose} className="flex-1 py-2.5 text-sm font-semibold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Cancel</button>
+              <button
+                onClick={send}
+                disabled={sending}
+                className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 disabled:opacity-60"
+              >
+                {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                {sending ? 'Sending…' : 'Send email'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
