@@ -238,6 +238,9 @@ async function ensureEnrollment({ communityId, memberId, planName, price, interv
 async function fulfillCheckout(session) {
   if (!pool || !session) return
   const md = session.metadata || {}
+  // This Stripe account is shared with creafigenius.com, so checkout.session.completed
+  // is delivered to BOTH webhook endpoints. Only fulfill sessions WE created.
+  if (md.source !== 'mpact-app') { console.log('stripe fulfill: ignoring session not created by this app'); return }
   const communityId = md.communityId
   if (!communityId) { console.warn('stripe fulfill: no communityId in metadata'); return }
   const email = String(session.customer_details?.email || session.customer_email || '').trim().toLowerCase()
@@ -498,6 +501,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     const isSubscription = interval === 'month' || interval === 'year'
     // Carried onto checkout.session.completed so the webhook grants the right tier.
     const metadata = {
+      source:      'mpact-app',   // lets our webhook ignore creafigenius.com's own sessions (shared Stripe account)
       communityId: String(communityId || ''),
       planName:    String(planName || 'Membership'),
       price:       String(price ?? ''),
