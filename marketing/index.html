@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mpact — Your community, your courses, your domain</title>
+<meta name="description" content="Mpact is a community platform: feed, live training calendar, courses, replays, members, leaderboard, and payments, on your own branded address.">
+<meta property="og:title" content="Mpact — Your community, your courses, your domain">
+<meta property="og:description" content="Run your community on Mpact: feed, live training, courses, replays, members, payments. Your name on the door.">
+<meta name="theme-color" content="#f8fafc">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f8fafc;--bg2:#ffffff;--ink:#0f172a;--mute:#64748b;--line:#e2e8f0;--grad:linear-gradient(90deg,#8B2FE0 0%,#C03535 48%,#2575E8 100%);--max:1120px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:24px;text-decoration:none;letter-spacing:-.02em}
+.m{width:36px;height:36px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-weight:900;color:#fff;font-size:20px}
+.gradtext{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+nav ul{list-style:none;display:flex;gap:26px;margin:0;padding:0;font-weight:700;font-size:15px}
+nav ul a{text-decoration:none;color:var(--mute)}
+nav ul a:hover{color:var(--ink)}
+.btn{display:inline-block;padding:13px 22px;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none;border:1px solid transparent;transition:transform .12s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--grad);color:#fff}
+.btn.ghost{border-color:#cbd5e1;color:var(--ink);background:#fff}
+.btn.light{background:#0f172a;color:#fff}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:64px 0 72px}
+h1{font-size:clamp(40px,6vw,68px);line-height:1.02;letter-spacing:-.03em;font-weight:900;margin:0 0 20px}
+.lede{font-size:20px;color:#334155;max-width:34rem;margin:0 0 30px}
+.pill{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#6d28d9;background:#f3e8ff;border:1px solid #ddd6fe;padding:6px 12px;border-radius:999px;margin-bottom:22px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.cta small{width:100%;color:var(--mute);font-size:14px}
+/* app mock */
+.mock{background:var(--bg2);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mock .bar{display:flex;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.mock .bar i{width:10px;height:10px;border-radius:50%;background:#1f2937;display:block}
+.mock .body{display:grid;grid-template-columns:150px 1fr;min-height:330px}
+.mock .side{border-right:1px solid var(--line);padding:14px 12px;font-size:12px;color:var(--mute)}
+.mock .side .logo{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:800;margin-bottom:16px}
+.mock .side .logo b{width:22px;height:22px;border-radius:6px;background:#000;display:grid;place-items:center;overflow:hidden}
+.mock .side .logo img{width:20px;height:20px;object-fit:contain}
+.mock .side div{padding:6px 8px;border-radius:8px}
+.mock .side .on{background:rgba(255,255,255,.08);color:var(--ink)}
+.mock .main{padding:16px;background:#f8fafc;color:#0f172a}
+.mock .tabs{display:flex;gap:14px;font-size:11px;font-weight:800;color:#64748b;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:12px}
+.mock .tabs span:first-child{color:#4f46e5;border-bottom:2px solid #4f46e5;padding-bottom:8px;margin-bottom:-9px}
+.mock .card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;font-size:12px}
+.mock .card b{display:block;font-size:13px;margin-bottom:4px}
+.mock .prog{height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:8px}
+.mock .prog i{display:block;height:100%;width:62%;background:var(--grad)}
+section{padding:72px 0}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 12px}
+h2{font-size:clamp(30px,4vw,44px);line-height:1.08;letter-spacing:-.02em;font-weight:900;margin:0 0 14px}
+.sub{color:#475569;max-width:40rem;margin:0 0 36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.f{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.f .ic{width:38px;height:38px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-weight:900;color:#fff;margin-bottom:14px;font-size:16px}
+.f h3{margin:0 0 6px;font-size:18px;font-weight:800}
+.f p{margin:0;color:var(--mute);font-size:15px}
+.f .soon{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#b45309;background:#fef3c7;padding:2px 7px;border-radius:999px;margin-left:8px}
+.proof{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;background:#0f172a;color:#f8fafc;border-radius:22px;padding:40px}
+.proof h2{color:#fff}.proof .sub{color:#cbd5e1}.proof .eyebrow{color:#94a3b8}
+.proof img{width:100%;max-width:340px;border-radius:16px;margin:0 auto;display:block}
+.proof ul{color:#e2e8f0;padding-left:18px;margin:0 0 22px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:860px}
+.plan{background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:30px;position:relative;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.plan.hot{border-color:transparent;background:linear-gradient(var(--bg2),var(--bg2)) padding-box,var(--grad) border-box}
+.plan .tag{position:absolute;top:-12px;left:30px;background:var(--grad);color:#fff;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:999px}
+.plan h3{margin:0 0 4px;font-size:22px;font-weight:900}
+.price{font-size:44px;font-weight:900;letter-spacing:-.03em;margin:8px 0 2px}
+.price span{font-size:16px;color:var(--mute);font-weight:700}
+.plan .for{color:var(--mute);margin:0 0 18px;font-size:15px}
+.plan ul{list-style:none;padding:0;margin:0 0 24px}
+.plan li{padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.plan li::before{content:"✓";color:#7c3aed;font-weight:900;margin-right:10px}
+form{background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px;max-width:620px;box-shadow:0 20px 50px rgba(15,23,42,.12)}
+label{display:block;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+input,textarea{width:100%;background:#f8fafc;border:1px solid #cbd5e1;color:var(--ink);font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;outline:none}
+input:focus,textarea:focus{border-color:#8B2FE0}
+button.btn{cursor:pointer;width:100%;margin-top:20px;font-size:16px}
+.msg{margin-top:12px;font-size:15px;min-height:1.4em}
+footer{border-top:1px solid var(--line);padding:32px 0 44px;color:var(--mute);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--mute);text-decoration:none;margin-left:18px}
+@media (max-width:860px){.hero,.proof,.plans,.grid{grid-template-columns:1fr}nav ul{display:none}.hero{padding:32px 0 48px}section{padding:52px 0}.mock .body{grid-template-columns:1fr}.mock .side{display:none}}
+
+/* photos */
+.heroimg{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 30px 60px rgba(15,23,42,.25);aspect-ratio:4/3}
+.heroimg img{width:100%;height:100%;object-fit:cover;display:block}
+.heroimg .float{position:absolute;left:18px;bottom:18px;background:#fff;color:#0f172a;border:1px solid #e2e8f0;border-radius:14px;padding:14px 16px;max-width:300px;box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.heroimg .float b{display:block;font-size:14px;margin-bottom:3px}
+.heroimg .float span{font-size:12px;color:#64748b}
+.heroimg .prog{height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:10px}
+.heroimg .prog i{display:block;height:100%;width:62%;background:var(--grad)}
+.band-wrap{padding:0 0 72px}
+.band{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.band figure{margin:0;background:var(--bg2);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.band img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.band figcaption{padding:16px 18px;font-size:14px;color:var(--mute)}
+.band figure{box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.band figcaption b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.wl{position:relative;overflow:hidden;border-radius:24px;padding:72px 32px;margin:0 0 72px}
+.wlbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wl::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,23,42,.55),rgba(15,23,42,.85))}
+.wl h2,.wl .eyebrow{color:#fff}.wl .sub{color:#e2e8f0}
+.wlin{position:relative}
+@media (max-width:860px){.band{grid-template-columns:1fr}.wl{padding:44px 18px}}
+.logos{text-align:center}
+.logos .logo{display:inline-flex;flex-direction:column;align-items:center;gap:10px;text-decoration:none;color:#f8fafc;font-weight:800;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:22px 34px}
+.logos .logo img{width:84px;height:84px;object-fit:contain;border-radius:14px;background:#000}
+.logos .more{color:#94a3b8;font-size:14px;margin:14px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="/"><span class="m">M</span><span class="gradtext">Mpact</span></a>
+    <ul><li><a href="#features">Features</a></li><li><a href="#pricing">Pricing</a></li><li><a href="/login">Log in</a></li></ul>
+    <a class="btn ghost" href="#waitlist">Get early access</a>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <span class="pill">Community platform · Opening soon</span>
+      <h1>Your community.<br>Your courses.<br><span class="gradtext">Your name on the door.</span></h1>
+      <p class="lede">Mpact is where creators run a community that actually does the work: a feed, a live training calendar, courses with progress, replays, members, a leaderboard, and payments. All on your own address, with your own logo on the login page.</p>
+      <div class="cta">
+        <a class="btn primary" href="#waitlist">Get early access</a>
+        <a class="btn ghost" href="#features">See what's inside</a>
+        <small>Feed, live training, courses, replays, members, and payments. One place, your name on it.</small>
+      </div>
+    </div>
+    <div class="heroimg">
+      <img src="/marketing/img/hero.jpg" alt="A creator teaching a room of members in a workshop">
+      <div class="float">
+        <b>Module 3 · Pricing your first offer</b>
+        <span>4 modules · 18 lessons · 62% complete</span>
+        <div class="prog"><i></i></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <p class="eyebrow">What's inside</p>
+    <h2>Everything a paid community needs. Nothing you have to duct-tape together.</h2>
+    <p class="sub">One place for the conversation, the training, the content, and the money.</p>
+    <div class="grid">
+      <div class="f"><div class="ic">≡</div><h3>Community feed</h3><p>Posts, photos, reactions, comments, and notifications. Members introduce themselves and stay in the room.</p></div>
+      <div class="f"><div class="ic">▦</div><h3>Live training calendar</h3><p>Live calls, workshops, and challenges on a calendar members can actually find, with the Zoom link right there.</p></div>
+      <div class="f"><div class="ic">▶</div><h3>Courses with progress</h3><p>Courses, modules, lessons. Video, text, PDFs, links. Members mark lessons complete and pick up where they left off.</p></div>
+      <div class="f"><div class="ic">◉</div><h3>Replays library</h3><p>Every recording filed by session type, topic, and property type, so the answer is one filter away instead of a two-hour scrub.</p></div>
+      <div class="f"><div class="ic">☺</div><h3>Members and leaderboard</h3><p>Profiles, direct messages, points, and badges. Recognition for the people who show up and do the work.</p></div>
+      <div class="f"><div class="ic">$</div><h3>Payments</h3><p>Sell membership through Stripe. New members get their login by email the moment they're in.</p></div>
+      <div class="f"><div class="ic">◆</div><h3>Your brand, your address</h3><p>Your logo on the login page and the sidebar. Your community at yourname.ourmpact.com, or on your own domain.</p></div>
+      <div class="f"><div class="ic">⇄</div><h3>One login, every community <span class="soon">Coming</span></h3><p>Members who belong to more than one community on Mpact sign in once and move between them.</p></div>
+      <div class="f"><div class="ic">✎</div><h3>Built with creators, not for a demo</h3><p>Mpact runs a real paid community today. Features ship because a community asked for them.</p></div>
+    </div>
+  </section>
+
+
+  <section class="band-wrap">
+    <div class="band">
+      <figure><img src="/marketing/img/live.jpg" alt="A laptop showing a live video call with members"><figcaption><b>Live training</b>Calls, workshops, and Q&amp;A on a calendar members can find.</figcaption></figure>
+      <figure><img src="/marketing/img/courses.jpg" alt="Four people working through a course together around a laptop"><figcaption><b>Courses that get finished</b>Modules, lessons, and progress that picks up where they left off.</figcaption></figure>
+      <figure><img src="/marketing/img/create.jpg" alt="A camera, microphone, and monitor set up to record a lesson"><figcaption><b>Your content, your way</b>Record once. Post it as a lesson or file it as a replay.</figcaption></figure>
+    </div>
+  </section>
+  <section>
+    <div class="proof">
+      <div>
+        <p class="eyebrow">Why Mpact</p>
+        <h2>Made for communities that do the work.</h2>
+        <p class="sub" style="margin-bottom:16px">Most platforms give you a feed and call it a community. Mpact is built around the week: the calls on the calendar, the lessons members finish, the replays they come back to, and the people who show up. Your logo on the door, your address, your rules.</p>
+        <ul>
+          <li>Running real paid communities today, not a demo</li>
+          <li>Branded login and sidebar for every community</li>
+          <li>Courses, replays, and a live calendar in one place</li>
+        </ul>
+        <a class="btn light" href="#waitlist">Get early access</a>
+      </div>
+      <div class="logos">
+        <p class="eyebrow">Communities on Mpact</p>
+        <a class="logo" href="https://creafi.ourmpact.com"><img src="/creafi-logo.png" alt="Crea'fi"><span>Crea'fi</span></a>
+        <p class="more">More opening soon.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <p class="eyebrow">Pricing</p>
+    <h2>Two plans. Pick the door you want your name on.</h2>
+    <p class="sub">Both include every feature above. The difference is the address.</p>
+    <div class="plans">
+      <div class="plan">
+        <h3>Foundation</h3>
+        <p class="price">$5.99<span> / month</span></p>
+        <p class="for">For creators getting their community off the ground.</p>
+        <ul><li>yourname.ourmpact.com address</li><li>All features: feed, calendar, courses, replays, members, payments</li><li>Your logo on the login page</li><li>Unlimited members</li></ul>
+        <a class="btn ghost" href="#waitlist">Get early access</a>
+      </div>
+      <div class="plan hot">
+        <span class="tag">Most creators</span>
+        <h3>Active</h3>
+        <p class="price">$49.99<span> / month</span></p>
+        <p class="for">For communities that want to own the whole experience.</p>
+        <ul><li>Your own custom domain</li><li>Highlighted community placement</li><li>Everything in Foundation</li><li>Priority support</li></ul>
+        <a class="btn primary" href="#waitlist">Get early access</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="waitlist" class="wl">
+    <img class="wlbg" src="/marketing/img/team.jpg" alt="">
+    <div class="wlin">
+    <p class="eyebrow">Early access</p>
+    <h2>Tell us about your community.</h2>
+    <p class="sub">Mpact is opening to new creators soon. Leave your details and you'll hear from us when your spot is ready.</p>
+    <form id="wl" novalidate>
+      <label for="name">Your name</label><input id="name" name="name" autocomplete="name" required>
+      <label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required>
+      <label for="community">Community or course name</label><input id="community" name="community" placeholder="What would members see on the door?">
+      <label for="about">What do you teach, and who is it for?</label><textarea id="about" name="about" rows="3"></textarea>
+      <button class="btn primary" type="submit" id="go">Request early access</button>
+      <div class="msg" id="msg" role="status"></div>
+    </form>
+    </div>
+  </section>
+
+  <footer>
+    <div>© <span id="y"></span> Mpact</div>
+    <div><a href="/login">Log in</a><a href="#pricing">Pricing</a><a href="#waitlist">Early access</a></div>
+  </footer>
+</div>
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+var f=document.getElementById('wl'),go=document.getElementById('go'),msg=document.getElementById('msg');
+f.addEventListener('submit',function(e){
+  e.preventDefault(); msg.textContent='';
+  if(!f.checkValidity()){f.reportValidity();return}
+  var d={}; new FormData(f).forEach(function(v,k){d[k]=String(v).trim()});
+  go.disabled=true; go.textContent='Sending…';
+  fetch('/api/waitlist',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(d)})
+    .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+    .then(function(x){ if(x.ok){ f.reset(); msg.style.color='#86efac'; msg.textContent="You're on the list. We'll reach out when your spot is ready."; go.textContent='Requested'; } else { throw new Error(x.j.error||'Something went wrong'); } })
+    .catch(function(err){ msg.style.color='#fca5a5'; msg.textContent=err.message; go.disabled=false; go.textContent='Request early access'; });
+});
+</script>
+</body>
+</html>
