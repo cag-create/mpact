@@ -6,6 +6,7 @@ import LessonPlayer from './LessonPlayer'
 import AskChad from './AskChad'
 import { CommunityLogo } from './CreafiLogo'
 import { moduleUnlocked } from '../lib/release'
+import { STOREFRONT_TIERS, isStorefrontTier, entitledTierSet } from '../lib/entitlements'
 
 function CourseModal({ course, onSave, onClose }) {
   const isNew = !course
@@ -54,7 +55,7 @@ const CARD_GRADS = [
 const DOTS = 'radial-gradient(rgba(255,255,255,0.22) 1.4px, transparent 1.5px)'
 
 export default function CoursesTab({ communityId, community }) {
-  const { courses, modules, lessons, progress, currentUser, members, addCourse, updateCourse, deleteCourse, updateModule } = useApp()
+  const { courses, modules, lessons, progress, currentUser, members, communities, enrollments, plans, addCourse, updateCourse, deleteCourse, updateModule } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const memberId = currentUser?.memberId || currentUser?.id
   const member = members?.find(m => m.id === memberId)
@@ -63,15 +64,53 @@ export default function CoursesTab({ communityId, community }) {
   const [editing, setEditing] = useState(null)
   const [previewAsMember, setPreviewAsMember] = useState(false)
 
-  const myCourses = courses.filter(c => c.communityId === communityId && (isAdmin || c.isPublished)).sort((a, b) => (a.order || 0) - (b.order || 0))
-  // Capsules = the modules across the community's visible courses, in order.
+  // Storefront: on a storefront tier (e.g. the Crea'fi hub) members see courses
+  // from EVERY tier at once — their own unlocked, the others locked with a buy
+  // CTA. On any other community it stays scoped to that community as before.
+  const storefront = isStorefrontTier(communityId)
+  const tierRank = (cid) => { const i = STOREFRONT_TIERS.indexOf(cid); return i === -1 ? 99 : i }
+  // Tiers this member may OPEN. In "preview as member" we simulate a member of
+  // just the current tier so the admin can see what the locked view looks like.
+  const entitled = (isAdmin && previewAsMember)
+    ? new Set([communityId])
+    : entitledTierSet({ currentUser, member, enrollments })
+
+  const myCourses = courses
+    .filter(c => (storefront ? STOREFRONT_TIERS.includes(c.communityId) : c.communityId === communityId) && (isAdmin || c.isPublished))
+    .sort((a, b) => (tierRank(a.communityId) - tierRank(b.communityId)) || ((a.order || 0) - (b.order || 0)))
+  // Capsules = the modules across the visible courses, in order (each tagged with its course/tier).
   const capsules = myCourses.flatMap(c =>
-    modules.filter(m => m.courseId === c.id && m.communityId === communityId && (isAdmin || m.isPublished !== false))
+    modules.filter(m => m.courseId === c.id && m.communityId === c.communityId && (isAdmin || m.isPublished !== false))
       .sort((a, b) => a.order - b.order)
       .map(m => ({ module: m, course: c }))
   )
   const lessonsIn = (m) => lessons.filter(l => l.moduleId === m.id && (isAdmin ? true : l.isPublished))
   const unlockedFor = (m) => (isAdmin && !previewAsMember) || m.alwaysOpen || moduleUnlocked(m, member)
+  const tierCommunity = (cid) => communities?.find(x => x.id === cid) || community
+  const tierPlan = (cid) => plans?.find(p => p.communityId === cid && p.isActive)
+  const priceLabel = (p) => p ? `$${p.price}/${p.interval === 'year' ? 'yr' : 'mo'}` : 'Unlock'
+
+  // Start Stripe checkout for a locked tier (logged-in upsell or first purchase).
+  // On success the buyer returns here, state re-hydrates, and the tier unlocks.
+  const buyTier = async (cid) => {
+    const plan = tierPlan(cid)
+    if (!plan) { alert("This track isn't open for purchase yet."); return }
+    const tc = tierCommunity(cid)
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planName: plan.name, price: plan.price, interval: plan.interval,
+          communityId: cid, communityName: tc?.name || plan.name, email: currentUser?.email,
+          successPath: `/community/${communityId}/content?unlocked=${cid}`,
+          cancelPath: `/community/${communityId}/content`,
+        }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else alert(data.error || 'Could not start checkout. Please try again.')
+    } catch { alert('Could not start checkout. Please try again.') }
+  }
 
   if (mode.view === 'build' && isAdmin) {
     const course = courses.find(c => c.id === mode.courseId)
@@ -116,7 +155,11 @@ export default function CoursesTab({ communityId, community }) {
             const less = lessonsIn(m)
             const done = less.filter(l => progress.some(p => p.memberId === memberId && p.lessonId === l.id)).length
             const pct = less.length ? Math.round(done / less.length * 100) : 0
-            const locked = !unlockedFor(m)
+            const cCommunity = tierCommunity(c.communityId)   // brand each capsule by ITS tier
+            const tierLocked = !entitled.has(c.communityId)   // haven't paid for this track
+            const releaseLocked = !tierLocked && !unlockedFor(m)   // paid, but not yet dripped
+            const locked = tierLocked || releaseLocked
+            const plan = tierLocked ? tierPlan(c.communityId) : null
             return (
               <div key={m.id} className={`bg-white rounded-2xl shadow-sm overflow-hidden grid grid-cols-1 sm:grid-cols-[240px_1fr] transition-shadow ${locked ? '' : 'hover:shadow-md'}`}>
                 {/* Branded capsule panel */}
@@ -124,8 +167,8 @@ export default function CoursesTab({ communityId, community }) {
                   <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: DOTS, backgroundSize: '12px 12px', opacity: 0.6 }} />
                   <div className="relative flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
-                      <CommunityLogo community={community} size={20} />
-                      <span className="font-grotesk font-bold text-[11px] uppercase tracking-wide opacity-95 truncate">{community.name}</span>
+                      <CommunityLogo community={cCommunity} size={20} />
+                      <span className="font-grotesk font-bold text-[11px] uppercase tracking-wide opacity-95 truncate">{cCommunity.name}</span>
                     </div>
                     {locked && <Lock size={15} className="text-white/90 flex-shrink-0" />}
                   </div>
@@ -138,24 +181,28 @@ export default function CoursesTab({ communityId, community }) {
                 <div className="p-5 flex flex-col">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="font-display text-lg leading-tight" style={{ color: g.solid }}>{m.title}</h4>
-                    {isAdmin && !previewAsMember && (
-                      m.alwaysOpen
-                        ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-600 whitespace-nowrap flex-shrink-0">Always open</span>
-                        : <button onClick={() => updateModule(m.id, { released: !(m.released === true) })} className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap flex-shrink-0 ${m.released ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>{m.released ? 'Lock' : 'Release'}</button>
-                    )}
+                    {tierLocked
+                      ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 whitespace-nowrap flex-shrink-0">{cCommunity.name}</span>
+                      : isAdmin && !previewAsMember && (
+                        m.alwaysOpen
+                          ? <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-600 whitespace-nowrap flex-shrink-0">Always open</span>
+                          : <button onClick={() => updateModule(m.id, { released: !(m.released === true) })} className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap flex-shrink-0 ${m.released ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>{m.released ? 'Lock' : 'Release'}</button>
+                      )}
                   </div>
                   {m.description && <p className="font-grotesk text-sm text-gray-500 mt-1.5 line-clamp-2 leading-snug">{m.description}</p>}
-                  <p className="font-grotesk font-bold text-[11px] tracking-widest uppercase text-gray-400 mt-3">{less.length} lesson{less.length !== 1 ? 's' : ''}</p>
+                  {!tierLocked && <p className="font-grotesk font-bold text-[11px] tracking-widest uppercase text-gray-400 mt-3">{less.length} lesson{less.length !== 1 ? 's' : ''}</p>}
                   {less.length > 0 && !locked && (
                     <div className="mt-2"><div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: g.bar }} /></div></div>
                   )}
                   <div className="flex flex-wrap items-center gap-2 mt-auto pt-4">
-                    {locked ? (
+                    {tierLocked ? (
+                      <button onClick={() => buyTier(c.communityId)} className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold font-grotesk hover:opacity-90" style={{ background: g.btn }}><Lock size={14} /> Unlock{plan ? ` — ${priceLabel(plan)}` : ''}</button>
+                    ) : releaseLocked ? (
                       <span className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 text-gray-400 text-sm font-bold"><Lock size={14} /> Unlocks when released</span>
                     ) : (
                       <button onClick={() => setMode({ view: 'play', courseId: c.id, moduleId: m.id })} className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold font-grotesk hover:opacity-90" style={{ background: g.btn }}><Play size={14} /> {done > 0 && done < less.length ? 'Continue' : 'View training'}</button>
                     )}
-                    {isAdmin && !previewAsMember && (
+                    {isAdmin && !previewAsMember && !tierLocked && (
                       <button onClick={() => setMode({ view: 'build', courseId: c.id })} className="px-3 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50">Build</button>
                     )}
                   </div>

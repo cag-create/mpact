@@ -28,7 +28,11 @@ export const CREAFI_LITE = {
     color: '#0f766e',
     emoji: '⚡',
     memberCount: 0,
-    joinUrl: 'https://creafigenius.com',
+    // Keep a truthy joinUrl so free self-registration stays blocked (purchase-only),
+    // but point it at the in-app checkout page. `checkout: 'in-app'` tells JoinPage to
+    // run the $27/mo Stripe checkout here instead of redirecting to an external funnel.
+    joinUrl: 'https://app.creafigenius.com/join/creafi-lite',
+    checkout: 'in-app',
     logoUrl: '/creafi-logo.png',
     category: 'Finance & Wealth',
     isLocked: false,

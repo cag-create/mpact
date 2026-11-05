@@ -124,6 +124,10 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
   try { event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], process.env.STRIPE_WEBHOOK_SECRET) }
   catch (err) { return res.status(400).send(`Webhook Error: ${err.message}`) }
   console.log('stripe event', event.type)
+  // Fulfillment: on a completed checkout, grant the buyer the tier they paid for.
+  // ACK first-class so Stripe never retries on our processing error; log instead.
+  try { if (event.type === 'checkout.session.completed') await fulfillCheckout(event.data.object) }
+  catch (err) { console.error('stripe fulfill error', err) }
   res.json({ received: true })
 })
 
@@ -224,6 +228,73 @@ async function ensureEnrollment({ communityId, memberId, planName, price, interv
     status: 'active', enrolledAt: new Date().toISOString().split('T')[0], amount: Number(amount ?? price) || 0 }
   await setState('enrollments', [...enrollments, enr])
   return enr
+}
+
+// Fulfill a completed Stripe Checkout: grant the buyer the tier they paid for.
+// Driven by the tier's communityId in the session metadata (set when we create
+// the checkout). An EXISTING member buying another tier just gets the new
+// enrollment added — we never reset their password. A brand-new buyer gets an
+// account + enrollment and is emailed their login.
+async function fulfillCheckout(session) {
+  if (!pool || !session) return
+  const md = session.metadata || {}
+  const communityId = md.communityId
+  if (!communityId) { console.warn('stripe fulfill: no communityId in metadata'); return }
+  const email = String(session.customer_details?.email || session.customer_email || '').trim().toLowerCase()
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { console.warn('stripe fulfill: no usable email'); return }
+  const name = String(session.customer_details?.name || md.name || email).trim() || email
+  const planInfo = {
+    communityId,
+    planName: md.planName || 'Membership',
+    price:    md.price !== undefined && md.price !== '' ? Number(md.price) : undefined,
+    interval: md.interval || 'month',
+    amount:   typeof session.amount_total === 'number' ? session.amount_total / 100 : undefined,
+  }
+  const [rows] = await pool.query('SELECT * FROM hub_users WHERE email=?', [email])
+  if (rows.length) {
+    if (rows[0].role === 'platform_admin') return               // never touch the admin
+    await ensureEnrollment({ ...planInfo, memberId: rows[0].member_id })   // add tier, keep their password
+    console.log('stripe fulfill: added', communityId, 'to existing', email)
+    return
+  }
+  const password = crypto.randomBytes(9).toString('base64url').replace(/[-_]/g, 'x').slice(0, 12)
+  const { member } = await createMemberAndUser({ communityId, name, email, password })
+  await ensureEnrollment({ ...planInfo, memberId: member.id })
+  await sendWelcomeEmail({ email, name, password }).catch(e => console.error('welcome email failed', e?.message))
+  console.log('stripe fulfill: created', communityId, 'account for', email)
+}
+
+// Best-effort welcome email for a brand-new self-serve buyer (Brevo). No-op when
+// Brevo isn't configured — the buyer can still use Forgot Password on /login.
+async function sendWelcomeEmail({ email, name, password }) {
+  const apiKey = process.env.BREVO_API_KEY || process.env.BREVO_KEY || process.env.SENDINBLUE_API_KEY
+  if (!apiKey) return
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'support@creafigenius.com'
+  const senderName  = process.env.BREVO_SENDER_NAME  || "Crea'fi Genius"
+  const loginUrl = `${PUBLIC_URL}/login`
+  const htmlContent = `<p>Welcome${name ? `, ${name}` : ''}!</p>
+    <p>Your membership is ready. Sign in here: <a href="${loginUrl}">${loginUrl}</a></p>
+    <p><b>Email:</b> ${email}<br><b>Temporary password:</b> ${password}</p>
+    <p>Please change your password once you're in. If this password ever stops working, use “Forgot password” on the login page.</p>`
+  await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { accept: 'application/json', 'api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({ sender: { name: senderName, email: senderEmail }, to: [{ email, name: name || email }], subject: "Your Crea'fi Genius login", htmlContent }),
+  })
+}
+
+// Which tiers (community ids) a user may access. Returns null for admins (meaning
+// "everything — no filtering"); for everyone else, their home community plus any
+// tier they hold an active enrollment for. Mirrors src/lib/entitlements.js.
+async function userEntitledTiers(user) {
+  if (isAdmin(user)) return null
+  const set = new Set()
+  if (user?.community_id) set.add(user.community_id)
+  if (user?.member_id) {
+    const enrollments = (await getState('enrollments')) || []
+    for (const e of enrollments) if (e && e.status === 'active' && e.memberId === user.member_id && e.communityId) set.add(e.communityId)
+  }
+  return set
 }
 
 // ─── Provisioning (server-to-server, used by creafigenius.com after payment) ──
@@ -384,10 +455,18 @@ app.post('/api/admin/referrals/:id/paid', needDb, auth, async (req, res) => {
 })
 
 // ─── Shared state ─────────────────────────────────────────────────────────────
-app.get('/api/state', needDb, auth, async (_req, res) => {
+app.get('/api/state', needDb, auth, async (req, res) => {
   const [rows] = await pool.query('SELECT k, v FROM hub_state')
   const out = {}
   for (const r of rows) if (SHARED_KEYS.includes(r.k)) out[r.k] = JSON.parse(r.v)
+  // Content protection: a non-admin only receives lesson CONTENT for tiers they're
+  // entitled to (plus free previews). Course & module metadata (titles, etc.) stay,
+  // so the storefront can still show locked courses with a buy CTA — but the actual
+  // teaching content of a course they haven't paid for never leaves the server.
+  const entitled = await userEntitledTiers(req.user)
+  if (entitled && Array.isArray(out.lessons)) {
+    out.lessons = out.lessons.filter(l => l && (l.isFreePreview || !l.communityId || entitled.has(l.communityId)))
+  }
   res.json(out)
 })
 
@@ -411,16 +490,28 @@ app.get('/api/users', needDb, auth, async (req, res) => {
 // ─── Stripe Checkout + Brevo blast (unchanged) ────────────────────────────────
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(503).json({ error: 'Stripe not configured' })
-  const { planName, price, interval, communityId, communityName } = req.body
+  const { planName, price, interval, communityId, communityName, email, successPath, cancelPath } = req.body
   const origin = req.headers.origin || `https://${req.headers.host}`
+  // Only accept single-leading-slash relative return paths (no open redirects).
+  const safePath = (p, fallback) => (typeof p === 'string' && /^\/(?!\/)/.test(p)) ? p : fallback
   try {
     const isSubscription = interval === 'month' || interval === 'year'
+    // Carried onto checkout.session.completed so the webhook grants the right tier.
+    const metadata = {
+      communityId: String(communityId || ''),
+      planName:    String(planName || 'Membership'),
+      price:       String(price ?? ''),
+      interval:    String(interval || 'once'),
+    }
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{ price_data: { currency: 'usd', product_data: { name: `${communityName} — ${planName} Plan` }, unit_amount: Math.round(price * 100), ...(isSubscription && { recurring: { interval: interval === 'year' ? 'year' : 'month' } }) }, quantity: 1 }],
       mode: isSubscription ? 'subscription' : 'payment',
-      success_url: `${origin}/community/${communityId}/members?payment=success`,
-      cancel_url: `${origin}/community/${communityId}/pricing`,
+      metadata,
+      ...(isSubscription ? { subscription_data: { metadata } } : {}),
+      ...(email ? { customer_email: String(email) } : {}),
+      success_url: `${origin}${safePath(successPath, `/community/${communityId}/members?payment=success`)}`,
+      cancel_url:  `${origin}${safePath(cancelPath,  `/community/${communityId}/pricing`)}`,
     })
     res.json({ url: session.url })
   } catch (err) { res.status(500).json({ error: err.message }) }

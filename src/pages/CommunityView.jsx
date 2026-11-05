@@ -10,6 +10,7 @@ import {
   addMonths, subMonths, isSameDay, getDay, isToday
 } from 'date-fns'
 import { useApp } from '../App'
+import { STOREFRONT_TIERS, isStorefrontTier, entitledTierSet } from '../lib/entitlements'
 import { occursOn, upcomingOccurrences, timeLabel, RECUR_LABEL } from '../lib/events'
 import { AddEventModal, PostIntroModal, AddMemberModal } from '../components/Modals'
 import CoursesTab from '../components/CoursesTab'
@@ -316,7 +317,7 @@ const TYPE_CONFIG = {
 }
 
 function CalendarTab({ communityId, community }) {
-  const { events, deleteEvent, currentUser } = useApp()
+  const { events, deleteEvent, currentUser, members, enrollments } = useApp()
   const isAdmin = ['platform_admin', 'admin', 'owner'].includes(currentUser?.role)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
@@ -324,7 +325,14 @@ function CalendarTab({ communityId, community }) {
   const [editingEvent, setEditingEvent] = useState(null)
   const [confirmDel, setConfirmDel] = useState(null)
 
-  const communityEvents = events.filter(e => e.communityId === communityId)
+  // Dedicated calendar per tier: a member sees only the calendar(s) they're
+  // entitled to; an admin sees every tier's events together. Off the storefront,
+  // it's just this community's events as before.
+  const member = members?.find(m => m.id === (currentUser?.memberId || currentUser?.id))
+  const entitled = entitledTierSet({ currentUser, member, enrollments })
+  const communityEvents = isStorefrontTier(communityId)
+    ? events.filter(e => STOREFRONT_TIERS.includes(e.communityId) && (isAdmin || entitled.has(e.communityId)))
+    : events.filter(e => e.communityId === communityId)
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd   = endOfMonth(currentMonth)
