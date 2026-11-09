@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../App'
+import { api } from '../lib/api'
 import { CommunityLogo } from '../components/CreafiLogo'
 
 // Public purchase entry for a storefront tier (e.g. /join/creafi-lite).
-//  - Logged-in members are sent to the storefront (they buy via the locked card there).
-//  - Logged-out visitors on an in-app-checkout tier see a $/mo join card that starts
-//    Stripe Checkout. On payment the webhook creates their account and emails the login.
-//  - Any other community falls back to its own join funnel (joinUrl) or the app.
+//  - Logged-in members are sent to the community (they buy via the locked card there).
+//  - Logged-out visitors fetch the tier's public purchase info from /api/join/:id
+//    (no auth needed) and see a $/mo join card that starts Stripe Checkout. On payment
+//    the webhook creates their account and emails the login.
+//  - Any tier that isn't in-app-checkout (404) falls back to the app root.
 function Spinner() {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -21,26 +23,29 @@ function Spinner() {
 
 export default function JoinPage() {
   const { slugOrId } = useParams()
-  const { communities, plans, currentUser } = useApp()
+  const { currentUser } = useApp()
   const navigate = useNavigate()
+  const [tier, setTier] = useState(null)        // { community, plan }
+  const [status, setStatus] = useState('loading') // loading | ready | notfound
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
 
-  const community = communities.find(c => c.slug === slugOrId || c.id === slugOrId)
-  const plan = community ? plans?.find(p => p.communityId === community.id && p.isActive) : null
-  const purchasable = !!(community && !currentUser && plan && community.checkout === 'in-app')
-
+  // Logged-in members don't buy here — send them into the community (the storefront's
+  // locked-tier "Unlock" card handles their purchase).
   useEffect(() => {
-    if (!community) { if (slugOrId) navigate('/', { replace: true }); return }
-    if (currentUser) { navigate(`/community/${community.id}`, { replace: true }); return }
-    if (!purchasable) {
-      if (community.joinUrl && /^https?:\/\//.test(community.joinUrl)) window.location.href = community.joinUrl
-      else navigate(`/community/${community.id}`, { replace: true })
-    }
-  }, [community, currentUser, purchasable, slugOrId, navigate])
+    if (currentUser) { navigate(`/community/${slugOrId}`, { replace: true }); return }
+    let alive = true
+    api.joinInfo(slugOrId)
+      .then(data => { if (alive) { setTier(data); setStatus('ready') } })
+      .catch(() => { if (alive) setStatus('notfound') })
+    return () => { alive = false }
+  }, [slugOrId, currentUser, navigate])
 
-  if (!purchasable) return <Spinner />
+  useEffect(() => { if (status === 'notfound') navigate('/', { replace: true }) }, [status, navigate])
 
+  if (status !== 'ready' || !tier) return <Spinner />
+
+  const { community, plan } = tier
   const per = plan.interval === 'year' ? 'year' : 'month'
   const start = async () => {
     setErr(''); setBusy(true)

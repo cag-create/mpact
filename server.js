@@ -473,6 +473,23 @@ app.get('/api/state', needDb, auth, async (req, res) => {
   res.json(out)
 })
 
+// Public (no-auth) purchase info for an in-app-checkout tier. Logged-out visitors
+// can't call /api/state (auth-gated), so the shareable /join/:id page fetches just
+// the safe, public fields it needs to show the price card and start Stripe checkout.
+app.get('/api/join/:id', needDb, async (req, res) => {
+  const id = String(req.params.id || '')
+  const communities = (await getState('communities')) || []
+  const plans = (await getState('plans')) || []
+  const community = communities.find(c => c && (c.id === id || c.slug === id))
+  if (!community || community.checkout !== 'in-app') return res.status(404).json({ error: 'Not available' })
+  const plan = plans.find(p => p && p.communityId === community.id && p.isActive)
+  if (!plan) return res.status(404).json({ error: 'No active plan' })
+  res.json({
+    community: { id: community.id, slug: community.slug, name: community.name, description: community.description, color: community.color, logoUrl: community.logoUrl },
+    plan: { id: plan.id, name: plan.name, price: plan.price, interval: plan.interval, features: Array.isArray(plan.features) ? plan.features : [] },
+  })
+})
+
 app.put('/api/state/:key', needDb, auth, async (req, res) => {
   const key = req.params.key
   if (!SHARED_KEYS.includes(key)) return res.status(400).json({ error: 'Unknown key' })
