@@ -57,7 +57,7 @@ export const CREAFI_MASTERMIND = {
         'One payment of $1,500',
       ],
       isActive: true,
-      stripePriceId: '', // filled by scripts/create-mastermind-stripe.cjs (one-time $1,500)
+      stripePriceId: 'price_1UbMJy2ejxCaLu7pR9fJiUsZ', // one-time $1,500 (prod_VcbXRIHVrkwL7t)
     },
     {
       id: 'pl_creafi_mastermind_5pay',
@@ -75,7 +75,7 @@ export const CREAFI_MASTERMIND = {
         '5 payments of $300, then it stops — lifetime access',
       ],
       isActive: true,
-      stripePriceId: '', // filled by scripts/create-mastermind-stripe.cjs ($300/mo, metadata.installments=5)
+      stripePriceId: 'price_1UbMJy2ejxCaLu7pol66IoNI', // $300/mo, metadata.installments=5 (prod_VcbXRIHVrkwL7t)
     },
   ],
 }
