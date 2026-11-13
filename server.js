@@ -482,11 +482,19 @@ app.get('/api/join/:id', needDb, async (req, res) => {
   const plans = (await getState('plans')) || []
   const community = communities.find(c => c && (c.id === id || c.slug === id))
   if (!community || community.checkout !== 'in-app') return res.status(404).json({ error: 'Not available' })
-  const plan = plans.find(p => p && p.communityId === community.id && p.isActive)
-  if (!plan) return res.status(404).json({ error: 'No active plan' })
+  const active = plans.filter(p => p && p.communityId === community.id && p.isActive)
+  if (!active.length) return res.status(404).json({ error: 'No active plan' })
+  const pub = (plan) => ({
+    id: plan.id, name: plan.name, price: plan.price, interval: plan.interval,
+    description: plan.description || '',
+    installments: Number(plan.installments) || 0,
+    stripePriceId: plan.stripePriceId || '',
+    features: Array.isArray(plan.features) ? plan.features : [],
+  })
   res.json({
     community: { id: community.id, slug: community.slug, name: community.name, description: community.description, color: community.color, logoUrl: community.logoUrl },
-    plan: { id: plan.id, name: plan.name, price: plan.price, interval: plan.interval, features: Array.isArray(plan.features) ? plan.features : [] },
+    plan: pub(active[0]),      // backward-compat: first active plan
+    plans: active.map(pub),    // all active plans (e.g. Pay in Full + 5-Month Plan)
   })
 })
 
@@ -508,14 +516,24 @@ app.get('/api/users', needDb, auth, async (req, res) => {
 })
 
 // ─── Stripe Checkout + Brevo blast (unchanged) ────────────────────────────────
+// Absolute URL to the brand logo, shown on the Stripe checkout page and the invoice/receipt.
+// Must be public (Stripe fetches it), so never use a localhost origin.
+const BRAND_LOGO_URL = `${PUBLIC_URL.replace(/\/$/, '')}/creafi-logo.png`
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(503).json({ error: 'Stripe not configured' })
-  const { planName, price, interval, communityId, communityName, email, successPath, cancelPath } = req.body
+  const { planName, price, interval, communityId, communityName, email, successPath, cancelPath, priceId } = req.body
   const origin = req.headers.origin || `https://${req.headers.host}`
   // Only accept single-leading-slash relative return paths (no open redirects).
   const safePath = (p, fallback) => (typeof p === 'string' && /^\/(?!\/)/.test(p)) ? p : fallback
   try {
-    const isSubscription = interval === 'month' || interval === 'year'
+    // A persisted Stripe Price (priceId) decides mode and carries its own metadata.installments,
+    // which the creafigenius.com webhook uses to auto-stop an N-pay plan after the final payment.
+    // Without a priceId we build an ad-hoc price_data line (one-time or open-ended subscription).
+    let isSubscription = interval === 'month' || interval === 'year'
+    if (priceId) {
+      const p = await stripe.prices.retrieve(String(priceId))
+      isSubscription = p.type === 'recurring'
+    }
     // Carried onto checkout.session.completed so the webhook grants the right tier.
     const metadata = {
       source:      'mpact-app',   // lets our webhook ignore creafigenius.com's own sessions (shared Stripe account)
@@ -524,9 +542,12 @@ app.post('/api/create-checkout-session', async (req, res) => {
       price:       String(price ?? ''),
       interval:    String(interval || 'once'),
     }
+    const lineItem = priceId
+      ? { price: String(priceId), quantity: 1 }
+      : { price_data: { currency: 'usd', product_data: { name: `${communityName} — ${planName} Plan`, images: [BRAND_LOGO_URL] }, unit_amount: Math.round(price * 100), ...(isSubscription && { recurring: { interval: interval === 'year' ? 'year' : 'month' } }) }, quantity: 1 }
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [{ price_data: { currency: 'usd', product_data: { name: `${communityName} — ${planName} Plan` }, unit_amount: Math.round(price * 100), ...(isSubscription && { recurring: { interval: interval === 'year' ? 'year' : 'month' } }) }, quantity: 1 }],
+      line_items: [lineItem],
       mode: isSubscription ? 'subscription' : 'payment',
       metadata,
       ...(isSubscription ? { subscription_data: { metadata } } : {}),

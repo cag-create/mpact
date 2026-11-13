@@ -788,7 +788,7 @@ function LockScreen({ community, plans, onClose }) {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planName: plan.name, price: plan.price, interval: plan.interval, communityId: community.id, communityName: community.name }),
+        body: JSON.stringify({ planName: plan.name, price: plan.price, interval: plan.interval, priceId: plan.stripePriceId || undefined, communityId: community.id, communityName: community.name }),
       })
       const data = await res.json()
       if (data.url) { window.location.href = data.url }
@@ -905,6 +905,7 @@ function PricingTab({ communityId, community }) {
           planName: plan.name,
           price: plan.price,
           interval: plan.interval,
+          priceId: plan.stripePriceId || undefined,
           communityId,
           communityName: community.name,
         }),

@@ -100,7 +100,7 @@ export default function CoursesTab({ communityId, community }) {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          planName: plan.name, price: plan.price, interval: plan.interval,
+          planName: plan.name, price: plan.price, interval: plan.interval, priceId: plan.stripePriceId || undefined,
           communityId: cid, communityName: tc?.name || plan.name, email: currentUser?.email,
           successPath: `/community/${communityId}/content?unlocked=${cid}`,
           cancelPath: `/community/${communityId}/content`,

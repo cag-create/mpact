@@ -12,6 +12,7 @@ import MessagesPage from './pages/MessagesPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import { CREAFI_COURSE } from './data/creafiCourse'
 import { CREAFI_LITE } from './data/creafiLiteCourse'
+import { CREAFI_MASTERMIND } from './data/creafiMastermind'
 
 // ─── Schema v8 — clears stale localStorage ────────────────────────────────────
 const SCHEMA_VERSION = 'v10-server'
@@ -52,6 +53,7 @@ const INITIAL_COMMUNITIES = [
     category: 'Finance & Wealth', isLocked: false, lockedScreenLogo: null, createdAt: '2026-03-26',
   },
   CREAFI_LITE.community,
+  CREAFI_MASTERMIND.community,
 ]
 
 const INITIAL_USERS = [] // accounts live on the server now (hub_users)
@@ -66,6 +68,7 @@ const INITIAL_PLANS = [
     description: 'Full membership, billed once a year',
     features: ['Private members community','Live sessions every week: Deal Lab, Sales Practice, Office Hours','Replays by topic and property type','Creative finance, wholesale, agent outreach, and sales tracks','Contracts and agreements','Work reviews on your real deals','Crea\'fi shirt mailed to you'], isActive: true },
   CREAFI_LITE.plan,
+  ...CREAFI_MASTERMIND.plans,
 ]
 
 const INITIAL_SEQUENCES = [
@@ -279,6 +282,19 @@ function AppProvider({ children }) {
     if (missingMods.length) setModules(ms => { const have = new Set(ms.map(m => m.id)); return [...ms, ...missingMods.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))] })
     if (missingLes.length) setLessons(ls => { const have = new Set(ls.map(l => l.id)); return [...ls, ...missingLes.filter(l => !have.has(l.id)).map(l => ({ ...l, createdAt: now }))] })
   }, [hydrated, currentUser?.id, communities, plans, courses, modules, lessons])
+
+  // Crea'fi Genius Mastermind seed/self-heal — a tier only (no courses/modules/lessons).
+  // Additive, admin-only, idempotent: inserts the community and its two plans (Pay in Full,
+  // 5-Month Plan) if missing. Never overwrites edits, so updated Stripe price IDs persist.
+  useEffect(() => {
+    if (!hydrated || !currentUser) return
+    if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    const needCommunity = !communities.some(c => c.id === CREAFI_MASTERMIND.community.id)
+    const missingPlans = CREAFI_MASTERMIND.plans.filter(p => !plans.some(x => x.id === p.id))
+    if (!needCommunity && !missingPlans.length) return
+    if (needCommunity) setCommunities(cs => cs.some(c => c.id === CREAFI_MASTERMIND.community.id) ? cs : [...cs, CREAFI_MASTERMIND.community])
+    if (missingPlans.length) setPlans(ps => { const have = new Set(ps.map(p => p.id)); return [...ps, ...missingPlans.filter(p => !have.has(p.id))] })
+  }, [hydrated, currentUser?.id, communities, plans])
 
   // ── Self-healing repair: keep every Crea'fi module on the real course, released, and in order ──
   // Background: the hub_state sync is last-write-wins for modules/lessons, so a stale tab/device
