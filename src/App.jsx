@@ -13,6 +13,7 @@ import AnalyticsPage from './pages/AnalyticsPage'
 import { CREAFI_COURSE } from './data/creafiCourse'
 import { CREAFI_LITE } from './data/creafiLiteCourse'
 import { CREAFI_MASTERMIND } from './data/creafiMastermind'
+import { CREAFI_GENIUS } from './data/creafiGenius'
 
 // ─── Schema v8 — clears stale localStorage ────────────────────────────────────
 const SCHEMA_VERSION = 'v10-server'
@@ -54,6 +55,7 @@ const INITIAL_COMMUNITIES = [
   },
   CREAFI_LITE.community,
   CREAFI_MASTERMIND.community,
+  CREAFI_GENIUS.community,
 ]
 
 const INITIAL_USERS = [] // accounts live on the server now (hub_users)
@@ -69,6 +71,7 @@ const INITIAL_PLANS = [
     features: ['Private members community','Live sessions every week: Deal Lab, Sales Practice, Office Hours','Replays by topic and property type','Creative finance, wholesale, agent outreach, and sales tracks','Contracts and agreements','Work reviews on your real deals','Crea\'fi shirt mailed to you'], isActive: true },
   CREAFI_LITE.plan,
   ...CREAFI_MASTERMIND.plans,
+  CREAFI_GENIUS.plan,
 ]
 
 const INITIAL_SEQUENCES = [
@@ -278,6 +281,29 @@ function AppProvider({ children }) {
     const now = Date.now()
     if (needCommunity) setCommunities(cs => cs.some(c => c.id === CREAFI_LITE.community.id) ? cs : [...cs, CREAFI_LITE.community])
     if (needPlan) setPlans(ps => ps.some(p => p.id === CREAFI_LITE.plan.id) ? ps : [...ps, CREAFI_LITE.plan])
+    if (missingCourses.length) setCourses(cs => { const have = new Set(cs.map(c => c.id)); return [...cs, ...missingCourses.filter(c => !have.has(c.id)).map(c => ({ ...c, createdAt: new Date().toISOString() }))] })
+    if (missingMods.length) setModules(ms => { const have = new Set(ms.map(m => m.id)); return [...ms, ...missingMods.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))] })
+    if (missingLes.length) setLessons(ls => { const have = new Set(ls.map(l => l.id)); return [...ls, ...missingLes.filter(l => !have.has(l.id)).map(l => ({ ...l, createdAt: now }))] })
+  }, [hydrated, currentUser?.id, communities, plans, courses, modules, lessons])
+
+  // ── Seed the standalone "Crea'fi Genius" community ($27/mo, "Zero to Deal in 90 Days") ──
+  // Same two tracks as Lite, cloned under communityId 'creafi-genius'. Additive, admin-only,
+  // idempotent — inserts community, plan, courses, modules, lessons if missing; never overwrites edits.
+  useEffect(() => {
+    if (!hydrated || !currentUser) return
+    if (!['platform_admin', 'admin', 'owner'].includes(currentUser.role)) return
+    const needCommunity = !communities.some(c => c.id === CREAFI_GENIUS.community.id)
+    const needPlan = !plans.some(p => p.id === CREAFI_GENIUS.plan.id)
+    const haveCourse = new Set(courses.map(c => c.id))
+    const missingCourses = CREAFI_GENIUS.courses.filter(c => !haveCourse.has(c.id))
+    const haveMod = new Set(modules.map(m => m.id))
+    const missingMods = CREAFI_GENIUS.modules.filter(m => !haveMod.has(m.id))
+    const haveLes = new Set(lessons.map(l => l.id))
+    const missingLes = CREAFI_GENIUS.lessons.filter(l => !haveLes.has(l.id))
+    if (!needCommunity && !needPlan && !missingCourses.length && !missingMods.length && !missingLes.length) return
+    const now = Date.now()
+    if (needCommunity) setCommunities(cs => cs.some(c => c.id === CREAFI_GENIUS.community.id) ? cs : [...cs, CREAFI_GENIUS.community])
+    if (needPlan) setPlans(ps => ps.some(p => p.id === CREAFI_GENIUS.plan.id) ? ps : [...ps, CREAFI_GENIUS.plan])
     if (missingCourses.length) setCourses(cs => { const have = new Set(cs.map(c => c.id)); return [...cs, ...missingCourses.filter(c => !have.has(c.id)).map(c => ({ ...c, createdAt: new Date().toISOString() }))] })
     if (missingMods.length) setModules(ms => { const have = new Set(ms.map(m => m.id)); return [...ms, ...missingMods.filter(m => !have.has(m.id)).map(m => ({ ...m, createdAt: now }))] })
     if (missingLes.length) setLessons(ls => { const have = new Set(ls.map(l => l.id)); return [...ls, ...missingLes.filter(l => !have.has(l.id)).map(l => ({ ...l, createdAt: now }))] })
