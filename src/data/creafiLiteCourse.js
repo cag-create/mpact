@@ -617,4 +617,37 @@ export const CREAFI_LITE = {
       order: 7,
     },
   ],
+
+  // The ONLY two classes a Crea'fi Lite member gets on their calendar: the Monday
+  // Deal Lab and the Tuesday Campfire Effect — same times and same Zoom links as the
+  // main Crea'fi calendar, but their own (communityId 'creafi-lite') dated weekly
+  // series so Lite's calendar shows exactly these two and nothing from the full tier.
+  // Weekly recurring (the CalendarTab renderer honors recur via occursOn()); anchored
+  // on a Monday / Tuesday so every following week lands on the right weekday.
+  events: [
+    {
+      id: 'csch-lite-deallab',
+      communityId: 'creafi-lite',
+      title: 'Deal Lab',
+      description: '',
+      date: '2026-11-30',            // Monday
+      time: '4:00 – 5:00 PM ET',
+      type: 'call',
+      recur: 'weekly',
+      until: '',
+      liveUrl: 'https://us02web.zoom.us/j/81591384352?pwd=dLNS2o8Sv1n12lvNxa6L0H8LekmMVR.1',
+    },
+    {
+      id: 'csch-lite-campfireeffect',
+      communityId: 'creafi-lite',
+      title: 'Campfire Effect',
+      description: '',
+      date: '2026-12-01',            // Tuesday
+      time: '6:00 – 8:00 PM ET',
+      type: 'call',
+      recur: 'weekly',
+      until: '',
+      liveUrl: 'https://us02web.zoom.us/j/88388004672?pwd=pTlCwFatFbFAZQAEmA6wrSv6prRbvV.1',
+    },
+  ],
 }
